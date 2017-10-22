@@ -1,0 +1,12 @@
+Output: NC Drill Files
+Type  : NC Drill
+From  : Project [Teensy36AdapterBoard.PrjPcb]
+   Generated File[Teensy36AdapterBoard.TXT]
+   Generated File[Teensy36AdapterBoard.LDP]
+   Generated File[Teensy36AdapterBoard.DRR]
+
+
+Files Generated   : 3
+Documents Printed : 0
+
+Finished Output Generation At 14:29:46 On 15.10.2017

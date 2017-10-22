@@ -1,0 +1,8 @@
+/Documentation
+/*.g_c
+/*.g_x
+/Generated_Code
+/FLASH
+/*.apconfig
+/*.traceConfig
+/ProjectInfo.xml

@@ -1,0 +1,34 @@
+\section*{ComponentEvaluation}
+The hardware should at least satisfy the following requirements:
+
+\begin{itemize}
+	\item Optimization of size and weight \\
+	\item Hardware fit for field use (e.g. connectors, plugs, housing) \\
+	\item Powerful processor with more memory and RNG/encryption support (e.g. K64 or K66) \\
+	\item SWD/JTAG debugging \\
+	\item UART hardware flow control \\
+	\item SD card (regular or micro) \\
+	\item 3.3V power supply pins available \\
+	\item Each interface should be configurable to either RS232 or TTL output \\
+\end{itemize}
+
+\section*{Processor selection}
+Andreas Albisser used a Teensy 3.1 in the previous project.\\
+The Teensy development boards are breadboard compatible USB development boards. They are small, low-priced and yet equipped with a powerful ARM processor.\\
+The previously used Teensy 3.1 does not support encryption, therefore a more powerful processor had to be selected. Currently, the only Teensy with an ARM processor that supports encryption is the Teensy 3.6.
+
+\section*{Debugging interface selection}
+The Teensy development boards all come with a pre-flashed bootloader to enable programming over USB. They use a less powerful processor as an interface to the developer to enable the use of Arduino libraries and the Arduino IDE. The only downside is: Hardware debugging is not possible on the Teensies because of that processor interface.\\
+The Teensy 3.6 has the SWD (Serial Wire Debug) debugging pins available on pads on the bottom side though so that a header can be soldered onto those pads.In order to enable hardware debugging, the interface processor has to be removed because it can not be stopped from communicating with the ARM processor. A detailed description of the removal process can be found on mcuoneclipse.com.\\
+The SWD debug interface has the following pins defined:
+\begin{itemize}
+	\item DD -> Debug Data \\
+	\item GND \\
+\end{itemize}
+To enable JTAG pins being mapped directly onto a SWD debug interface, the following pins are defined additionally:
+\begin{itemize}
+	\item DC -> Debug Clock, can be connected to JTAG TCK \\
+	\item SWO -> Serial Wire Output, can be connected to JTAG's TDO \\
+\end{itemize}
+For more information, see: \\\url{http://infocenter.arm.com/help/topic/com.arm.doc.ddi0314h/DDI0314H_coresight_components_trm.pdf} \\
+Pinout: see p. 357\\

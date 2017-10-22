@@ -1,0 +1,47 @@
+\documentclass[a4paper,
+%twoside,
+11pt]{article}
+\usepackage[a4paper,left=3cm,right=2cm,top=2.5cm,bottom=2.5cm]{geometry}
+\usepackage[utf8]{inputenc} % für Umlaute ü, ä und ö
+\usepackage{booktabs}
+\usepackage{url}
+\usepackage{amsmath}
+
+%opening
+\title{Documentation VM1}
+\author{Stefanie Schmidiger}
+
+\begin{document}
+
+\begin{titlepage}
+\maketitle
+Hallo, I'm a sentence on the title page.
+\end{titlepage}
+
+\begin{abstract}
+This will be an abstract - sometime in the future.
+\end{abstract}
+
+\newpage
+\input{./tex/Introduction/Introduction.tex}  % Introduction
+\newpage
+\input{./tex/todo.tex}                      % to-do List
+\newpage
+\input{./tex/Protocol/Protocol.tex}          % Arbeitsjournal
+\newpage
+\input{./tex/Hardware/HwChanges.tex}          %
+\input{./tex/Hardware/ComponentEvaluation.tex}          %
+\newpage
+\input{./tex/Software/AdaptionToTeensy35.tex}         %
+\newpage
+\input{./tex/Software/DataValidity.tex}         %
+\newpage
+\input{./tex/Software/Encryption.tex}         %
+\newpage
+%\input{./tex/target_definition.tex}         % Target definition (moving)
+%\newpage
+%\input{./tex/Papers/1_AC_a_survey.tex}      % Summary paper 1
+%\input{./tex/Papers/4_Neural_Acceleration_for_general_purpose_approximate_programs.tex} % Summary paper 4
+%\input{./tex/papers/clean_paper_summary.tex} % Paper summary - Template
+
+\end{document}

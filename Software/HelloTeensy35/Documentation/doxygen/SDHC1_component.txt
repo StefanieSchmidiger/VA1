@@ -1,0 +1,898 @@
+/*!
+  \page SDHC1 SDHC1 (SDHC_LDD)
+**          This component implements a SD host controller driver 
+**          interface. Handles control and data transfers to/from
+**          SD and MMC cards.
+**
+
+- \subpage SDHC1_settings
+- \subpage SDHC1_regs_overview  
+- \subpage SDHC1_regs_details
+- \ref SDHC1_module "Component documentation" 
+\page SDHC1_regs_overview Registers Initialization Overview
+This page contains the initialization values for the registers of the peripheral(s) configured
+by the component. 
+<table>
+<tr><td colspan="4" class="ttitle1">SDHC1 Initialization</td></tr>
+<tr><td class="ttitle2">Address</td><td class="ttitle2">Register</td><td class="ttitle2">Register Value</td><td class="ttitle2">Register Description</td></tr>
+<tr><td>0x40048030</td><td>SIM_SCGC3</td>
+<td class="regNotResetVal">0x00020000</td>
+ <td>SIM_SCGC3 register, peripheral SDHC1.</td></tr>
+<tr><td>0x4004D008</td><td>PORTE_PCR2</td>
+<td class="regNotResetVal">0x00000404</td>
+ <td>PORTE_PCR2 register, peripheral SDHC1.</td></tr>
+<tr><td>0x4004D00C</td><td>PORTE_PCR3</td>
+<td class="regNotResetVal">0x00000404</td>
+ <td>PORTE_PCR3 register, peripheral SDHC1.</td></tr>
+<tr><td>0x4004D004</td><td>PORTE_PCR1</td>
+<td class="regNotResetVal">0x00000404</td>
+ <td>PORTE_PCR1 register, peripheral SDHC1.</td></tr>
+<tr><td>0x400B1028</td><td>SDHC_PROCTL</td>
+<td class="regNotResetVal">0x00000220</td>
+ <td>SDHC_PROCTL register, peripheral SDHC1.</td></tr>
+<tr><td>0x400B1044</td><td>SDHC_WML</td>
+<td class="regResetVal">0x00100010</td>
+ <td>SDHC_WML register, peripheral SDHC1.</td></tr>
+<tr><td>0x400B10C0</td><td>SDHC_VENDOR</td>
+<td class="regNotResetVal">0x00000000</td>
+ <td>SDHC_VENDOR register, peripheral SDHC1.</td></tr>
+<tr><td>0x40048004</td><td>SIM_SOPT2</td>
+<td class="regNotResetVal">0x20001000</td>
+ <td>SIM_SOPT2 register, peripheral SDHC1.</td></tr>
+<tr><td>0x400B102C</td><td>SDHC_SYSCTL</td>
+<td class="regNotResetVal">0x0007044F</td>
+ <td>SDHC_SYSCTL register, peripheral SDHC1.</td></tr>
+<tr><td>0xE000E451</td><td>NVICIP81</td>
+<td class="regNotResetVal">0x00000070</td>
+ <td>NVICIP81 register, peripheral SDHC1.</td></tr>
+<tr><td>0xE000E108</td><td>NVICISER2</td>
+<td class="regNotResetVal">0x00020000</td>
+ <td>NVICISER2 register, peripheral SDHC1.</td></tr>
+<tr><td>0x400B1030</td><td>SDHC_IRQSTAT</td>
+<td class="regNotResetVal">0xFFFFFFFF</td>
+ <td>SDHC_IRQSTAT register, peripheral SDHC1.</td></tr>
+<tr><td>0x400B1038</td><td>SDHC_IRQSIGEN</td>
+<td class="regNotResetVal">0x00000003</td>
+ <td>SDHC_IRQSIGEN register, peripheral SDHC1.</td></tr>
+<tr><td>0x400B1034</td><td>SDHC_IRQSTATEN</td>
+<td class="regNotResetVal">0xFFFFFF0F</td>
+ <td>SDHC_IRQSTATEN register, peripheral SDHC1.</td></tr>
+</table>
+Color Denotes Reset Value
+<br/>
+\page SDHC1_regs_details Register Initialization Details
+This page contains detailed description of initialization values for the 
+registers of the peripheral(s) configured by the component. 
+
+<div class="reghdr1">SIM_SCGC3</div>
+<div class="regdiag">
+<table class="regtbl">
+<tr class="trd1r">
+<td class="trd1c">Bit</td><td>31</td><td>30</td><td>29</td><td>28</td><td>27</td><td>26</td><td>25</td><td>24</td><td>23</td>
+<td>22</td><td>21</td><td>20</td><td>19</td><td>18</td><td>17</td><td>16</td>
+</tr>
+<tr>
+<td class="trd1c">R</td><td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td>
+<td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">ADC1</td><td colspan="1" rowspan="2">-</td>
+<td colspan="1" rowspan="2">FTM3</td><td colspan="1" rowspan="2">FTM2</td><td colspan="1" rowspan="2">-</td>
+<td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td>
+<td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">SDHC</td>
+<td colspan="1" rowspan="2">-</td>
+</tr>
+<tr>
+<td class="trd1c">W</td>
+</tr>
+<tr class="trd1r">
+<td class="trd1c">Reset</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>
+<td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>
+</tr>
+</table>
+<table class="regtbl">
+<tr class="trd1r">
+<td class="trd1c">Bit</td><td>15</td><td>14</td><td>13</td><td>12</td><td>11</td><td>10</td><td>9</td><td>8</td><td>7</td>
+<td>6</td><td>5</td><td>4</td><td>3</td><td>2</td><td>1</td><td>0</td>
+</tr>
+<tr>
+<td class="trd1c">R</td><td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td>
+<td colspan="1" rowspan="2">SPI2</td><td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td>
+<td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td>
+<td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td>
+<td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td>
+<td colspan="1" rowspan="2">RNGA</td>
+</tr>
+<tr>
+<td class="trd1c">W</td>
+</tr>
+<tr class="trd1r">
+<td class="trd1c">Reset</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>
+<td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>
+</tr>
+</table>
+        
+</div>
+<table class="regtbl2"><tr><td class="trowtit" colspan="2">Address</td><td colspan="2">0x40048030</td></tr>
+<tr class="trowtit"><td  class="trowtit" colspan="2">Initial value</td><td colspan="2">0x00020000</td></tr>
+<tr class="trowtit"><td  class="trowtit" colspan="2">After-reset value</td><td colspan="2">0x00000000</td></tr>
+<tr><td class="ttitle2">Bit</td><td class="ttitle2">Field</td><td class="ttitle2">Value</td><td class="ttitle2">Description</td></tr>
+<tr><td>27</td><td>ADC1</td><td>0x00</td><td>ADC1 Clock Gate Control</td>
+<tr><td>25</td><td>FTM3</td><td>0x00</td><td>FTM3 Clock Gate Control</td>
+<tr><td>24</td><td>FTM2</td><td>0x00</td><td>FTM2 Clock Gate Control</td>
+<tr><td>17</td><td>SDHC</td><td>0x01</td><td>SDHC Clock Gate Control</td>
+<tr><td>12</td><td>SPI2</td><td>0x00</td><td>SPI2 Clock Gate Control</td>
+<tr><td>0</td><td>RNGA</td><td>0x00</td><td>RNGA Clock Gate Control</td>
+</tr></table>
+<div class="reghdr1">PORTE_PCR2</div>
+<div class="regdiag">
+<table class="regtbl">
+<tr class="trd1r">
+<td class="trd1c">Bit</td><td>31</td><td>30</td><td>29</td><td>28</td><td>27</td><td>26</td><td>25</td><td>24</td><td>23</td>
+<td>22</td><td>21</td><td>20</td><td>19</td><td>18</td><td>17</td><td>16</td>
+</tr>
+<tr>
+<td class="trd1c">R</td><td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td>
+<td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td>
+<td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">ISF</td><td colspan="1" rowspan="2">-</td>
+<td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td>
+<td colspan="4" rowspan="2">IRQC</td>
+</tr>
+<tr>
+<td class="trd1c">W</td>
+</tr>
+<tr class="trd1r">
+<td class="trd1c">Reset</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>
+<td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>
+</tr>
+</table>
+<table class="regtbl">
+<tr class="trd1r">
+<td class="trd1c">Bit</td><td>15</td><td>14</td><td>13</td><td>12</td><td>11</td><td>10</td><td>9</td><td>8</td><td>7</td>
+<td>6</td><td>5</td><td>4</td><td>3</td><td>2</td><td>1</td><td>0</td>
+</tr>
+<tr>
+<td class="trd1c">R</td><td colspan="1" rowspan="2">LK</td><td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td>
+<td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td><td colspan="3" rowspan="2">MUX</td>
+<td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">DSE</td><td colspan="1" rowspan="2">ODE</td>
+<td colspan="1" rowspan="2">PFE</td><td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">SRE</td>
+<td colspan="1" rowspan="2">PE</td><td colspan="1" rowspan="2">PS</td>
+</tr>
+<tr>
+<td class="trd1c">W</td>
+</tr>
+<tr class="trd1r">
+<td class="trd1c">Reset</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>
+<td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td>
+</tr>
+</table>
+        
+</div>
+<table class="regtbl2"><tr><td class="trowtit" colspan="2">Address</td><td colspan="2">0x4004D008</td></tr>
+<tr class="trowtit"><td  class="trowtit" colspan="2">Initial value</td><td colspan="2">0x00000404</td></tr>
+<tr class="trowtit"><td  class="trowtit" colspan="2">After-reset value</td><td colspan="2">0x00000004</td></tr>
+<tr><td class="ttitle2">Bit</td><td class="ttitle2">Field</td><td class="ttitle2">Value</td><td class="ttitle2">Description</td></tr>
+<tr><td>24</td><td>ISF</td><td>0x00</td><td>Interrupt Status Flag</td>
+<tr><td>16 - 19</td><td>IRQC</td><td>0x00</td><td>Interrupt Configuration</td>
+<tr><td>15</td><td>LK</td><td>0x00</td><td>Lock Register</td>
+<tr><td>8 - 10</td><td>MUX</td><td>0x04</td><td>Pin Mux Control</td>
+<tr><td>6</td><td>DSE</td><td>0x00</td><td>Drive Strength Enable</td>
+<tr><td>5</td><td>ODE</td><td>0x00</td><td>Open Drain Enable</td>
+<tr><td>4</td><td>PFE</td><td>0x00</td><td>Passive Filter Enable</td>
+<tr><td>2</td><td>SRE</td><td>0x01</td><td>Slew Rate Enable</td>
+<tr><td>1</td><td>PE</td><td>0x00</td><td>Pull Enable</td>
+<tr><td>0</td><td>PS</td><td>0x00</td><td>Pull Select</td>
+</tr></table>
+<div class="reghdr1">PORTE_PCR3</div>
+<div class="regdiag">
+<table class="regtbl">
+<tr class="trd1r">
+<td class="trd1c">Bit</td><td>31</td><td>30</td><td>29</td><td>28</td><td>27</td><td>26</td><td>25</td><td>24</td><td>23</td>
+<td>22</td><td>21</td><td>20</td><td>19</td><td>18</td><td>17</td><td>16</td>
+</tr>
+<tr>
+<td class="trd1c">R</td><td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td>
+<td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td>
+<td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">ISF</td><td colspan="1" rowspan="2">-</td>
+<td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td>
+<td colspan="4" rowspan="2">IRQC</td>
+</tr>
+<tr>
+<td class="trd1c">W</td>
+</tr>
+<tr class="trd1r">
+<td class="trd1c">Reset</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>
+<td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>
+</tr>
+</table>
+<table class="regtbl">
+<tr class="trd1r">
+<td class="trd1c">Bit</td><td>15</td><td>14</td><td>13</td><td>12</td><td>11</td><td>10</td><td>9</td><td>8</td><td>7</td>
+<td>6</td><td>5</td><td>4</td><td>3</td><td>2</td><td>1</td><td>0</td>
+</tr>
+<tr>
+<td class="trd1c">R</td><td colspan="1" rowspan="2">LK</td><td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td>
+<td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td><td colspan="3" rowspan="2">MUX</td>
+<td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">DSE</td><td colspan="1" rowspan="2">ODE</td>
+<td colspan="1" rowspan="2">PFE</td><td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">SRE</td>
+<td colspan="1" rowspan="2">PE</td><td colspan="1" rowspan="2">PS</td>
+</tr>
+<tr>
+<td class="trd1c">W</td>
+</tr>
+<tr class="trd1r">
+<td class="trd1c">Reset</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>
+<td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td>
+</tr>
+</table>
+        
+</div>
+<table class="regtbl2"><tr><td class="trowtit" colspan="2">Address</td><td colspan="2">0x4004D00C</td></tr>
+<tr class="trowtit"><td  class="trowtit" colspan="2">Initial value</td><td colspan="2">0x00000404</td></tr>
+<tr class="trowtit"><td  class="trowtit" colspan="2">After-reset value</td><td colspan="2">0x00000004</td></tr>
+<tr><td class="ttitle2">Bit</td><td class="ttitle2">Field</td><td class="ttitle2">Value</td><td class="ttitle2">Description</td></tr>
+<tr><td>24</td><td>ISF</td><td>0x00</td><td>Interrupt Status Flag</td>
+<tr><td>16 - 19</td><td>IRQC</td><td>0x00</td><td>Interrupt Configuration</td>
+<tr><td>15</td><td>LK</td><td>0x00</td><td>Lock Register</td>
+<tr><td>8 - 10</td><td>MUX</td><td>0x04</td><td>Pin Mux Control</td>
+<tr><td>6</td><td>DSE</td><td>0x00</td><td>Drive Strength Enable</td>
+<tr><td>5</td><td>ODE</td><td>0x00</td><td>Open Drain Enable</td>
+<tr><td>4</td><td>PFE</td><td>0x00</td><td>Passive Filter Enable</td>
+<tr><td>2</td><td>SRE</td><td>0x01</td><td>Slew Rate Enable</td>
+<tr><td>1</td><td>PE</td><td>0x00</td><td>Pull Enable</td>
+<tr><td>0</td><td>PS</td><td>0x00</td><td>Pull Select</td>
+</tr></table>
+<div class="reghdr1">PORTE_PCR1</div>
+<div class="regdiag">
+<table class="regtbl">
+<tr class="trd1r">
+<td class="trd1c">Bit</td><td>31</td><td>30</td><td>29</td><td>28</td><td>27</td><td>26</td><td>25</td><td>24</td><td>23</td>
+<td>22</td><td>21</td><td>20</td><td>19</td><td>18</td><td>17</td><td>16</td>
+</tr>
+<tr>
+<td class="trd1c">R</td><td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td>
+<td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td>
+<td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">ISF</td><td colspan="1" rowspan="2">-</td>
+<td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td>
+<td colspan="4" rowspan="2">IRQC</td>
+</tr>
+<tr>
+<td class="trd1c">W</td>
+</tr>
+<tr class="trd1r">
+<td class="trd1c">Reset</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>
+<td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>
+</tr>
+</table>
+<table class="regtbl">
+<tr class="trd1r">
+<td class="trd1c">Bit</td><td>15</td><td>14</td><td>13</td><td>12</td><td>11</td><td>10</td><td>9</td><td>8</td><td>7</td>
+<td>6</td><td>5</td><td>4</td><td>3</td><td>2</td><td>1</td><td>0</td>
+</tr>
+<tr>
+<td class="trd1c">R</td><td colspan="1" rowspan="2">LK</td><td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td>
+<td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td><td colspan="3" rowspan="2">MUX</td>
+<td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">DSE</td><td colspan="1" rowspan="2">ODE</td>
+<td colspan="1" rowspan="2">PFE</td><td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">SRE</td>
+<td colspan="1" rowspan="2">PE</td><td colspan="1" rowspan="2">PS</td>
+</tr>
+<tr>
+<td class="trd1c">W</td>
+</tr>
+<tr class="trd1r">
+<td class="trd1c">Reset</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>
+<td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td>
+</tr>
+</table>
+        
+</div>
+<table class="regtbl2"><tr><td class="trowtit" colspan="2">Address</td><td colspan="2">0x4004D004</td></tr>
+<tr class="trowtit"><td  class="trowtit" colspan="2">Initial value</td><td colspan="2">0x00000404</td></tr>
+<tr class="trowtit"><td  class="trowtit" colspan="2">After-reset value</td><td colspan="2">0x00000004</td></tr>
+<tr><td class="ttitle2">Bit</td><td class="ttitle2">Field</td><td class="ttitle2">Value</td><td class="ttitle2">Description</td></tr>
+<tr><td>24</td><td>ISF</td><td>0x00</td><td>Interrupt Status Flag</td>
+<tr><td>16 - 19</td><td>IRQC</td><td>0x00</td><td>Interrupt Configuration</td>
+<tr><td>15</td><td>LK</td><td>0x00</td><td>Lock Register</td>
+<tr><td>8 - 10</td><td>MUX</td><td>0x04</td><td>Pin Mux Control</td>
+<tr><td>6</td><td>DSE</td><td>0x00</td><td>Drive Strength Enable</td>
+<tr><td>5</td><td>ODE</td><td>0x00</td><td>Open Drain Enable</td>
+<tr><td>4</td><td>PFE</td><td>0x00</td><td>Passive Filter Enable</td>
+<tr><td>2</td><td>SRE</td><td>0x01</td><td>Slew Rate Enable</td>
+<tr><td>1</td><td>PE</td><td>0x00</td><td>Pull Enable</td>
+<tr><td>0</td><td>PS</td><td>0x00</td><td>Pull Select</td>
+</tr></table>
+<div class="reghdr1">SDHC_PROCTL</div>
+<div class="regdiag">
+<table class="regtbl">
+<tr class="trd1r">
+<td class="trd1c">Bit</td><td>31</td><td>30</td><td>29</td><td>28</td><td>27</td><td>26</td><td>25</td><td>24</td><td>23</td>
+<td>22</td><td>21</td><td>20</td><td>19</td><td>18</td><td>17</td><td>16</td>
+</tr>
+<tr>
+<td class="trd1c">R</td><td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td>
+<td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">WECRM</td>
+<td colspan="1" rowspan="2">WECINS</td><td colspan="1" rowspan="2">WECINT</td><td colspan="1" rowspan="2">-</td>
+<td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td>
+<td colspan="1" rowspan="2">IABG</td><td colspan="1" rowspan="2">RWCTL</td><td colspan="1" rowspan="2">CREQ</td>
+<td colspan="1" rowspan="2">SABGREQ</td>
+</tr>
+<tr>
+<td class="trd1c">W</td>
+</tr>
+<tr class="trd1r">
+<td class="trd1c">Reset</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>
+<td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>
+</tr>
+</table>
+<table class="regtbl">
+<tr class="trd1r">
+<td class="trd1c">Bit</td><td>15</td><td>14</td><td>13</td><td>12</td><td>11</td><td>10</td><td>9</td><td>8</td><td>7</td>
+<td>6</td><td>5</td><td>4</td><td>3</td><td>2</td><td>1</td><td>0</td>
+</tr>
+<tr>
+<td class="trd1c">R</td><td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td>
+<td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td>
+<td colspan="2" rowspan="2">DMAS</td><td colspan="1" rowspan="2">CDSS</td><td colspan="1" rowspan="2">CDTL</td>
+<td colspan="2" rowspan="2">EMODE</td><td colspan="1" rowspan="2">D3CD</td><td colspan="2" rowspan="2">DTW</td>
+<td colspan="1" rowspan="2">LCTL</td>
+</tr>
+<tr>
+<td class="trd1c">W</td>
+</tr>
+<tr class="trd1r">
+<td class="trd1c">Reset</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>
+<td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>
+</tr>
+</table>
+        
+</div>
+<table class="regtbl2"><tr><td class="trowtit" colspan="2">Address</td><td colspan="2">0x400B1028</td></tr>
+<tr class="trowtit"><td  class="trowtit" colspan="2">Initial value</td><td colspan="2">0x00000220</td></tr>
+<tr class="trowtit"><td  class="trowtit" colspan="2">After-reset value</td><td colspan="2">0x00000020</td></tr>
+<tr><td class="ttitle2">Bit</td><td class="ttitle2">Field</td><td class="ttitle2">Value</td><td class="ttitle2">Description</td></tr>
+<tr><td>26</td><td>WECRM</td><td>0x00</td><td>Wakeup Event Enable On SD Card Removal</td>
+<tr><td>25</td><td>WECINS</td><td>0x00</td><td>Wakeup Event Enable On SD Card Insertion</td>
+<tr><td>24</td><td>WECINT</td><td>0x00</td><td>Wakeup Event Enable On Card Interrupt</td>
+<tr><td>19</td><td>IABG</td><td>0x00</td><td>Interrupt At Block Gap</td>
+<tr><td>18</td><td>RWCTL</td><td>0x00</td><td>Read Wait Control</td>
+<tr><td>17</td><td>CREQ</td><td>0x00</td><td>Continue Request</td>
+<tr><td>16</td><td>SABGREQ</td><td>0x00</td><td>Stop At Block Gap Request</td>
+<tr><td>8 - 9</td><td>DMAS</td><td>0x02</td><td>DMA Select</td>
+<tr><td>7</td><td>CDSS</td><td>0x00</td><td>Card Detect Signal Selection</td>
+<tr><td>6</td><td>CDTL</td><td>0x00</td><td>Card Detect Test Level</td>
+<tr><td>4 - 5</td><td>EMODE</td><td>0x02</td><td>Endian Mode</td>
+<tr><td>3</td><td>D3CD</td><td>0x00</td><td>DAT3 As Card Detection Pin</td>
+<tr><td>1 - 2</td><td>DTW</td><td>0x00</td><td>Data Transfer Width</td>
+<tr><td>0</td><td>LCTL</td><td>0x00</td><td>LED Control</td>
+</tr></table>
+<div class="reghdr1">SDHC_WML</div>
+<div class="regdiag">
+<table class="regtbl">
+<tr class="trd1r">
+<td class="trd1c">Bit</td><td>31</td><td>30</td><td>29</td><td>28</td><td>27</td><td>26</td><td>25</td><td>24</td><td>23</td>
+<td>22</td><td>21</td><td>20</td><td>19</td><td>18</td><td>17</td><td>16</td>
+</tr>
+<tr>
+<td class="trd1c">R</td><td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td>
+<td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td>
+<td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td><td colspan="8" rowspan="2">WRWML</td>
+</tr>
+<tr>
+<td class="trd1c">W</td>
+</tr>
+<tr class="trd1r">
+<td class="trd1c">Reset</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>
+<td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td>
+</tr>
+</table>
+<table class="regtbl">
+<tr class="trd1r">
+<td class="trd1c">Bit</td><td>15</td><td>14</td><td>13</td><td>12</td><td>11</td><td>10</td><td>9</td><td>8</td><td>7</td>
+<td>6</td><td>5</td><td>4</td><td>3</td><td>2</td><td>1</td><td>0</td>
+</tr>
+<tr>
+<td class="trd1c">R</td><td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td>
+<td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td>
+<td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td><td colspan="8" rowspan="2">RDWML</td>
+</tr>
+<tr>
+<td class="trd1c">W</td>
+</tr>
+<tr class="trd1r">
+<td class="trd1c">Reset</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>
+<td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td>
+</tr>
+</table>
+        
+</div>
+<table class="regtbl2"><tr><td class="trowtit" colspan="2">Address</td><td colspan="2">0x400B1044</td></tr>
+<tr class="trowtit"><td  class="trowtit" colspan="2">Initial value</td><td colspan="2">0x00100010</td></tr>
+<tr class="trowtit"><td  class="trowtit" colspan="2">After-reset value</td><td colspan="2">0x00100010</td></tr>
+<tr><td class="ttitle2">Bit</td><td class="ttitle2">Field</td><td class="ttitle2">Value</td><td class="ttitle2">Description</td></tr>
+<tr><td>16 - 23</td><td>WRWML</td><td>0x00</td><td>Write Watermark Level</td>
+<tr><td>0 - 7</td><td>RDWML</td><td>0x00</td><td>Read Watermark Level</td>
+</tr></table>
+<div class="reghdr1">SDHC_VENDOR</div>
+<div class="regdiag">
+<table class="regtbl">
+<tr class="trd1r">
+<td class="trd1c">Bit</td><td>31</td><td>30</td><td>29</td><td>28</td><td>27</td><td>26</td><td>25</td><td>24</td><td>23</td>
+<td>22</td><td>21</td><td>20</td><td>19</td><td>18</td><td>17</td><td>16</td>
+</tr>
+<tr>
+<td class="trd1c">R</td><td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td>
+<td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td>
+<td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td><td colspan="8" rowspan="1">INTSTVAL</td>
+</tr>
+<tr>
+<td class="trd1c">W</td>
+<td colspan="8"></td>
+</tr>
+<tr class="trd1r">
+<td class="trd1c">Reset</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>
+<td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>
+</tr>
+</table>
+<table class="regtbl">
+<tr class="trd1r">
+<td class="trd1c">Bit</td><td>15</td><td>14</td><td>13</td><td>12</td><td>11</td><td>10</td><td>9</td><td>8</td><td>7</td>
+<td>6</td><td>5</td><td>4</td><td>3</td><td>2</td><td>1</td><td>0</td>
+</tr>
+<tr>
+<td class="trd1c">R</td><td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td>
+<td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td>
+<td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td>
+<td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td>
+<td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">EXBLKNU</td>
+<td colspan="1" rowspan="2">EXTDMAEN</td>
+</tr>
+<tr>
+<td class="trd1c">W</td>
+</tr>
+<tr class="trd1r">
+<td class="trd1c">Reset</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>
+<td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td>
+</tr>
+</table>
+        
+</div>
+<table class="regtbl2"><tr><td class="trowtit" colspan="2">Address</td><td colspan="2">0x400B10C0</td></tr>
+<tr class="trowtit"><td  class="trowtit" colspan="2">Initial value</td><td colspan="2">0x00000000</td></tr>
+<tr class="trowtit"><td  class="trowtit" colspan="2">After-reset value</td><td colspan="2">0x00000001</td></tr>
+<tr><td class="ttitle2">Bit</td><td class="ttitle2">Field</td><td class="ttitle2">Value</td><td class="ttitle2">Description</td></tr>
+<tr><td>16 - 23</td><td>INTSTVAL</td><td>0x00</td><td>Internal State Value</td>
+<tr><td>1</td><td>EXBLKNU</td><td>0x00</td><td>Exact Block Number Block Read Enable For SDIO CMD53</td>
+<tr><td>0</td><td>EXTDMAEN</td><td>0x00</td><td>External DMA Request Enable</td>
+</tr></table>
+<div class="reghdr1">SIM_SOPT2</div>
+<div class="regdiag">
+<table class="regtbl">
+<tr class="trd1r">
+<td class="trd1c">Bit</td><td>31</td><td>30</td><td>29</td><td>28</td><td>27</td><td>26</td><td>25</td><td>24</td><td>23</td>
+<td>22</td><td>21</td><td>20</td><td>19</td><td>18</td><td>17</td><td>16</td>
+</tr>
+<tr>
+<td class="trd1c">R</td><td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td>
+<td colspan="2" rowspan="2">SDHCSRC</td><td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td>
+<td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td>
+<td colspan="1" rowspan="2">-</td><td colspan="2" rowspan="2">TIMESRC</td><td colspan="1" rowspan="2">RMIISRC</td>
+<td colspan="1" rowspan="2">USBSRC</td><td colspan="2" rowspan="2">PLLFLLSEL</td>
+</tr>
+<tr>
+<td class="trd1c">W</td>
+</tr>
+<tr class="trd1r">
+<td class="trd1c">Reset</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>
+<td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>
+</tr>
+</table>
+<table class="regtbl">
+<tr class="trd1r">
+<td class="trd1c">Bit</td><td>15</td><td>14</td><td>13</td><td>12</td><td>11</td><td>10</td><td>9</td><td>8</td><td>7</td>
+<td>6</td><td>5</td><td>4</td><td>3</td><td>2</td><td>1</td><td>0</td>
+</tr>
+<tr>
+<td class="trd1c">R</td><td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td>
+<td colspan="1" rowspan="2">TRACECLKSEL</td><td colspan="1" rowspan="2">PTD7PAD</td><td colspan="1" rowspan="2">-</td>
+<td colspan="2" rowspan="2">FBSL</td><td colspan="3" rowspan="2">CLKOUTSEL</td><td colspan="1" rowspan="2">RTCCLKOUTSEL</td>
+<td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td>
+<td colspan="1" rowspan="2">-</td>
+</tr>
+<tr>
+<td class="trd1c">W</td>
+</tr>
+<tr class="trd1r">
+<td class="trd1c">Reset</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>
+<td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>
+</tr>
+</table>
+        
+</div>
+<table class="regtbl2"><tr><td class="trowtit" colspan="2">Address</td><td colspan="2">0x40048004</td></tr>
+<tr class="trowtit"><td  class="trowtit" colspan="2">Initial value</td><td colspan="2">0x20001000</td></tr>
+<tr class="trowtit"><td  class="trowtit" colspan="2">After-reset value</td><td colspan="2">0x00001000</td></tr>
+<tr><td class="ttitle2">Bit</td><td class="ttitle2">Field</td><td class="ttitle2">Value</td><td class="ttitle2">Description</td></tr>
+<tr><td>28 - 29</td><td>SDHCSRC</td><td>0x02</td><td>SDHC clock source select</td>
+<tr><td>20 - 21</td><td>TIMESRC</td><td>0x00</td><td>IEEE 1588 timestamp clock source select</td>
+<tr><td>19</td><td>RMIISRC</td><td>0x00</td><td>RMII clock source select</td>
+<tr><td>18</td><td>USBSRC</td><td>0x00</td><td>USB clock source select</td>
+<tr><td>16 - 17</td><td>PLLFLLSEL</td><td>0x00</td><td>PLL/FLL clock select</td>
+<tr><td>12</td><td>TRACECLKSEL</td><td>0x01</td><td>Debug trace clock select</td>
+<tr><td>11</td><td>PTD7PAD</td><td>0x00</td><td>PTD7 pad drive strength</td>
+<tr><td>8 - 9</td><td>FBSL</td><td>0x00</td><td>FlexBus security level</td>
+<tr><td>5 - 7</td><td>CLKOUTSEL</td><td>0x00</td><td>CLKOUT select</td>
+<tr><td>4</td><td>RTCCLKOUTSEL</td><td>0x00</td><td>RTC clock out select</td>
+</tr></table>
+<div class="reghdr1">SDHC_SYSCTL</div>
+<div class="regdiag">
+<table class="regtbl">
+<tr class="trd1r">
+<td class="trd1c">Bit</td><td>31</td><td>30</td><td>29</td><td>28</td><td>27</td><td>26</td><td>25</td><td>24</td><td>23</td>
+<td>22</td><td>21</td><td>20</td><td>19</td><td>18</td><td>17</td><td>16</td>
+</tr>
+<tr>
+<td class="trd1c">R</td><td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td>
+<td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">INITA</td><td colspan="1"></td><td colspan="1"></td>
+<td colspan="1"></td><td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td>
+<td colspan="1" rowspan="2">-</td><td colspan="4" rowspan="2">DTOCV</td>
+</tr>
+<tr>
+<td class="trd1c">W</td>
+<td colspan="1">RSTD</td><td colspan="1">RSTC</td><td colspan="1">RSTA</td>
+</tr>
+<tr class="trd1r">
+<td class="trd1c">Reset</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>
+<td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>
+</tr>
+</table>
+<table class="regtbl">
+<tr class="trd1r">
+<td class="trd1c">Bit</td><td>15</td><td>14</td><td>13</td><td>12</td><td>11</td><td>10</td><td>9</td><td>8</td><td>7</td>
+<td>6</td><td>5</td><td>4</td><td>3</td><td>2</td><td>1</td><td>0</td>
+</tr>
+<tr>
+<td class="trd1c">R</td><td colspan="8" rowspan="2">SDCLKFS</td><td colspan="4" rowspan="2">DVS</td>
+<td colspan="1" rowspan="2">SDCLKEN</td><td colspan="1" rowspan="2">PEREN</td><td colspan="1" rowspan="2">HCKEN</td>
+<td colspan="1" rowspan="2">IPGEN</td>
+</tr>
+<tr>
+<td class="trd1c">W</td>
+</tr>
+<tr class="trd1r">
+<td class="trd1c">Reset</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>
+<td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td>
+</tr>
+</table>
+        
+</div>
+<table class="regtbl2"><tr><td class="trowtit" colspan="2">Address</td><td colspan="2">0x400B102C</td></tr>
+<tr class="trowtit"><td  class="trowtit" colspan="2">Initial value</td><td colspan="2">0x0007044F</td></tr>
+<tr class="trowtit"><td  class="trowtit" colspan="2">After-reset value</td><td colspan="2">0x00008008</td></tr>
+<tr><td class="ttitle2">Bit</td><td class="ttitle2">Field</td><td class="ttitle2">Value</td><td class="ttitle2">Description</td></tr>
+<tr><td>27</td><td>INITA</td><td>0x00</td><td>Initialization Active</td>
+<tr><td>26</td><td>RSTD</td><td>0x00</td><td>Software Reset For DAT Line</td>
+<tr><td>25</td><td>RSTC</td><td>0x00</td><td>Software Reset For CMD Line</td>
+<tr><td>24</td><td>RSTA</td><td>0x00</td><td>Software Reset For ALL</td>
+<tr><td>16 - 19</td><td>DTOCV</td><td>0x00</td><td>Data Timeout Counter Value</td>
+<tr><td>8 - 15</td><td>SDCLKFS</td><td>0x00</td><td>SDCLK Frequency Select</td>
+<tr><td>4 - 7</td><td>DVS</td><td>0x00</td><td>Divisor</td>
+<tr><td>3</td><td>SDCLKEN</td><td>0x01</td><td>SD Clock Enable</td>
+<tr><td>2</td><td>PEREN</td><td>0x01</td><td>Peripheral Clock Enable</td>
+<tr><td>1</td><td>HCKEN</td><td>0x01</td><td>System Clock Enable</td>
+<tr><td>0</td><td>IPGEN</td><td>0x01</td><td>IPG Clock Enable</td>
+</tr></table>
+<div class="reghdr1">NVICIP81</div>
+<div class="regdiag">
+<table class="regtbl">
+<tr class="trd1r">
+<td class="trd1c">Bit</td><td>7</td><td>6</td><td>5</td><td>4</td><td>3</td><td>2</td><td>1</td><td>0</td>
+</tr>
+<tr>
+<td class="trd1c">R</td><td colspan="8" rowspan="2">PRI81</td>
+</tr>
+<tr>
+<td class="trd1c">W</td>
+</tr>
+<tr class="trd1r">
+<td class="trd1c">Reset</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>
+</tr>
+</table>
+        
+</div>
+<table class="regtbl2"><tr><td class="trowtit" colspan="2">Address</td><td colspan="2">0xE000E451</td></tr>
+<tr class="trowtit"><td  class="trowtit" colspan="2">Initial value</td><td colspan="2">0x00000070</td></tr>
+<tr class="trowtit"><td  class="trowtit" colspan="2">After-reset value</td><td colspan="2">0x00000000</td></tr>
+<tr><td class="ttitle2">Bit</td><td class="ttitle2">Field</td><td class="ttitle2">Value</td><td class="ttitle2">Description</td></tr>
+<tr><td>0 - 7</td><td>PRI81</td><td>0x00</td><td>Priority of interrupt 81</td>
+</tr></table>
+<div class="reghdr1">NVICISER2</div>
+<div class="regdiag">
+<table class="regtbl">
+<tr class="trd1r">
+<td class="trd1c">Bit</td><td>31</td><td>30</td><td>29</td><td>28</td><td>27</td><td>26</td><td>25</td><td>24</td><td>23</td>
+<td>22</td><td>21</td><td>20</td><td>19</td><td>18</td><td>17</td><td>16</td>
+</tr>
+<tr>
+<td class="trd1c">R</td><td colspan="16" rowspan="2">SETENA</td>
+</tr>
+<tr>
+<td class="trd1c">W</td>
+</tr>
+<tr class="trd1r">
+<td class="trd1c">Reset</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>
+<td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>
+</tr>
+</table>
+<table class="regtbl">
+<tr class="trd1r">
+<td class="trd1c">Bit</td><td>15</td><td>14</td><td>13</td><td>12</td><td>11</td><td>10</td><td>9</td><td>8</td><td>7</td>
+<td>6</td><td>5</td><td>4</td><td>3</td><td>2</td><td>1</td><td>0</td>
+</tr>
+<tr>
+<td class="trd1c">R</td><td colspan="32" rowspan="2">SETENA</td>
+</tr>
+<tr>
+<td class="trd1c">W</td>
+</tr>
+<tr class="trd1r">
+<td class="trd1c">Reset</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>
+<td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>
+</tr>
+</table>
+        
+</div>
+<table class="regtbl2"><tr><td class="trowtit" colspan="2">Address</td><td colspan="2">0xE000E108</td></tr>
+<tr class="trowtit"><td  class="trowtit" colspan="2">Initial value</td><td colspan="2">0x00020000</td></tr>
+<tr class="trowtit"><td  class="trowtit" colspan="2">After-reset value</td><td colspan="2">0x00000000</td></tr>
+<tr><td class="ttitle2">Bit</td><td class="ttitle2">Field</td><td class="ttitle2">Value</td><td class="ttitle2">Description</td></tr>
+<tr><td>0 - 31</td><td>SETENA</td><td>0x00</td><td>Interrupt set enable bits</td>
+</tr></table>
+<div class="reghdr1">SDHC_IRQSTAT</div>
+<div class="regdiag">
+<table class="regtbl">
+<tr class="trd1r">
+<td class="trd1c">Bit</td><td>31</td><td>30</td><td>29</td><td>28</td><td>27</td><td>26</td><td>25</td><td>24</td><td>23</td>
+<td>22</td><td>21</td><td>20</td><td>19</td><td>18</td><td>17</td><td>16</td>
+</tr>
+<tr>
+<td class="trd1c">R</td><td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td>
+<td colspan="1" rowspan="2">DMAE</td><td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td>
+<td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">AC12E</td><td colspan="1" rowspan="2">-</td>
+<td colspan="1" rowspan="2">DEBE</td><td colspan="1" rowspan="2">DCE</td><td colspan="1" rowspan="2">DTOE</td>
+<td colspan="1" rowspan="2">CIE</td><td colspan="1" rowspan="2">CEBE</td><td colspan="1" rowspan="2">CCE</td>
+<td colspan="1" rowspan="2">CTOE</td>
+</tr>
+<tr>
+<td class="trd1c">W</td>
+</tr>
+<tr class="trd1r">
+<td class="trd1c">Reset</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>
+<td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>
+</tr>
+</table>
+<table class="regtbl">
+<tr class="trd1r">
+<td class="trd1c">Bit</td><td>15</td><td>14</td><td>13</td><td>12</td><td>11</td><td>10</td><td>9</td><td>8</td><td>7</td>
+<td>6</td><td>5</td><td>4</td><td>3</td><td>2</td><td>1</td><td>0</td>
+</tr>
+<tr>
+<td class="trd1c">R</td><td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td>
+<td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td>
+<td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">CINT</td><td colspan="1" rowspan="2">CRM</td>
+<td colspan="1" rowspan="2">CINS</td><td colspan="1" rowspan="2">BRR</td><td colspan="1" rowspan="2">BWR</td>
+<td colspan="1" rowspan="2">DINT</td><td colspan="1" rowspan="2">BGE</td><td colspan="1" rowspan="2">TC</td>
+<td colspan="1" rowspan="2">CC</td>
+</tr>
+<tr>
+<td class="trd1c">W</td>
+</tr>
+<tr class="trd1r">
+<td class="trd1c">Reset</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>
+<td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>
+</tr>
+</table>
+        
+</div>
+<table class="regtbl2"><tr><td class="trowtit" colspan="2">Address</td><td colspan="2">0x400B1030</td></tr>
+<tr class="trowtit"><td  class="trowtit" colspan="2">Initial value</td><td colspan="2">0xFFFFFFFF</td></tr>
+<tr class="trowtit"><td  class="trowtit" colspan="2">After-reset value</td><td colspan="2">0x00000000</td></tr>
+<tr><td class="ttitle2">Bit</td><td class="ttitle2">Field</td><td class="ttitle2">Value</td><td class="ttitle2">Description</td></tr>
+<tr><td>28</td><td>DMAE</td><td>0x01</td><td>DMA Error</td>
+<tr><td>24</td><td>AC12E</td><td>0x01</td><td>Auto CMD12 Error</td>
+<tr><td>22</td><td>DEBE</td><td>0x01</td><td>Data End Bit Error</td>
+<tr><td>21</td><td>DCE</td><td>0x01</td><td>Data CRC Error</td>
+<tr><td>20</td><td>DTOE</td><td>0x01</td><td>Data Timeout Error</td>
+<tr><td>19</td><td>CIE</td><td>0x01</td><td>Command Index Error</td>
+<tr><td>18</td><td>CEBE</td><td>0x01</td><td>Command End Bit Error</td>
+<tr><td>17</td><td>CCE</td><td>0x01</td><td>Command CRC Error</td>
+<tr><td>16</td><td>CTOE</td><td>0x01</td><td>Command Timeout Error</td>
+<tr><td>8</td><td>CINT</td><td>0x01</td><td>Card Interrupt</td>
+<tr><td>7</td><td>CRM</td><td>0x01</td><td>Card Removal</td>
+<tr><td>6</td><td>CINS</td><td>0x01</td><td>Card Insertion</td>
+<tr><td>5</td><td>BRR</td><td>0x01</td><td>Buffer Read Ready</td>
+<tr><td>4</td><td>BWR</td><td>0x01</td><td>Buffer Write Ready</td>
+<tr><td>3</td><td>DINT</td><td>0x01</td><td>DMA Interrupt</td>
+<tr><td>2</td><td>BGE</td><td>0x01</td><td>Block Gap Event</td>
+<tr><td>1</td><td>TC</td><td>0x01</td><td>Transfer Complete</td>
+<tr><td>0</td><td>CC</td><td>0x01</td><td>Command Complete</td>
+</tr></table>
+<div class="reghdr1">SDHC_IRQSIGEN</div>
+<div class="regdiag">
+<table class="regtbl">
+<tr class="trd1r">
+<td class="trd1c">Bit</td><td>31</td><td>30</td><td>29</td><td>28</td><td>27</td><td>26</td><td>25</td><td>24</td><td>23</td>
+<td>22</td><td>21</td><td>20</td><td>19</td><td>18</td><td>17</td><td>16</td>
+</tr>
+<tr>
+<td class="trd1c">R</td><td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td>
+<td colspan="1" rowspan="2">DMAEIEN</td><td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td>
+<td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">AC12EIEN</td><td colspan="1" rowspan="2">-</td>
+<td colspan="1" rowspan="2">DEBEIEN</td><td colspan="1" rowspan="2">DCEIEN</td><td colspan="1" rowspan="2">DTOEIEN</td>
+<td colspan="1" rowspan="2">CIEIEN</td><td colspan="1" rowspan="2">CEBEIEN</td><td colspan="1" rowspan="2">CCEIEN</td>
+<td colspan="1" rowspan="2">CTOEIEN</td>
+</tr>
+<tr>
+<td class="trd1c">W</td>
+</tr>
+<tr class="trd1r">
+<td class="trd1c">Reset</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>
+<td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>
+</tr>
+</table>
+<table class="regtbl">
+<tr class="trd1r">
+<td class="trd1c">Bit</td><td>15</td><td>14</td><td>13</td><td>12</td><td>11</td><td>10</td><td>9</td><td>8</td><td>7</td>
+<td>6</td><td>5</td><td>4</td><td>3</td><td>2</td><td>1</td><td>0</td>
+</tr>
+<tr>
+<td class="trd1c">R</td><td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td>
+<td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td>
+<td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">CINTIEN</td><td colspan="1" rowspan="2">CRMIEN</td>
+<td colspan="1" rowspan="2">CINSIEN</td><td colspan="1" rowspan="2">BRRIEN</td><td colspan="1" rowspan="2">BWRIEN</td>
+<td colspan="1" rowspan="2">DINTIEN</td><td colspan="1" rowspan="2">BGEIEN</td><td colspan="1" rowspan="2">TCIEN</td>
+<td colspan="1" rowspan="2">CCIEN</td>
+</tr>
+<tr>
+<td class="trd1c">W</td>
+</tr>
+<tr class="trd1r">
+<td class="trd1c">Reset</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>
+<td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>
+</tr>
+</table>
+        
+</div>
+<table class="regtbl2"><tr><td class="trowtit" colspan="2">Address</td><td colspan="2">0x400B1038</td></tr>
+<tr class="trowtit"><td  class="trowtit" colspan="2">Initial value</td><td colspan="2">0x00000003</td></tr>
+<tr class="trowtit"><td  class="trowtit" colspan="2">After-reset value</td><td colspan="2">0x00000000</td></tr>
+<tr><td class="ttitle2">Bit</td><td class="ttitle2">Field</td><td class="ttitle2">Value</td><td class="ttitle2">Description</td></tr>
+<tr><td>28</td><td>DMAEIEN</td><td>0x00</td><td>DMA Error Interrupt Enable</td>
+<tr><td>24</td><td>AC12EIEN</td><td>0x00</td><td>Auto CMD12 Error Interrupt Enable</td>
+<tr><td>22</td><td>DEBEIEN</td><td>0x00</td><td>Data End Bit Error Interrupt Enable</td>
+<tr><td>21</td><td>DCEIEN</td><td>0x00</td><td>Data CRC Error Interrupt Enable</td>
+<tr><td>20</td><td>DTOEIEN</td><td>0x00</td><td>Data Timeout Error Interrupt Enable</td>
+<tr><td>19</td><td>CIEIEN</td><td>0x00</td><td>Command Index Error Interrupt Enable</td>
+<tr><td>18</td><td>CEBEIEN</td><td>0x00</td><td>Command End Bit Error Interrupt Enable</td>
+<tr><td>17</td><td>CCEIEN</td><td>0x00</td><td>Command CRC Error Interrupt Enable</td>
+<tr><td>16</td><td>CTOEIEN</td><td>0x00</td><td>Command Timeout Error Interrupt Enable</td>
+<tr><td>8</td><td>CINTIEN</td><td>0x00</td><td>Card Interrupt Enable</td>
+<tr><td>7</td><td>CRMIEN</td><td>0x00</td><td>Card Removal Interrupt Enable</td>
+<tr><td>6</td><td>CINSIEN</td><td>0x00</td><td>Card Insertion Interrupt Enable</td>
+<tr><td>5</td><td>BRRIEN</td><td>0x00</td><td>Buffer Read Ready Interrupt Enable</td>
+<tr><td>4</td><td>BWRIEN</td><td>0x00</td><td>Buffer Write Ready Interrupt Enable</td>
+<tr><td>3</td><td>DINTIEN</td><td>0x00</td><td>DMA Interrupt Enable</td>
+<tr><td>2</td><td>BGEIEN</td><td>0x00</td><td>Block Gap Event Interrupt Enable</td>
+<tr><td>1</td><td>TCIEN</td><td>0x01</td><td>Transfer Complete Interrupt Enable</td>
+<tr><td>0</td><td>CCIEN</td><td>0x01</td><td>Command Complete Interrupt Enable</td>
+</tr></table>
+<div class="reghdr1">SDHC_IRQSTATEN</div>
+<div class="regdiag">
+<table class="regtbl">
+<tr class="trd1r">
+<td class="trd1c">Bit</td><td>31</td><td>30</td><td>29</td><td>28</td><td>27</td><td>26</td><td>25</td><td>24</td><td>23</td>
+<td>22</td><td>21</td><td>20</td><td>19</td><td>18</td><td>17</td><td>16</td>
+</tr>
+<tr>
+<td class="trd1c">R</td><td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td>
+<td colspan="1" rowspan="2">DMAESEN</td><td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td>
+<td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">AC12ESEN</td><td colspan="1" rowspan="2">-</td>
+<td colspan="1" rowspan="2">DEBESEN</td><td colspan="1" rowspan="2">DCESEN</td><td colspan="1" rowspan="2">DTOESEN</td>
+<td colspan="1" rowspan="2">CIESEN</td><td colspan="1" rowspan="2">CEBESEN</td><td colspan="1" rowspan="2">CCESEN</td>
+<td colspan="1" rowspan="2">CTOESEN</td>
+</tr>
+<tr>
+<td class="trd1c">W</td>
+</tr>
+<tr class="trd1r">
+<td class="trd1c">Reset</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>1</td>
+<td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td>
+</tr>
+</table>
+<table class="regtbl">
+<tr class="trd1r">
+<td class="trd1c">Bit</td><td>15</td><td>14</td><td>13</td><td>12</td><td>11</td><td>10</td><td>9</td><td>8</td><td>7</td>
+<td>6</td><td>5</td><td>4</td><td>3</td><td>2</td><td>1</td><td>0</td>
+</tr>
+<tr>
+<td class="trd1c">R</td><td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td>
+<td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">-</td>
+<td colspan="1" rowspan="2">-</td><td colspan="1" rowspan="2">CINTSEN</td><td colspan="1" rowspan="2">CRMSEN</td>
+<td colspan="1" rowspan="2">CINSEN</td><td colspan="1" rowspan="2">BRRSEN</td><td colspan="1" rowspan="2">BWRSEN</td>
+<td colspan="1" rowspan="2">DINTSEN</td><td colspan="1" rowspan="2">BGESEN</td><td colspan="1" rowspan="2">TCSEN</td>
+<td colspan="1" rowspan="2">CCSEN</td>
+</tr>
+<tr>
+<td class="trd1c">W</td>
+</tr>
+<tr class="trd1r">
+<td class="trd1c">Reset</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td>
+<td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td>
+</tr>
+</table>
+        
+</div>
+<table class="regtbl2"><tr><td class="trowtit" colspan="2">Address</td><td colspan="2">0x400B1034</td></tr>
+<tr class="trowtit"><td  class="trowtit" colspan="2">Initial value</td><td colspan="2">0xFFFFFF0F</td></tr>
+<tr class="trowtit"><td  class="trowtit" colspan="2">After-reset value</td><td colspan="2">0x117F013F</td></tr>
+<tr><td class="ttitle2">Bit</td><td class="ttitle2">Field</td><td class="ttitle2">Value</td><td class="ttitle2">Description</td></tr>
+<tr><td>28</td><td>DMAESEN</td><td>0x01</td><td>DMA Error Status Enable</td>
+<tr><td>24</td><td>AC12ESEN</td><td>0x01</td><td>Auto CMD12 Error Status Enable</td>
+<tr><td>22</td><td>DEBESEN</td><td>0x01</td><td>Data End Bit Error Status Enable</td>
+<tr><td>21</td><td>DCESEN</td><td>0x01</td><td>Data CRC Error Status Enable</td>
+<tr><td>20</td><td>DTOESEN</td><td>0x01</td><td>Data Timeout Error Status Enable</td>
+<tr><td>19</td><td>CIESEN</td><td>0x01</td><td>Command Index Error Status Enable</td>
+<tr><td>18</td><td>CEBESEN</td><td>0x01</td><td>Command End Bit Error Status Enable</td>
+<tr><td>17</td><td>CCESEN</td><td>0x01</td><td>Command CRC Error Status Enable</td>
+<tr><td>16</td><td>CTOESEN</td><td>0x01</td><td>Command Timeout Error Status Enable</td>
+<tr><td>8</td><td>CINTSEN</td><td>0x01</td><td>Card Interrupt Status Enable</td>
+<tr><td>7</td><td>CRMSEN</td><td>0x00</td><td>Card Removal Status Enable</td>
+<tr><td>6</td><td>CINSEN</td><td>0x00</td><td>Card Insertion Status Enable</td>
+<tr><td>5</td><td>BRRSEN</td><td>0x00</td><td>Buffer Read Ready Status Enable</td>
+<tr><td>4</td><td>BWRSEN</td><td>0x00</td><td>Buffer Write Ready Status Enable</td>
+<tr><td>3</td><td>DINTSEN</td><td>0x01</td><td>DMA Interrupt Status Enable</td>
+<tr><td>2</td><td>BGESEN</td><td>0x01</td><td>Block Gap Event Status Enable</td>
+<tr><td>1</td><td>TCSEN</td><td>0x01</td><td>Transfer Complete Status Enable</td>
+<tr><td>0</td><td>CCSEN</td><td>0x01</td><td>Command Complete Status Enable</td>
+</tr></table>
+*/
+/*!
+\page SDHC1_settings Component Settings
+\code
+**          Component name                                 : SDHC1
+**          Device                                         : SDHC
+**          Settings                                       : 
+**            Interface                                    : 1-bit data mode
+**            Bus clock                                    : 400 kHz
+**            Data timeout exponent                        : 20
+**            DMA                                          : 
+**              Read watermark                             : 16
+**              Write watermark                            : 16
+**            Buffers                                      : 
+**              Transfer buffer table size                 : 8
+**          Interrupt service/event                        : Enabled
+**            SDHC                                         : INT_SDHC
+**            SDHC priority                                : medium priority
+**          Pins                                           : 1-bit data mode
+**            CLK pin                                      : ADC0_DP2/ADC1_SE6a/PTE2/LLWU_P1/SPI1_SCK/UART1_CTS_b/SDHC0_DCLK/TRACE_D2
+**            CMD pin                                      : ADC0_DM2/ADC1_SE7a/PTE3/SPI1_SIN/UART1_RTS_b/SDHC0_CMD/TRACE_D1/SPI1_SOUT
+**            Data                                         : 
+**              DAT0 pin                                   : ADC1_SE5a/PTE1/LLWU_P0/SPI1_SOUT/UART1_RX/SDHC0_D0/TRACE_D3/I2C1_SCL/SPI1_SIN
+**              DAT1                                       : Disabled
+**              DAT2                                       : Disabled
+**              DAT3                                       : Disabled
+**          Initialization                                 : 
+**            Enable device                                : yes
+**            Auto initialization                          : no
+**            Event mask                                   : 
+**              OnCardInserted                             : Enabled
+**              OnCardRemoved                              : Enabled
+**              OnFinished                                 : Enabled
+**          CPU clock/configuration selection              : 
+**            Clock configuration 0                        : This component enabled
+**            Clock configuration 1                        : This component disabled
+**            Clock configuration 2                        : This component disabled
+**            Clock configuration 3                        : This component disabled
+**            Clock configuration 4                        : This component disabled
+**            Clock configuration 5                        : This component disabled
+**            Clock configuration 6                        : This component disabled
+**            Clock configuration 7                        : This component disabled
+<h1>
+\endcode
+*/

@@ -1,0 +1,8 @@
+/Documentation
+/*.apconfig
+/*.traceConfig
+/Generated_Code
+/MC56F8257_Internal_PFlash_SDM
+/.cwGeneratedFileSetLog
+/*.g_c
+/*.g_x

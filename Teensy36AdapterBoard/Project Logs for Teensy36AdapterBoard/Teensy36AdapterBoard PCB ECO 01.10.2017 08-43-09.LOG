@@ -1,0 +1,13 @@
+Removed Member From Class: ClassName=Teensy36AdapterBoard Member=P1
+Added Pin To Net: NetName=NetX1_0 Pin=X1-0
+Added Pin To Net: NetName=NetX1_0 Pin=X2-0
+Added Net: Name=NetX1_0
+Added Pin To Net: NetName=NetX1_1 Pin=X1-1
+Added Pin To Net: NetName=NetX1_1 Pin=X2-1
+Added Net: Name=NetX1_1
+Added Pin To Net: NetName=NetX1_2 Pin=X1-2
+Added Pin To Net: NetName=NetX1_2 Pin=X2-2
+Added Net: Name=NetX1_2
+Added Pin To Net: NetName=NetX1_3 Pin=X1-3
+Added Pin To Net: NetName=NetX1_3 Pin=X2-3
+Added Net: Name=NetX1_3

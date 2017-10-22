@@ -1,0 +1,39 @@
+\section*{Approximate Computing: A Survey}
+Reference number: 1
+
+\subsection*{Summary of paper}
+Gives an overview about what Approximate Computing is, puts existing approximate computing work into perspective and consolidates existing results. Also open challenges and future research directions are highlighted. There is a part about approximate software which is of low relevance for us. The section over HW accelaration is interesting and there is a link to another paper (Reference number 2) which is about the usage of a neural network for approximation.
+
+\subsection*{Essential outcomes, data, quotations}
+Error-resilience: "Moreover, these applications usually do not require to compute a unique or golden numerical result ("acceptable" instead of precise outputs)." It therefore is a system constrain that the whole system needs to be able to handle imprecise outputs and errors coming from the approximated subsystem.\\
+Approximate kernels: Approximation is always done on an identified error-resilient application. This can be done on a software level (f.e. loop perforation, code perforation, thread fusion) or on a hardware level (f.e. approximate storage, approximate accelerators, imprecise logic, analog computation).\\
+Probabilistic accuracy research: "Notable recent work searches for optimizations and or transformations that maximize energy savings subject to accuracy constraints. This exploration is done via dynamic testing or statically reducing to an optimization problem and then using linear or integer mathematical programming solvers."\\
+Quality tradeoff: "The advent of approximating computing introduces another tradeoff aspect - quality of computing
+(or data) to the traditional tradeoff among performance, energy efficiency, and density; slightly sacrificing computing quality can improve either performance, energy efficiency, or density."\\
+HW-Approximation of code: One general concept is to accelerate a specific function or code region in HW and use that be either placing a special instruction in the code or do it automatically through a compiler. "[...] support
+approximate computing for traditional code running on general-purpose processors enhanced to energy-efficiently execute some chosen instructions or code segments in approximate mode."\\
+Neural algorithm: "The second group transforms approximable segments of traditional code into a neurally inspired algorithm running on accelerators."\\
+Neural network: NN can be used to approximate code segments. "A data/compute-intensive approximable code segment can be converted to a neurally inspired algorithm such as artificial neural network (ANN) through a parrot transformation for more efficient processing [14]. The transformed code is typically offloaded to neural accelerators that are coupled with a host processor [...]"\\
+Approximate circuit for combinational logic: "SALSA [56] encodes quality constraints into a virtual logic function and simplifies the circuit with "approximation don't cares" that arise from quality relaxation. By
+doing so, designers could specify more sophisticated quality constraints. Another advantage of SALSA is that it can reuse off-the-shelf logic synthesis tools for approximate circuit synthesis. The above techniques are mainly applicable for approximating combinational logic. ASLAN [57] is able to synthesize approximate sequential circuit, by extending SALSA with virtual sequential quality constraint circuits." \\
+Neural accelerations: "Neural networks, by their nature, are general purpose approximate functions. With the emergence of the approximate computing paradigm, they are proposed to accelerate hot codes in error-resilient
+applications [14]–[16]."\\
+Neural networks in digital: "Generally speaking, digital implementations offer high precision and better reliability [...]"
+
+\subsection*{New questions and thoughts}
+\begin{itemize}
+	\item What is the acceptable error for: FFT, Sobol edge detection, Car axle detection?
+	\item NN in AC are proposed for hot code acceleration. Do we have hot code encoding?
+	\item Maybe SALSA and/or ASLAN could be of interest (local [56] and [57])?
+\end{itemize}
+
+\subsection*{New papers and references}
+\begin{itemize}
+	\item Another recent survey (local: [4])\\
+	J. Han and M. Orshansky, “Approximate computing: An emerging paradigm for energy-efficient design,” in Proc. IEEE Eur. Test Symp., 2013, DOI: 10.1109/ETS.2013.6569370.
+	\item Interesting title (local [53])\\
+	C. Liu, J. Han, and F. Lombardi, “A low-power, high-performance approximate multiplier with configurable partial error recovery,” in Proc. IEEE/ ACM Design Autom. Test Eur., 2015, Art. ID 95.
+	\item Allready known: (local: 14)\\
+	H. Esmaeilzadeh, A. Sampson, L. Ceze, and D. Burger, “Neural acceleration for general-purpose approximate programs,” in Proc. Int. Symp. Microarchitect., 2012, pp. 449–460
+		
+\end{itemize}

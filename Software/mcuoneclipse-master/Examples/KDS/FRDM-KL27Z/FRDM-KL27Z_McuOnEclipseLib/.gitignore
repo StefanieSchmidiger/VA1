@@ -1,0 +1,11 @@
+/Debug/
+/.settings/
+/Documentation/
+/Sources/
+/Static_Code/
+.cwGeneratedFileSetLog
+*.g_c
+*.g_x
+ProjectInfo.xml
+/Project_Settings/
+/Project_Settings/Components_DEBUG/

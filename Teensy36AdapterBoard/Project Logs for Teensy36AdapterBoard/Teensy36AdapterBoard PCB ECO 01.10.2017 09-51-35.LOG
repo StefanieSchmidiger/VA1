@@ -1,0 +1,3 @@
+Change Component Designator: OldDesignator=P2 NewDesignator=GND
+Change Component Designator: OldDesignator=P3 NewDesignator=3V3
+Added Member To Class: ClassName=Teensy36AdapterBoard Member=Component X2 Teensy_3_6

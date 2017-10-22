@@ -1,0 +1,2 @@
+Change Component Footprint: Designator=SWD Old Footprint=SWD Debug Interface New Footprint=SWD Debug Interface 50mil
+Added Member To Class: ClassName=Teensy36AdapterBoard Member=Component X2 Teensy_3_6

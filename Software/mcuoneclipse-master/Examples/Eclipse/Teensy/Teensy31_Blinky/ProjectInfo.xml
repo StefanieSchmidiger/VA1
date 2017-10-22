@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+  Copyright : 2012 Freescale, Inc. All Rights Reserved.
+
+  This configuration file is a standard interchange file that's format is maintained
+  by Freescale, Inc. The configuration file is a derivative work
+  of the Processor Expert Software technology licensed for use by customers
+  as defined as SOFTWARE in the product's End User License Agreement. This file
+  and format are free to use and distribute for read-only purposes. You do not have
+  the right to create these files or modify this format or use for any purposes other
+  than interchange with the Processor Expert Software technology.
+
+  THIS SOFTWARE IS PROVIDED "AS IS".
+
+  NO WARRANTIES, WHETHER EXPRESS, IMPLIED OR STATUTORY, INCLUDING, BUT NOT
+  LIMITED TO, IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+  PURPOSE APPLY TO THIS SOFTWARE. IN NO EVENT WILL FREESCALE BE LIABLE, WHETHER
+  IN CONTRACT, TORT, OR OTHERWISE, FOR ANY INCIDENTAL, SPECIAL, INDIRECT,
+  CONSEQUENTIAL OR PUNITIVE DAMAGES, INCLUDING, BUT NOT LIMITED TO, DAMAGES FOR
+  ANY LOSS OF USE, LOSS OF TIME, INCONVENIENCE, COMMERCIAL LOSS, OR LOST PROFITS,
+  SAVINGS, OR REVENUES TO THE FULL EXTENT SUCH MAY BE DISCLAIMED BY LAW.
+
+-->
+<export xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="ProjectInfoDescription.xsd">
+  <PROCESSOR>
+    <DeviceID>MK20DX256xxx7</DeviceID>
+    <CoreNum>1</CoreNum>
+    <Cores>
+      <Core>
+        <CoreSet>Cortex-M4</CoreSet>
+      </Core>
+    </Cores>
+    <SRAMsize>64k</SRAMsize>
+    <FLASHsize>256k</FLASHsize>
+  </PROCESSOR>
+  <PATHS>
+    <LinkerCommandFile>C:\Users\Erich Styger\Data\GitRepos\McuOnEclipse\Examples\Eclipse\Teensy\Teensy31_Blinky\Project_Settings\Linker_Files\ProcessorExpert.ld</LinkerCommandFile>
+    <IncludePaths>
+      <Path>C:\nxp\Eclipse\Kepler\eclipse\ProcessorExpert\lib\Kinetis\pdd\inc\</Path>
+      <Path>C:\nxp\Eclipse\Kepler\eclipse\ProcessorExpert\lib\Kinetis\iofiles\</Path>
+      <Path>C:\Users\Erich Styger\Data\GitRepos\McuOnEclipse\Examples\Eclipse\Teensy\Teensy31_Blinky\Sources\</Path>
+      <Path>C:\Users\Erich Styger\Data\GitRepos\McuOnEclipse\Examples\Eclipse\Teensy\Teensy31_Blinky\Generated_Code\</Path>
+    </IncludePaths>
+    <SourceCodePaths>
+      <Path>C:\Users\Erich Styger\Data\GitRepos\McuOnEclipse\Examples\Eclipse\Teensy\Teensy31_Blinky\Generated_Code\</Path>
+      <Path>C:\Users\Erich Styger\Data\GitRepos\McuOnEclipse\Examples\Eclipse\Teensy\Teensy31_Blinky\Project_Settings\Startup_Code\</Path>
+      <Path>C:\Users\Erich Styger\Data\GitRepos\McuOnEclipse\Examples\Eclipse\Teensy\Teensy31_Blinky\Sources\</Path>
+    </SourceCodePaths>
+  </PATHS>
+  <FILES>
+    <GeneratedCs>
+      <PathName>C:\Users\Erich Styger\Data\GitRepos\McuOnEclipse\Examples\Eclipse\Teensy\Teensy31_Blinky\Generated_Code\BitIoLdd1.c</PathName>
+      <PathName>C:\Users\Erich Styger\Data\GitRepos\McuOnEclipse\Examples\Eclipse\Teensy\Teensy31_Blinky\Generated_Code\Cpu.c</PathName>
+      <PathName>C:\Users\Erich Styger\Data\GitRepos\McuOnEclipse\Examples\Eclipse\Teensy\Teensy31_Blinky\Generated_Code\KSDK1.c</PathName>
+      <PathName>C:\Users\Erich Styger\Data\GitRepos\McuOnEclipse\Examples\Eclipse\Teensy\Teensy31_Blinky\Generated_Code\LED1.c</PathName>
+      <PathName>C:\Users\Erich Styger\Data\GitRepos\McuOnEclipse\Examples\Eclipse\Teensy\Teensy31_Blinky\Generated_Code\LEDpin1.c</PathName>
+      <PathName>C:\Users\Erich Styger\Data\GitRepos\McuOnEclipse\Examples\Eclipse\Teensy\Teensy31_Blinky\Generated_Code\PE_LDD.c</PathName>
+      <PathName>C:\Users\Erich Styger\Data\GitRepos\McuOnEclipse\Examples\Eclipse\Teensy\Teensy31_Blinky\Generated_Code\Vectors.c</PathName>
+      <PathName>C:\Users\Erich Styger\Data\GitRepos\McuOnEclipse\Examples\Eclipse\Teensy\Teensy31_Blinky\Generated_Code\WAIT1.c</PathName>
+      <PathName>C:\Users\Erich Styger\Data\GitRepos\McuOnEclipse\Examples\Eclipse\Teensy\Teensy31_Blinky\Project_Settings\Startup_Code\startup.c</PathName>
+      <PathName>C:\Users\Erich Styger\Data\GitRepos\McuOnEclipse\Examples\Eclipse\Teensy\Teensy31_Blinky\Sources\Events.c</PathName>
+      <PathName>C:\Users\Erich Styger\Data\GitRepos\McuOnEclipse\Examples\Eclipse\Teensy\Teensy31_Blinky\Sources\main.c</PathName>
+    </GeneratedCs>
+    <GeneratedHs>
+      <PathName>C:\Users\Erich Styger\Data\GitRepos\McuOnEclipse\Examples\Eclipse\Teensy\Teensy31_Blinky\Generated_Code\BitIoLdd1.h</PathName>
+      <PathName>C:\Users\Erich Styger\Data\GitRepos\McuOnEclipse\Examples\Eclipse\Teensy\Teensy31_Blinky\Generated_Code\Cpu.h</PathName>
+      <PathName>C:\Users\Erich Styger\Data\GitRepos\McuOnEclipse\Examples\Eclipse\Teensy\Teensy31_Blinky\Generated_Code\IO_Map.h</PathName>
+      <PathName>C:\Users\Erich Styger\Data\GitRepos\McuOnEclipse\Examples\Eclipse\Teensy\Teensy31_Blinky\Generated_Code\KSDK1.h</PathName>
+      <PathName>C:\Users\Erich Styger\Data\GitRepos\McuOnEclipse\Examples\Eclipse\Teensy\Teensy31_Blinky\Generated_Code\LED1.h</PathName>
+      <PathName>C:\Users\Erich Styger\Data\GitRepos\McuOnEclipse\Examples\Eclipse\Teensy\Teensy31_Blinky\Generated_Code\LEDpin1.h</PathName>
+      <PathName>C:\Users\Erich Styger\Data\GitRepos\McuOnEclipse\Examples\Eclipse\Teensy\Teensy31_Blinky\Generated_Code\PE_Const.h</PathName>
+      <PathName>C:\Users\Erich Styger\Data\GitRepos\McuOnEclipse\Examples\Eclipse\Teensy\Teensy31_Blinky\Generated_Code\PE_Error.h</PathName>
+      <PathName>C:\Users\Erich Styger\Data\GitRepos\McuOnEclipse\Examples\Eclipse\Teensy\Teensy31_Blinky\Generated_Code\PE_LDD.h</PathName>
+      <PathName>C:\Users\Erich Styger\Data\GitRepos\McuOnEclipse\Examples\Eclipse\Teensy\Teensy31_Blinky\Generated_Code\PE_Types.h</PathName>
+      <PathName>C:\Users\Erich Styger\Data\GitRepos\McuOnEclipse\Examples\Eclipse\Teensy\Teensy31_Blinky\Generated_Code\WAIT1.h</PathName>
+      <PathName>C:\Users\Erich Styger\Data\GitRepos\McuOnEclipse\Examples\Eclipse\Teensy\Teensy31_Blinky\Sources\Events.h</PathName>
+    </GeneratedHs>
+  </FILES>
+  <OPTIONS>
+  </OPTIONS>
+</export>

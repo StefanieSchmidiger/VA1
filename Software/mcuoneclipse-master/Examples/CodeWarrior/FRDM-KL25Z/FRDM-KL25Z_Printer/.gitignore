@@ -1,0 +1,9 @@
+/FLASH
+/Documentation
+/Generated_Code
+/*.g_c
+/*.g_x
+/*.cwGeneratedFileSetLog
+/Project_Settings/Components_DEBUG
+ProjectInfo.xml
+/.settings

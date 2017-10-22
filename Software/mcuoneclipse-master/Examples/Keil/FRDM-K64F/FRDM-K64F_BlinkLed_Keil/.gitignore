@@ -1,0 +1,14 @@
+/Documentation
+/Generated_Code
+/UVBuild
+/*.bak
+/*.g_c
+/*.g_x
+/*.map
+/*.dep
+/*.lst
+/*.tastyger
+/*.Erich Styger*
+/JLinkLog.txt
+/*.scvd
+

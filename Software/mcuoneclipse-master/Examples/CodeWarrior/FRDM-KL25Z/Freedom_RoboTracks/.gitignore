@@ -1,0 +1,9 @@
+/.cwGeneratedFileSetLog
+/Documentation
+/FLASH
+/Generated_Code
+/*.g_c
+/*.g_x
+/*.traceConfig
+/*.apconfig
+ProjectInfo.xml
