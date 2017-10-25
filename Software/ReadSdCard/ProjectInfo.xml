@@ -99,8 +99,10 @@
       <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Generated_Code\timers.c</PathName>
       <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Project_Settings\Startup_Code\startup.c</PathName>
       <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Sources\Application.c</PathName>
+      <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Sources\Config.c</PathName>
       <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Sources\Events.c</PathName>
       <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Sources\Shell.c</PathName>
+      <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Sources\SysInit.c</PathName>
       <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Sources\main.c</PathName>
       <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Static_Code\System\CPU_Init.c</PathName>
       <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Static_Code\System\Peripherals_Init.c</PathName>
@@ -177,9 +179,11 @@
       <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Generated_Code\task.h</PathName>
       <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Generated_Code\timers.h</PathName>
       <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Sources\Application.h</PathName>
+      <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Sources\Config.h</PathName>
       <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Sources\Events.h</PathName>
       <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Sources\Platform.h</PathName>
       <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Sources\Shell.h</PathName>
+      <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Sources\SysInit.h</PathName>
       <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Static_Code\IO_Map\MK64F12.h</PathName>
       <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Static_Code\PDD\ADC_PDD.h</PathName>
       <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Static_Code\PDD\CAN_PDD.h</PathName>

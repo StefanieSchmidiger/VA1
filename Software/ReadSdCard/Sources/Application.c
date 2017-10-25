@@ -40,7 +40,8 @@ void APP_Run(void)
   /*lint -e527 */
      for(;;){}} /* error! probably out of memory */
 #endif
-  if (xTaskCreate(SysInitTask, "Init", configMINIMAL_STACK_SIZE+150, NULL, tskIDLE_PRIORITY+1, NULL) != pdPASS) {
+  TaskHandle_t initTask;
+  if (xTaskCreate(SysInitTask, "Init", configMINIMAL_STACK_SIZE+150, &initTask, tskIDLE_PRIORITY+1, &initTask) != pdPASS) {
           for(;;){}} /* error */
 
 

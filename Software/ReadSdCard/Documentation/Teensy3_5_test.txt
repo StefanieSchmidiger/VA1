@@ -37,6 +37,11 @@ Module "LED1"      (component LED)
 Module "FRTOS1"    (component FreeRTOS)
    - FRTOS1_xTaskCreate -Create a new task and add it to the list of tasks that are ready to run.
    - FRTOS1_xTaskCreateStatic -Create a new task and add it to the list of tasks that are ready to run.
+   - FRTOS1_vTaskDelete -Remove a task from the RTOS real time kernels management. The task being deleted will be removed from 
+                all ready, blocked, suspended and event lists.   NOTE: The idle task is responsible for freeing the kernel 
+                allocated memory from tasks that have been deleted. It is therefore important that the idle task is not starved 
+                of microcontroller processing time if your application makes any calls to vTaskDelete (). Memory allocated by 
+                the task code is not automatically freed, and should be freed before the task is deleted.
    - FRTOS1_vTaskStartScheduler -Starts the real time kernel tick processing. After calling the kernel has control over which 
                 tasks are executed and when.   The idle task is created automatically when vTaskStartScheduler() is called.   
                 If vTaskStartScheduler() is successful the function will not return until an executing task calls 

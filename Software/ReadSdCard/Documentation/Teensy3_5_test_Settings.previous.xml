@@ -876,10 +876,10 @@
       <event name="OnCreateSyncObject" v="don&amp;apos;t generate code" />
     </Events>
   </Bean>
-  <Bean name="MINI1" type="minIni">
+  <Bean name="MINI" type="minIni">
     <Enabled v="Y" />
     <Properties>
-      <Component_name v="MINI1" />
+      <Component_name v="MINI" />
       <minIni_Version v="1.2B" />
       <Portable_strnicmp__ v="yes" />
       <Use_Real v="yes" />
