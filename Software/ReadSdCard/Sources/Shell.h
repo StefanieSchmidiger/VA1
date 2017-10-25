@@ -26,4 +26,7 @@ void SHELL_Init(void);
 /*! \brief Serial driver de-initialization */
 void SHELL_Deinit(void);
 
+/*! \brief Task entry for shell task */
+void ShellTask (void *pvParameters);
+
 #endif /* SHELL_H_ */

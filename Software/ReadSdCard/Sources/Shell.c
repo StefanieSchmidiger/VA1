@@ -49,36 +49,33 @@ static const CLS1_ParseCommandCallback CmdParserTable[] =
 
 static unsigned char localConsole_buf[48];
 
-static void ShellTask (void *pvParameters) {
-#if CLS1_DEFAULT_SERIAL
-  CLS1_ConstStdIOTypePtr ioLocal = CLS1_GetStdio();  
-#endif
-#if PL_HAS_SD_CARD
-  bool cardMounted = FALSE;
-  static FAT1_FATFS fileSystemObject;
-#endif
-  
-  (void)pvParameters; /* not used */
-#if PL_HAS_SD_CARD
-  FAT1_Init();
-#endif
-  for(;;) {
-#if PL_HAS_SD_CARD
-    (void)FAT1_CheckCardPresence(&cardMounted, (unsigned char*)"0" /*volume*/, &fileSystemObject, CLS1_GetStdio());
-#endif
-#if CLS1_DEFAULT_SERIAL
-    (void)CLS1_ReadAndParseWithCommandTable(localConsole_buf, sizeof(localConsole_buf), ioLocal, CmdParserTable);
-#endif
-    vTaskDelay(50/portTICK_RATE_MS);
-  } /* for */
+void ShellTask (void *pvParameters)
+{
+	#if CLS1_DEFAULT_SERIAL
+		CLS1_ConstStdIOTypePtr ioLocal = CLS1_GetStdio();
+	#endif
+	#if PL_HAS_SD_CARD
+			FAT1_Init();
+	#endif
+	#if PL_HAS_SD_CARD
+			bool cardMounted = FALSE;
+			static FAT1_FATFS fileSystemObject;
+	#endif
+	(void)pvParameters; /* not used */
+	for(;;) {
+		#if PL_HAS_SD_CARD
+			(void)FAT1_CheckCardPresence(&cardMounted, (unsigned char*)"0" /*volume*/, &fileSystemObject, CLS1_GetStdio());
+		#endif
+		#if CLS1_DEFAULT_SERIAL
+			(void)CLS1_ReadAndParseWithCommandTable(localConsole_buf, sizeof(localConsole_buf), ioLocal, CmdParserTable);
+		#endif
+		vTaskDelay(50/portTICK_RATE_MS);
+	} /* for */
 }
 
 void SHELL_Init(void) {
   localConsole_buf[0] = '\0';
   CLS1_Init();
-  if (xTaskCreate(ShellTask, "Shell", configMINIMAL_STACK_SIZE+150, NULL, tskIDLE_PRIORITY+1, NULL) != pdPASS) {
-    for(;;){} /* error */
-  }
 }
 
 void SHELL_Deinit(void) {

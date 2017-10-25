@@ -72,6 +72,7 @@ int main(void)
   /*** End of Processor Expert internal initialization.                    ***/
 
   /* Write your code here */
+  APP_Init();
   APP_Run();
   /* For example: for(;;) { } */
 
