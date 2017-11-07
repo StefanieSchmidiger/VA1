@@ -6,7 +6,7 @@
 **     Version     : Component 01.047, Driver 01.00, CPU db: 3.00.000
 **     Repository  : Kinetis
 **     Compiler    : GNU C Compiler
-**     Date/Time   : 2017-10-22, 15:34, # CodeGen: 2
+**     Date/Time   : 2017-11-01, 18:09, # CodeGen: 8
 **
 **     Copyright : 1997 - 2015 Freescale Semiconductor, Inc. 
 **     All Rights Reserved.
@@ -58,9 +58,6 @@
 #include "Pins1.h"
 #include "WAIT1.h"
 #include "MCUC1.h"
-#include "LED1.h"
-#include "LEDpin1.h"
-#include "BitIoLdd1.h"
 #include "FRTOS1.h"
 #include "CLS1.h"
 #include "UTIL1.h"
@@ -76,6 +73,15 @@
 #include "SM2.h"
 #include "TMOUT1.h"
 #include "RTC1.h"
+#include "SPI.h"
+#include "nIrqWirelessSide.h"
+#include "BitIoLdd2.h"
+#include "nIrqDeviceSide.h"
+#include "BitIoLdd3.h"
+#include "nResetDeviceSide.h"
+#include "BitIoLdd4.h"
+#include "nResetWirelessSide.h"
+#include "BitIoLdd5.h"
 
 
 /*

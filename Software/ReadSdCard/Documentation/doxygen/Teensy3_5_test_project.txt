@@ -27,10 +27,14 @@
 <br/>
 
 \page page_components Components 
-- \subpage BitIoLdd1
 - \subpage RTC1
 - \subpage SM2
 - \subpage SS1
+- \subpage SPI
+- \subpage BitIoLdd2
+- \subpage BitIoLdd3
+- \subpage BitIoLdd4
+- \subpage BitIoLdd5
 
 */
 
@@ -64,10 +68,14 @@
 <br/>
 
 \page page_components Components 
-- \subpage BitIoLdd1
 - \subpage RTC1
 - \subpage SM2
 - \subpage SS1
+- \subpage SPI
+- \subpage BitIoLdd2
+- \subpage BitIoLdd3
+- \subpage BitIoLdd4
+- \subpage BitIoLdd5
 
 */
 

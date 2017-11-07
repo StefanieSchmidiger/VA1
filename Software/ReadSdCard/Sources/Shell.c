@@ -12,7 +12,6 @@
 #include "CLS1.h"
 #include "Application.h"
 #include "FRTOS1.h"
-#include "LED1.h"
 
 #if PL_HAS_SD_CARD
   #include "FAT1.h"

@@ -24,7 +24,7 @@ by the component.
 <td class="regNotResetVal">0x08000000</td>
  <td>NVICISER0 register, peripheral SM2.</td></tr>
 <tr><td>0x40048038</td><td>SIM_SCGC5</td>
-<td class="regNotResetVal">0x00042982</td>
+<td class="regNotResetVal">0x00042182</td>
  <td>SIM_SCGC5 register, peripheral SM2.</td></tr>
 <tr><td>0x4004D004</td><td>PORTE_PCR1</td>
 <td class="regNotResetVal">0x00000704</td>
@@ -235,12 +235,12 @@ registers of the peripheral(s) configured by the component.
         
 </div>
 <table class="regtbl2"><tr><td class="trowtit" colspan="2">Address</td><td colspan="2">0x40048038</td></tr>
-<tr class="trowtit"><td  class="trowtit" colspan="2">Initial value</td><td colspan="2">0x00042982</td></tr>
+<tr class="trowtit"><td  class="trowtit" colspan="2">Initial value</td><td colspan="2">0x00042182</td></tr>
 <tr class="trowtit"><td  class="trowtit" colspan="2">After-reset value</td><td colspan="2">0x00040182</td></tr>
 <tr><td class="ttitle2">Bit</td><td class="ttitle2">Field</td><td class="ttitle2">Value</td><td class="ttitle2">Description</td></tr>
 <tr><td>13</td><td>PORTE</td><td>0x01</td><td>Port E Clock Gate Control</td>
 <tr><td>12</td><td>PORTD</td><td>0x00</td><td>Port D Clock Gate Control</td>
-<tr><td>11</td><td>PORTC</td><td>0x01</td><td>Port C Clock Gate Control</td>
+<tr><td>11</td><td>PORTC</td><td>0x00</td><td>Port C Clock Gate Control</td>
 <tr><td>10</td><td>PORTB</td><td>0x00</td><td>Port B Clock Gate Control</td>
 <tr><td>9</td><td>PORTA</td><td>0x00</td><td>Port A Clock Gate Control</td>
 <tr><td>0</td><td>LPTMR</td><td>0x00</td><td>Low Power Timer Access Control</td>

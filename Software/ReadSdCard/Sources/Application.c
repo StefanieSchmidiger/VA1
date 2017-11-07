@@ -4,7 +4,6 @@
  *  Created on: 10.10.2017
  *      Author: Erich Styger Local
  */
-#include "LED1.h"
 #include "WAIT1.h"
 #include "FRTOS1.h"
 #include "Shell.h"
@@ -12,6 +11,7 @@
 #include <stdbool.h> //true/false
 #include "MINI.h" //read SD card
 #include "SysInit.h" // init task, reads config
+#include "SpiHandler.h"
 
 
 static void BlinkyTask(void *p) {
@@ -40,10 +40,14 @@ void APP_Run(void)
   /*lint -e527 */
      for(;;){}} /* error! probably out of memory */
 #endif
-  TaskHandle_t initTask;
-  if (xTaskCreate(SysInitTask, "Init", configMINIMAL_STACK_SIZE+150, &initTask, tskIDLE_PRIORITY+1, &initTask) != pdPASS) {
-          for(;;){}} /* error */
 
+  if (xTaskCreate(SysInitTask, "Init", configMINIMAL_STACK_SIZE+500, NULL, tskIDLE_PRIORITY+1, NULL) != pdPASS) {
+          for(;;){}} /* error */
+  if (xTaskCreate(ShellTask, "Shell", configMINIMAL_STACK_SIZE+150, NULL, tskIDLE_PRIORITY+1, NULL) != pdPASS) {
+  	    for(;;) {}} /* error */
+
+  if (xTaskCreate(SpiHandler_TaskEntry, "SPI_Handler", configMINIMAL_STACK_SIZE+150, NULL, tskIDLE_PRIORITY+1, NULL) != pdPASS) {
+    	    for(;;) {}} /* error */
 
 
   vTaskStartScheduler();

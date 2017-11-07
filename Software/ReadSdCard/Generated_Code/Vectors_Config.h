@@ -52,9 +52,6 @@
 #include "Pins1.h"
 #include "WAIT1.h"
 #include "MCUC1.h"
-#include "LED1.h"
-#include "LEDpin1.h"
-#include "BitIoLdd1.h"
 #include "FRTOS1.h"
 #include "CLS1.h"
 #include "UTIL1.h"
@@ -70,6 +67,15 @@
 #include "SM2.h"
 #include "TMOUT1.h"
 #include "RTC1.h"
+#include "SPI.h"
+#include "nIrqWirelessSide.h"
+#include "BitIoLdd2.h"
+#include "nIrqDeviceSide.h"
+#include "BitIoLdd3.h"
+#include "nResetDeviceSide.h"
+#include "BitIoLdd4.h"
+#include "nResetWirelessSide.h"
+#include "BitIoLdd5.h"
 #include "Events.h"
 
 #ifdef __cplusplus
@@ -121,7 +127,7 @@ extern "C" {
 #define VECTOR_39         (tIsrFunc)&UnhandledInterrupt         /* 0x27 -    ivINT_RNG                      unused by PE */
 #define VECTOR_40         (tIsrFunc)&UnhandledInterrupt         /* 0x28 -    ivINT_I2C0                     unused by PE */
 #define VECTOR_41         (tIsrFunc)&UnhandledInterrupt         /* 0x29 -    ivINT_I2C1                     unused by PE */
-#define VECTOR_42         (tIsrFunc)&UnhandledInterrupt         /* 0x2A -    ivINT_SPI0                     unused by PE */
+#define VECTOR_42         (tIsrFunc)&SPI_Interrupt              /* 0x2A 112  ivINT_SPI0                     used by PE */
 #define VECTOR_43         (tIsrFunc)&SM2_Interrupt              /* 0x2B 112  ivINT_SPI1                     used by PE */
 #define VECTOR_44         (tIsrFunc)&UnhandledInterrupt         /* 0x2C -    ivINT_I2S0_Tx                  unused by PE */
 #define VECTOR_45         (tIsrFunc)&UnhandledInterrupt         /* 0x2D -    ivINT_I2S0_Rx                  unused by PE */

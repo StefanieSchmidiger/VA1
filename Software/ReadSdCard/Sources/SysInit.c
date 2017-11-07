@@ -8,21 +8,23 @@
 bool createAllTasks(void);
 
 
-void SysInitTask(TaskHandle_t* initTask)
+void SysInitTask(void* p)
 {
   bool cardMounted = false;
   static FAT1_FATFS fileSystemObject;
   if(FAT1_Init() != 0)
     {for(;;){}} /* SD Card could not be mounted */
-  FAT1_CheckCardPresence(&cardMounted, (unsigned char*)"0" /*volume*/, &fileSystemObject, CLS1_GetStdio());
-  readConfig();
-  createAllTasks();
+  //FAT1_CheckCardPresence(&cardMounted, (unsigned char*)"0" /*volume*/, &fileSystemObject, CLS1_GetStdio());
+  //readConfig();
+  //createAllTasks();
+  for(;;)
+  {
+	  vTaskDelay(500/portTICK_RATE_MS);
+  }
   vTaskDelete(NULL); // task deletes itself
 }
 
 bool createAllTasks(void)
 {
-	if (xTaskCreate(ShellTask, "Shell", configMINIMAL_STACK_SIZE+150, NULL, tskIDLE_PRIORITY+1, NULL) != pdPASS) {
-	    for(;;) {}} /* error */
-	return true;
+
 }

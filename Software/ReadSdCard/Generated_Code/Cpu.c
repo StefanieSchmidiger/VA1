@@ -8,7 +8,7 @@
 **     Repository  : Kinetis
 **     Datasheet   : K64P144M120SF5RM, Rev.2, January 2014
 **     Compiler    : GNU C Compiler
-**     Date/Time   : 2017-10-22, 15:34, # CodeGen: 2
+**     Date/Time   : 2017-11-01, 18:09, # CodeGen: 8
 **     Abstract    :
 **
 **     Settings    :
@@ -112,10 +112,6 @@ void Components_Init(void)
   /* ### XFormat "XF1" init code ... */
   /* ### Shell "CLS1" init code ... */
   CLS1_Init(); /* initialize shell */
-  /* ### BitIO_LDD "BitIoLdd1" component auto initialization. Auto initialization feature can be disabled by component property "Auto initialization". */
-  (void)BitIoLdd1_Init(NULL);
-  /* ### LED "LED1" init code ... */
-  LED1_Init(); /* initialize LED driver */
   /* ### FreeRTOS "FRTOS1" init code ... */
   /* PEX_RTOS_INIT() should have been called at this time already with the most critical setup */
   /* ### SeggerRTT "RTT1" init code ... */
@@ -136,6 +132,14 @@ void Components_Init(void)
   /* ### SD_Card "FATM1" init code ... */
   /* ### FAT_FileSystem "FAT1" init code ... */
   /* ### minIni "MINI" init code ... */
+  /* ### BitIO_LDD "BitIoLdd2" component auto initialization. Auto initialization feature can be disabled by component property "Auto initialization". */
+  (void)BitIoLdd2_Init(NULL);
+  /* ### BitIO_LDD "BitIoLdd3" component auto initialization. Auto initialization feature can be disabled by component property "Auto initialization". */
+  (void)BitIoLdd3_Init(NULL);
+  /* ### BitIO_LDD "BitIoLdd4" component auto initialization. Auto initialization feature can be disabled by component property "Auto initialization". */
+  (void)BitIoLdd4_Init(NULL);
+  /* ### BitIO_LDD "BitIoLdd5" component auto initialization. Auto initialization feature can be disabled by component property "Auto initialization". */
+  (void)BitIoLdd5_Init(NULL);
 }
 #endif /* CPU_COMPONENTS_INIT */
 

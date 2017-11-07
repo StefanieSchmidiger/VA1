@@ -36,9 +36,6 @@
 #include "Pins1.h"
 #include "WAIT1.h"
 #include "MCUC1.h"
-#include "LED1.h"
-#include "LEDpin1.h"
-#include "BitIoLdd1.h"
 #include "FRTOS1.h"
 #include "CLS1.h"
 #include "UTIL1.h"
@@ -54,6 +51,15 @@
 #include "SM2.h"
 #include "TMOUT1.h"
 #include "RTC1.h"
+#include "SPI.h"
+#include "nIrqWirelessSide.h"
+#include "BitIoLdd2.h"
+#include "nIrqDeviceSide.h"
+#include "BitIoLdd3.h"
+#include "nResetDeviceSide.h"
+#include "BitIoLdd4.h"
+#include "nResetWirelessSide.h"
+#include "BitIoLdd5.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -133,6 +139,44 @@ void FRTOS1_vApplicationMallocFailedHook(void);
 **     Returns     : Nothing
 ** ===================================================================
 */
+
+/*
+** ===================================================================
+**     Event       :  SPI_OnBlockSent (module Events)
+**
+**     Component   :  SPI [SPIMaster_LDD]
+*/
+/*!
+**     @brief
+**         This event is called after the last character from the
+**         output buffer is moved to the transmitter. This event is
+**         available only if the SendBlock method is enabled.
+**     @param
+**         UserDataPtr     - Pointer to the user or
+**                           RTOS specific data. The pointer is passed
+**                           as the parameter of Init method. 
+*/
+/* ===================================================================*/
+void SPI_OnBlockSent(LDD_TUserData *UserDataPtr);
+
+/*
+** ===================================================================
+**     Event       :  SPI_OnBlockReceived (module Events)
+**
+**     Component   :  SPI [SPIMaster_LDD]
+*/
+/*!
+**     @brief
+**         This event is called when the requested number of data is
+**         moved to the input buffer. This method is available only if
+**         the ReceiveBlock method is enabled.
+**     @param
+**         UserDataPtr     - Pointer to the user or
+**                           RTOS specific data. The pointer is passed
+**                           as the parameter of Init method. 
+*/
+/* ===================================================================*/
+void SPI_OnBlockReceived(LDD_TUserData *UserDataPtr);
 
 /* END Events */
 

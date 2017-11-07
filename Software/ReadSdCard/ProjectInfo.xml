@@ -53,7 +53,10 @@
   </PATHS>
   <FILES>
     <GeneratedCs>
-      <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Generated_Code\BitIoLdd1.c</PathName>
+      <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Generated_Code\BitIoLdd2.c</PathName>
+      <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Generated_Code\BitIoLdd3.c</PathName>
+      <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Generated_Code\BitIoLdd4.c</PathName>
+      <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Generated_Code\BitIoLdd5.c</PathName>
       <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Generated_Code\CLS1.c</PathName>
       <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Generated_Code\CS1.c</PathName>
       <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Generated_Code\Cpu.c</PathName>
@@ -61,8 +64,6 @@
       <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Generated_Code\FATM1.c</PathName>
       <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Generated_Code\FRTOS1.c</PathName>
       <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Generated_Code\KIN1.c</PathName>
-      <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Generated_Code\LED1.c</PathName>
-      <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Generated_Code\LEDpin1.c</PathName>
       <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Generated_Code\MCUC1.c</PathName>
       <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Generated_Code\MINI.c</PathName>
       <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Generated_Code\PE_LDD.c</PathName>
@@ -73,6 +74,7 @@
       <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Generated_Code\SEGGER_RTT.c</PathName>
       <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Generated_Code\SEGGER_RTT_printf.c</PathName>
       <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Generated_Code\SM2.c</PathName>
+      <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Generated_Code\SPI.c</PathName>
       <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Generated_Code\SS1.c</PathName>
       <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Generated_Code\TMOUT1.c</PathName>
       <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Generated_Code\TmDt1.c</PathName>
@@ -93,6 +95,10 @@
       <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Generated_Code\minGlue-FatFs.c</PathName>
       <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Generated_Code\minIni.c</PathName>
       <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Generated_Code\mpu_wrappers.c</PathName>
+      <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Generated_Code\nIrqDeviceSide.c</PathName>
+      <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Generated_Code\nIrqWirelessSide.c</PathName>
+      <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Generated_Code\nResetDeviceSide.c</PathName>
+      <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Generated_Code\nResetWirelessSide.c</PathName>
       <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Generated_Code\port.c</PathName>
       <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Generated_Code\queue.c</PathName>
       <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Generated_Code\tasks.c</PathName>
@@ -102,6 +108,7 @@
       <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Sources\Config.c</PathName>
       <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Sources\Events.c</PathName>
       <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Sources\Shell.c</PathName>
+      <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Sources\SpiHandler.c</PathName>
       <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Sources\SysInit.c</PathName>
       <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Sources\main.c</PathName>
       <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Static_Code\System\CPU_Init.c</PathName>
@@ -109,7 +116,10 @@
       <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Static_Code\System\Vectors.c</PathName>
     </GeneratedCs>
     <GeneratedHs>
-      <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Generated_Code\BitIoLdd1.h</PathName>
+      <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Generated_Code\BitIoLdd2.h</PathName>
+      <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Generated_Code\BitIoLdd3.h</PathName>
+      <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Generated_Code\BitIoLdd4.h</PathName>
+      <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Generated_Code\BitIoLdd5.h</PathName>
       <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Generated_Code\CLS1.h</PathName>
       <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Generated_Code\CLS1config.h</PathName>
       <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Generated_Code\CPU_Config.h</PathName>
@@ -126,9 +136,6 @@
       <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Generated_Code\Init_Config.h</PathName>
       <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Generated_Code\KIN1.h</PathName>
       <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Generated_Code\KIN1config.h</PathName>
-      <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Generated_Code\LED1.h</PathName>
-      <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Generated_Code\LED1config.h</PathName>
-      <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Generated_Code\LEDpin1.h</PathName>
       <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Generated_Code\MCUC1.h</PathName>
       <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Generated_Code\MCUC1config.h</PathName>
       <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Generated_Code\MINI.h</PathName>
@@ -143,6 +150,7 @@
       <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Generated_Code\SEGGER_RTT.h</PathName>
       <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Generated_Code\SEGGER_RTT_Conf.h</PathName>
       <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Generated_Code\SM2.h</PathName>
+      <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Generated_Code\SPI.h</PathName>
       <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Generated_Code\SS1.h</PathName>
       <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Generated_Code\StackMacros.h</PathName>
       <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Generated_Code\TMOUT1.h</PathName>
@@ -170,6 +178,10 @@
       <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Generated_Code\minIni.h</PathName>
       <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Generated_Code\mpu_prototypes.h</PathName>
       <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Generated_Code\mpu_wrappers.h</PathName>
+      <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Generated_Code\nIrqDeviceSide.h</PathName>
+      <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Generated_Code\nIrqWirelessSide.h</PathName>
+      <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Generated_Code\nResetDeviceSide.h</PathName>
+      <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Generated_Code\nResetWirelessSide.h</PathName>
       <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Generated_Code\portTicks.h</PathName>
       <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Generated_Code\portable.h</PathName>
       <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Generated_Code\portmacro.h</PathName>
@@ -183,6 +195,7 @@
       <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Sources\Events.h</PathName>
       <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Sources\Platform.h</PathName>
       <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Sources\Shell.h</PathName>
+      <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Sources\SpiHandler.h</PathName>
       <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Sources\SysInit.h</PathName>
       <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Static_Code\IO_Map\MK64F12.h</PathName>
       <PathName>C:\Users\Stefanie\Documents\Studium\Master\3.Semester\Software\ReadSdCard\Static_Code\PDD\ADC_PDD.h</PathName>
