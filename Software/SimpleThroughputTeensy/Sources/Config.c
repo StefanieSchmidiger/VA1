@@ -5,6 +5,8 @@
 
 #define TEMP_CSV_SIZE 50
 #define DEFAULT_CSV_STRING "0, 0, 0, 0"
+#define DEFAULT_BOOL 0
+#define DEFAULT_INT 1000
 
 
 // prototypes
@@ -168,6 +170,26 @@ bool readConfig(void)
   	/* USE_CTS_PER_WIRELESS_CONN */
   	numberOfCharsCopied = MINI_ini_gets("TransmissionConfiguration", "USE_CTS_PER_WIRELESS_CONN",  DEFAULT_CSV_STRING, copiedCsv, TEMP_CSV_SIZE, "serialSwitch_Config.ini");
   	csvToBool(copiedCsv, config.UseCtsPerWirelessConn);
+
+
+  	/* -------- SoftwareConfiguration -------- */
+  	/* TEST_HW_LOOPBACK_ONLY */
+  	config.TestHwLoopbackOnly = MINI_ini_getbool("SoftwareConfiguration", "TEST_HW_LOOPBACK_ONLY",  DEFAULT_BOOL, "serialSwitch_Config.ini");
+
+  	/* GENERATE_DEBUG_OUTPUT */
+  	config.GenerateDebugOutput = MINI_ini_getbool("SoftwareConfiguration", "GENERATE_DEBUG_OUTPUT",  DEFAULT_BOOL, "serialSwitch_Config.ini");
+
+  	/* SPI_HANDLER_TASK_INTERVAL */
+  	config.SpiHandlerTaskInterval = MINI_ini_getl("SoftwareConfiguration", "SPI_HANDLER_TASK_INTERVAL",  DEFAULT_INT, "serialSwitch_Config.ini");
+
+  	/* PACKAGE_GENERATOR_TASK_INTERVAL */
+  	config.PackageHandlerTaskInterval = MINI_ini_getl("SoftwareConfiguration", "PACKAGE_GENERATOR_TASK_INTERVAL",  DEFAULT_INT, "serialSwitch_Config.ini");
+
+  	/* NETWORK_HANDLER_TASK_INTERVAL */
+    config.NetworkHandlerTaskInterval = MINI_ini_getl("SoftwareConfiguration", "NETWORK_HANDLER_TASK_INTERVAL",  DEFAULT_INT, "serialSwitch_Config.ini");
+
+  	/* TOGGLE_GREEN_LED_INTERVAL */
+  	config.ToggleGreenLedInterval = MINI_ini_getl("SoftwareConfiguration", "TOGGLE_GREEN_LED_INTERVAL",  DEFAULT_INT, "serialSwitch_Config.ini");
 
   	return true;
 }

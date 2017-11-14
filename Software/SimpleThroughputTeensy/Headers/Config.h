@@ -1,43 +1,40 @@
-#ifndef CONFIG_H
-#define CONFIG_H
+#ifndef HEADERS_CONFIG_H
+#define HEADERS_CONFIG_H
 
 #include <stdbool.h>
+#include "SpiHandler.h"
 
 typedef struct Configurations {
-   int BaudRatesWirelessConn[4];
-   int BaudRatesDeviceConn[4];
-   int PrioWirelessConnDev0[4];
-   int PrioWirelessConnDev1[4];
-   int PrioWirelessConnDev2[4];
-   int PrioWirelessConnDev3[4];
-   int SendCntWirelessConnDev0[4];
-   int SendCntWirelessConnDev1[4];
-   int SendCntWirelessConnDev2[4];
-   int SendCntWirelessConnDev3[4];
-   int ResendDelayWirelessConnDev0[4];
-   int ResendDelayWirelessConnDev1[4];
-   int ResendDelayWirelessConnDev2[4];
-   int ResendDelayWirelessConnDev3[4];
-   int MaxThroughputWirelessConn[4];
-   int UsualPacketSizeDeviceConn[4];
-   int PackageGenMaxTimeout[4];
-   int DelayDismissOldPackagePerDev[4];
-   bool SendAckPerWirelessConn[4];
-   bool UseCtsPerWirelessConn[4];
-   bool UseGolayErrorCorrectingCode;
+	/* BaudRateConfiguration */
+   int BaudRatesWirelessConn[NUMBER_OF_UARTS]; //
+   int BaudRatesDeviceConn[NUMBER_OF_UARTS]; //
+   /* ConnectionConfiguration */
+   int PrioWirelessConnDev0[NUMBER_OF_UARTS];
+   int PrioWirelessConnDev1[NUMBER_OF_UARTS];
+   int PrioWirelessConnDev2[NUMBER_OF_UARTS];
+   int PrioWirelessConnDev3[NUMBER_OF_UARTS];
+   int SendCntWirelessConnDev0[NUMBER_OF_UARTS];
+   int SendCntWirelessConnDev1[NUMBER_OF_UARTS];
+   int SendCntWirelessConnDev2[NUMBER_OF_UARTS];
+   int SendCntWirelessConnDev3[NUMBER_OF_UARTS];
+   /* TransmissionConfiguration */
+   int ResendDelayWirelessConnDev0[NUMBER_OF_UARTS];
+   int ResendDelayWirelessConnDev1[NUMBER_OF_UARTS];
+   int ResendDelayWirelessConnDev2[NUMBER_OF_UARTS];
+   int ResendDelayWirelessConnDev3[NUMBER_OF_UARTS];
+   int MaxThroughputWirelessConn[NUMBER_OF_UARTS];
+   int UsualPacketSizeDeviceConn[NUMBER_OF_UARTS]; //
+   int PackageGenMaxTimeout[NUMBER_OF_UARTS]; //
+   int DelayDismissOldPackagePerDev[NUMBER_OF_UARTS];
+   bool SendAckPerWirelessConn[NUMBER_OF_UARTS];
+   bool UseCtsPerWirelessConn[NUMBER_OF_UARTS];
+
    bool TestHwLoopbackOnly;
-   bool EnableTestDataGen;
    bool GenerateDebugOutput;
-   bool GenerateThroughputOutput;
-   int HwBufIfDataReaderTaskInterval;
-   int HwBufIfDeviceDataWriterTaskInterval;
-   int PackageGeneratorTaskInterval;
-   int WirelessDataSendHandlerTaskInterval;
-   int WirelessAckSendHandlerTaskInterval;
-   int WirelessPackageExtractorTaskInterval;
+   int SpiHandlerTaskInterval;
+   int PackageHandlerTaskInterval;
+   int NetworkHandlerTaskInterval;
    int ToggleGreenLedInterval;
-   int TestDataGeneratorTaskInterval;
-   int GenerateThroughputOutputInterval;
 } Configuration;
 
 extern Configuration config;

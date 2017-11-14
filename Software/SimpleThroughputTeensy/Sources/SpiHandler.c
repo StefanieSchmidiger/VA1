@@ -25,15 +25,45 @@ xSemaphoreHandle spiRxMutex; /* Semaphore given in SPI_OnBlockReceived */
 xSemaphoreHandle spiTxMutex; /* Semaphore given in SPI_OnBlockSent */
 
 // prototypes, only used in this file
+void spiHandler_TaskInit(void);
 bool spiTransfer(tSpiSlaves spiSlave, tUartNr uartNr, tMax14830Reg reg, bool write, uint8_t* pData, uint8_t numOfTransfers);
 void spiWriteToAllUartInterfaces(tMax14830Reg reg, uint8_t data);
 bool spiSingleWriteTransfer(tSpiSlaves spiSlave, tUartNr uartNr, tMax14830Reg reg, uint8_t data);
 uint8_t spiSingleReadTransfer(tSpiSlaves spiSlave, tUartNr uartNr, tMax14830Reg reg);
 void configureHwBufBaudrate(tSpiSlaves spiSlave, tUartNr uartNr, unsigned int baudRateToSet);
-void initQueues(void);
+void initSpiHandlerQueues(void);
 static uint16_t readHwBufAndWriteToQueue(tSpiSlaves spiSlave, tUartNr uartNr, xQueueHandle queue);
 static uint16_t readQueueAndWriteToHwBuf(tSpiSlaves spiSlave, tUartNr uartNr, xQueueHandle queue, uint8_t numOfBytesToWrite);
-void testSpiDeviceSide(void);
+
+
+/*!
+* \fn void hwBufIfDataReader_TaskEntry(void)
+* \brief Task initializes SPI, used queues and MAX14830.
+* Periodically reads data from hardware buffers of all interfaces on wireless and device side and writes it to corresponding queues.
+*/
+void spiHandler_TaskEntry(void* p)
+{
+	TickType_t lastWakeTime;
+	const TickType_t taskInterval = pdMS_TO_TICKS(config.SpiHandlerTaskInterval);
+	spiHandler_TaskInit();
+	for(;;)
+	{
+		lastWakeTime = xTaskGetTickCount(); /* Initialize the xLastWakeTime variable with the current time. */
+		/* read all data and write it to queue */
+		for(int uartNr = 0; uartNr < NUMBER_OF_UARTS; uartNr++)
+		{
+			/* read data from device spi interface */
+			readHwBufAndWriteToQueue(MAX_14830_DEVICE_SIDE, uartNr, RxDeviceBytes[uartNr]);
+			/* write data from queue to device spi interface */
+			readQueueAndWriteToHwBuf(MAX_14830_DEVICE_SIDE, uartNr, RxDeviceBytes[uartNr], HW_FIFO_SIZE);
+			/* read data from wireless spi interface */
+			readHwBufAndWriteToQueue(MAX_14830_WIRELESS_SIDE, uartNr, RxWirelessBytes[uartNr]);
+			/* write data from queue to wireless spi interface */
+			readQueueAndWriteToHwBuf(MAX_14830_WIRELESS_SIDE, uartNr, RxWirelessBytes[uartNr], HW_FIFO_SIZE);
+		}
+		vTaskDelayUntil( &lastWakeTime, taskInterval ); /* Wait for the next cycle */
+	}
+}
 
 
 /*!
@@ -43,7 +73,7 @@ void testSpiDeviceSide(void);
 void spiHandler_TaskInit(void)
 {
 	spiDevice = SPI_Init(NULL); /* no auto-init in SPIMaster_LDD used because this variable is needed for ChangeConfiguration */
-	initQueues();
+	initSpiHandlerQueues();
 
 	spiRxMutex = FRTOS_xSemaphoreCreateBinary(); // Waits on Spi_ReceiveBlock
 	spiTxMutex = FRTOS_xSemaphoreCreateBinary(); // Waits for previous Spi_SendBlock to finish
@@ -115,90 +145,21 @@ void spiHandler_TaskInit(void)
 
 
 
-/*!
-* \fn void hwBufIfDataReader_TaskEntry(void)
-* \brief Task initializes SPI, used queues and MAX14830.
-* Periodically reads data from hardware buffers of all interfaces on wireless and device side and writes it to corresponding queues.
-*/
-void spiHandler_TaskEntry(void* p)
-{
-	TickType_t xLastWakeTime;
-	const TickType_t xFrequency = pdMS_TO_TICKS(50);
-	spiHandler_TaskInit();
-	/* testSpiDeviceSide(); */
-	for(;;)
-	{
-		xLastWakeTime = xTaskGetTickCount(); /* Initialise the xLastWakeTime variable with the current time. */
-		/* read all data and write it to queue */
-		readHwBufAndWriteToQueue(MAX_14830_DEVICE_SIDE, MAX_UART_0, RxDeviceBytes[0]);
-		readHwBufAndWriteToQueue(MAX_14830_DEVICE_SIDE, MAX_UART_1, RxDeviceBytes[1]);
-		readHwBufAndWriteToQueue(MAX_14830_DEVICE_SIDE, MAX_UART_2, RxDeviceBytes[2]);
-		readHwBufAndWriteToQueue(MAX_14830_DEVICE_SIDE, MAX_UART_3, RxDeviceBytes[3]);
-		readHwBufAndWriteToQueue(MAX_14830_WIRELESS_SIDE, MAX_UART_0, RxWirelessBytes[0]);
-		readHwBufAndWriteToQueue(MAX_14830_WIRELESS_SIDE, MAX_UART_1, RxWirelessBytes[1]);
-		readHwBufAndWriteToQueue(MAX_14830_WIRELESS_SIDE, MAX_UART_2, RxWirelessBytes[2]);
-		readHwBufAndWriteToQueue(MAX_14830_WIRELESS_SIDE, MAX_UART_3, RxWirelessBytes[3]);
 
-		/* write data from queue to spi interface */
-		readQueueAndWriteToHwBuf(MAX_14830_DEVICE_SIDE, MAX_UART_0, RxDeviceBytes[0], HW_FIFO_SIZE);
-		readQueueAndWriteToHwBuf(MAX_14830_DEVICE_SIDE, MAX_UART_0, RxWirelessBytes[0], HW_FIFO_SIZE);
-		readQueueAndWriteToHwBuf(MAX_14830_DEVICE_SIDE, MAX_UART_1, RxWirelessBytes[1], HW_FIFO_SIZE);
-		readQueueAndWriteToHwBuf(MAX_14830_DEVICE_SIDE, MAX_UART_2, RxWirelessBytes[2], HW_FIFO_SIZE);
-		readQueueAndWriteToHwBuf(MAX_14830_DEVICE_SIDE, MAX_UART_3, RxWirelessBytes[3], HW_FIFO_SIZE);
-		readQueueAndWriteToHwBuf(MAX_14830_WIRELESS_SIDE, MAX_UART_0, RxWirelessBytes[0], HW_FIFO_SIZE);
-		readQueueAndWriteToHwBuf(MAX_14830_WIRELESS_SIDE, MAX_UART_1, RxWirelessBytes[1], HW_FIFO_SIZE);
-		readQueueAndWriteToHwBuf(MAX_14830_WIRELESS_SIDE, MAX_UART_2, RxWirelessBytes[2], HW_FIFO_SIZE);
-		readQueueAndWriteToHwBuf(MAX_14830_WIRELESS_SIDE, MAX_UART_3, RxWirelessBytes[3], HW_FIFO_SIZE);
 
-	    vTaskDelayUntil( &xLastWakeTime, xFrequency ); /* Wait for the next cycle */
-	}
-}
-
-/*!
-* \fn void testSpiDeviceSide(void)
-* \brief This function tries to push and pop from queues and reads (non-zero) registers from the SPI-to-UART converter
-* MAX14830 and queues need to be initialized before calling this function!
-*/
-void testSpiDeviceSide(void)
-{
-	int8_t data = 0xA0;
-	xQueueSendToBack(RxDeviceBytes[0], &data, 0);
-	data = 'u';
-	xQueueSendToBack(RxDeviceBytes[0], &data, 0);
-	xQueueReceive(RxDeviceBytes[0], &data, 0);
-
-	data = spiSingleReadTransfer(MAX_14830_DEVICE_SIDE, MAX_UART_0, MAX_REG_PLL_CONFIG);	/* set to 6 in task init */
-	data = spiSingleReadTransfer(MAX_14830_DEVICE_SIDE, MAX_UART_0, MAX_REG_LCR); /* set to 0x03 in task init */
-	data = spiSingleReadTransfer(MAX_14830_DEVICE_SIDE, MAX_UART_0, MAX_REG_LCR); /* set to 0x03 in task init */
-
-	data = spiSingleReadTransfer(MAX_14830_DEVICE_SIDE, MAX_UART_0, MAX_REG_ISR);	/* check isr registry  */
-	data = spiSingleReadTransfer(MAX_14830_DEVICE_SIDE, MAX_UART_1, MAX_REG_SPCL_CHAR_INT);	/* check isr registry  */
-	data = spiSingleReadTransfer(MAX_14830_DEVICE_SIDE, MAX_UART_1, MAX_REG_ISR);	/* check isr registry  */
-	data = spiSingleReadTransfer(MAX_14830_DEVICE_SIDE, MAX_UART_2, MAX_REG_ISR);	/* check isr registry  */
-	data = spiSingleReadTransfer(MAX_14830_DEVICE_SIDE, MAX_UART_3, MAX_REG_ISR);	/* check isr registry  */
-	data = spiSingleReadTransfer(MAX_14830_WIRELESS_SIDE, MAX_UART_0, MAX_REG_ISR);	/* check isr registry  */
-	data = spiSingleReadTransfer(MAX_14830_WIRELESS_SIDE, MAX_UART_1, MAX_REG_ISR);	/* check isr registry  */
-	data = spiSingleReadTransfer(MAX_14830_WIRELESS_SIDE, MAX_UART_2, MAX_REG_ISR);	/* check isr registry  */
-	data = spiSingleReadTransfer(MAX_14830_WIRELESS_SIDE, MAX_UART_3, MAX_REG_ISR);	/* check isr registry  */
-
-	data = spiSingleReadTransfer(MAX_14830_DEVICE_SIDE, MAX_UART_0, MAX_REG_RX_FIFO_LVL); /* check how much characters there are to read in the hardware FIFO */
-	uint8_t spaceTaken = spiSingleReadTransfer(MAX_14830_DEVICE_SIDE, MAX_UART_0, MAX_REG_TX_FIFO_LVL);
-
-	readQueueAndWriteToHwBuf(MAX_14830_DEVICE_SIDE, MAX_UART_0, RxDeviceBytes[0], SINGLE_BYTE);
-}
 
 /*!
 * \fn void initQueues(void)
 * \brief This function initializes the array of queues
 */
-void initQueues(void)
+void initSpiHandlerQueues(void)
 {
-	for(int i=0; i<4; i++)
+	for(int uartNr=0; uartNr<NUMBER_OF_UARTS; uartNr++)
 	{
-		RxWirelessBytes[i] = xQueueCreate( QUEUE_NUM_OF_CHARS_WL_RX_QUEUE, sizeof(uint8_t));
-		RxDeviceBytes[i] = xQueueCreate( QUEUE_NUM_OF_CHARS_DEV_RX_QUEUE, sizeof(uint8_t));
-		TxWirelessBytes[i] = xQueueCreate( QUEUE_NUM_OF_CHARS_WL_TX_QUEUE, sizeof(uint8_t));
-		TxDeviceBytes[i] = xQueueCreate( QUEUE_NUM_OF_CHARS_DEV_TX_QUEUE, sizeof(uint8_t));
+		RxWirelessBytes[uartNr] = xQueueCreate( QUEUE_NUM_OF_CHARS_WL_RX_QUEUE, sizeof(uint8_t));
+		RxDeviceBytes[uartNr] = xQueueCreate( QUEUE_NUM_OF_CHARS_DEV_RX_QUEUE, sizeof(uint8_t));
+		TxWirelessBytes[uartNr] = xQueueCreate( QUEUE_NUM_OF_CHARS_WL_TX_QUEUE, sizeof(uint8_t));
+		TxDeviceBytes[uartNr] = xQueueCreate( QUEUE_NUM_OF_CHARS_DEV_TX_QUEUE, sizeof(uint8_t));
 	}
 }
 
@@ -243,15 +204,11 @@ bool spiSingleWriteTransfer(tSpiSlaves spiSlave, tUartNr uartNr, tMax14830Reg re
 */
 void spiWriteToAllUartInterfaces(tMax14830Reg reg, uint8_t data)
 {
-	spiSingleWriteTransfer(MAX_14830_WIRELESS_SIDE, MAX_UART_0, reg, data);
-	spiSingleWriteTransfer(MAX_14830_WIRELESS_SIDE, MAX_UART_1, reg, data);
-	spiSingleWriteTransfer(MAX_14830_WIRELESS_SIDE, MAX_UART_2, reg, data);
-	spiSingleWriteTransfer(MAX_14830_WIRELESS_SIDE, MAX_UART_3, reg, data);
-
-	spiSingleWriteTransfer(MAX_14830_DEVICE_SIDE, MAX_UART_0, reg, data);
-	spiSingleWriteTransfer(MAX_14830_DEVICE_SIDE, MAX_UART_1, reg, data);
-	spiSingleWriteTransfer(MAX_14830_DEVICE_SIDE, MAX_UART_2, reg, data);
-	spiSingleWriteTransfer(MAX_14830_DEVICE_SIDE, MAX_UART_3, reg, data);
+	for(int uartNr = 0; uartNr < NUMBER_OF_UARTS; uartNr ++)
+	{
+		spiSingleWriteTransfer(MAX_14830_WIRELESS_SIDE, uartNr, reg, data);
+		spiSingleWriteTransfer(MAX_14830_DEVICE_SIDE, uartNr, reg, data);
+	}
 }
 
 
@@ -541,4 +498,76 @@ static uint16_t readQueueAndWriteToHwBuf(tSpiSlaves spiSlave, tUartNr uartNr, xQ
 		}
 	}
 	return cnt;
+}
+
+
+/*!
+* \fn ByseType_t popFromByteQueue(tSpiSlaves spiSlave, tUartNr uartNr, uint8_t *pData)
+* \brief Stores a single byte from the selected queue in pData.
+* \param spiSlave: SPI slave the data should be read from.
+* \param uartNr: UART number the data should be read from.
+* \param pData: The location where the byte should be stored
+* \return Status if xQueueReceive has been successful
+*/
+BaseType_t popFromByteQueue(tSpiSlaves spiSlave, tUartNr uartNr, uint8_t *pData)
+{
+	if(spiSlave == MAX_14830_WIRELESS_SIDE)
+	{
+		if(uartNr < NUMBER_OF_UARTS)
+		{
+			return xQueueReceive(RxWirelessBytes[uartNr], pData, ( TickType_t ) 0 );
+		}
+	}
+	else
+	{
+		if(uartNr < NUMBER_OF_UARTS)
+		{
+			return xQueueReceive(RxDeviceBytes[uartNr], pData, ( TickType_t ) 0 );
+		}
+	}
+	return pdFAIL; /* if uartNr was not in range */
+}
+
+
+/*!
+* \fn ByseType_t pushToByteQueue(tSpiSlaves spiSlave, tUartNr uartNr, uint8_t *pData)
+* \brief Stores pData in queue
+* \param spiSlave: SPI slave the data should be written to.
+* \param uartNr: UART number the data should be written to.
+* \param pData: The location where the byte should be read
+* \return Status if xQueueSendToBack has been successful
+*/
+BaseType_t pushToByteQueue(tSpiSlaves spiSlave, tUartNr uartNr, uint8_t* pData)
+{
+	if(spiSlave == MAX_14830_WIRELESS_SIDE)
+	{
+		if(uartNr < NUMBER_OF_UARTS)
+		{
+			return xQueueSendToBack(RxWirelessBytes[uartNr], pData, ( TickType_t ) 0 );
+		}
+	}
+	else
+	{
+		if(uartNr < NUMBER_OF_UARTS)
+		{
+			return xQueueSendToBack(RxDeviceBytes[uartNr], pData, ( TickType_t ) 0 );
+		}
+	}
+	return pdFAIL; /* if uartNr was not in range */
+}
+
+/* needed by network handler to know when to generate data package */
+uint16_t numberOfBytesInRxByteQueue(tSpiSlaves spiSlave, tUartNr uartNr)
+{
+	if(uartNr < NUMBER_OF_UARTS)
+		return (spiSlave == MAX_14830_WIRELESS_SIDE)? (uint16_t) uxQueueMessagesWaiting(RxWirelessBytes[uartNr]) :  (uint16_t) uxQueueMessagesWaiting(RxDeviceBytes[uartNr]);
+	return pdFAIL; /* if uartNr was not in range */
+}
+
+/* needed by package generator to know when to push new package to queue */
+uint16_t numberOfBytesInTxByteQueue(tSpiSlaves spiSlave, tUartNr uartNr)
+{
+	if(uartNr < NUMBER_OF_UARTS)
+			return (spiSlave == MAX_14830_WIRELESS_SIDE)? (uint16_t) uxQueueMessagesWaiting(TxWirelessBytes[uartNr]) :  (uint16_t) uxQueueMessagesWaiting(TxDeviceBytes[uartNr]);
+		return pdFAIL; /* if uartNr was not in range */
 }

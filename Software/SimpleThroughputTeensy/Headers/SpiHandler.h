@@ -1,5 +1,5 @@
-#ifndef SPIHANDLER_H
-#define SPIHANDLER_H
+#ifndef HEADERS_SPIHANDLER_H_
+#define HEADERS_SPIHANDLER_H_
 
 
 #include "SPI.h"
@@ -98,7 +98,8 @@ typedef enum eUartNr
 	MAX_UART_0 = 0x0,
 	MAX_UART_1 = 0x1,
 	MAX_UART_2 = 0x2,
-	MAX_UART_3 = 0x3
+	MAX_UART_3 = 0x3,
+	NUMBER_OF_UARTS = 0x4
 } tUartNr;
 
 
@@ -122,5 +123,28 @@ extern xSemaphoreHandle spiTxMutex;
 * \brief This task handles the HW interface (SPI)
 */
 void spiHandler_TaskEntry(void* p);
+
+/*!
+* \fn ByseType_t pushToByteQueue(tSpiSlaves spiSlave, tUartNr uartNr, uint8_t *pData)
+* \brief Stores pData in queue
+* \param spiSlave: SPI slave the data should be written to.
+* \param uartNr: UART number the data should be written to.
+* \param pData: The location where the byte should be read
+* \return Status if xQueueSendToBack has been successful
+*/
+BaseType_t pushToByteQueue(tSpiSlaves spiSlave, tUartNr uartNr, uint8_t* pData);
+
+/*!
+* \fn ByseType_t popFromByteQueue(tSpiSlaves spiSlave, tUartNr uartNr, uint8_t *pData)
+* \brief Stores a single byte from the selected queue in pData.
+* \param spiSlave: SPI slave the data should be read from.
+* \param uartNr: UART number the data should be read from.
+* \param pData: The location where the byte should be stored
+* \return Status if xQueueReceive has been successful
+*/
+BaseType_t popFromByteQueue(tSpiSlaves spiSlave, tUartNr uartNr, uint8_t *pData);
+
+uint16_t numberOfBytesInRxByteQueue(tSpiSlaves spiSlave, tUartNr uartNr);
+uint16_t numberOfBytesInTxByteQueue(tSpiSlaves spiSlave, tUartNr uartNr);
 
 #endif
