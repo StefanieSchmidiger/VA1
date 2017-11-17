@@ -34,6 +34,7 @@ void configureHwBufBaudrate(tSpiSlaves spiSlave, tUartNr uartNr, unsigned int ba
 void initSpiHandlerQueues(void);
 static uint16_t readHwBufAndWriteToQueue(tSpiSlaves spiSlave, tUartNr uartNr, xQueueHandle queue);
 static uint16_t readQueueAndWriteToHwBuf(tSpiSlaves spiSlave, tUartNr uartNr, xQueueHandle queue, uint8_t numOfBytesToWrite);
+void testSpiDeviceSide(void);
 
 
 /*!
@@ -46,6 +47,7 @@ void spiHandler_TaskEntry(void* p)
 	TickType_t lastWakeTime;
 	const TickType_t taskInterval = pdMS_TO_TICKS(config.SpiHandlerTaskInterval);
 	spiHandler_TaskInit();
+	// testSpiDeviceSide();
 	for(;;)
 	{
 		lastWakeTime = xTaskGetTickCount(); /* Initialize the xLastWakeTime variable with the current time. */
@@ -144,7 +146,33 @@ void spiHandler_TaskInit(void)
 }
 
 
+void testSpiDeviceSide(void)
+{
+	int8_t data = 0xA0;
+	xQueueSendToBack(RxDeviceBytes[0], &data, 0);
+	data = 'u';
+	xQueueSendToBack(RxDeviceBytes[0], &data, 0);
+	xQueueReceive(RxDeviceBytes[0], &data, 0);
 
+	data = spiSingleReadTransfer(MAX_14830_DEVICE_SIDE, MAX_UART_0, MAX_REG_PLL_CONFIG);	/* set to 6 in task init */
+	data = spiSingleReadTransfer(MAX_14830_DEVICE_SIDE, MAX_UART_0, MAX_REG_LCR); /* set to 0x03 in task init */
+	data = spiSingleReadTransfer(MAX_14830_DEVICE_SIDE, MAX_UART_0, MAX_REG_LCR); /* set to 0x03 in task init */
+
+	data = spiSingleReadTransfer(MAX_14830_DEVICE_SIDE, MAX_UART_0, MAX_REG_ISR);	/* check isr registry  */
+	data = spiSingleReadTransfer(MAX_14830_DEVICE_SIDE, MAX_UART_1, MAX_REG_SPCL_CHAR_INT);	/* check isr registry  */
+	data = spiSingleReadTransfer(MAX_14830_DEVICE_SIDE, MAX_UART_1, MAX_REG_ISR);	/* check isr registry  */
+	data = spiSingleReadTransfer(MAX_14830_DEVICE_SIDE, MAX_UART_2, MAX_REG_ISR);	/* check isr registry  */
+	data = spiSingleReadTransfer(MAX_14830_DEVICE_SIDE, MAX_UART_3, MAX_REG_ISR);	/* check isr registry  */
+	data = spiSingleReadTransfer(MAX_14830_WIRELESS_SIDE, MAX_UART_0, MAX_REG_ISR);	/* check isr registry  */
+	data = spiSingleReadTransfer(MAX_14830_WIRELESS_SIDE, MAX_UART_1, MAX_REG_ISR);	/* check isr registry  */
+	data = spiSingleReadTransfer(MAX_14830_WIRELESS_SIDE, MAX_UART_2, MAX_REG_ISR);	/* check isr registry  */
+	data = spiSingleReadTransfer(MAX_14830_WIRELESS_SIDE, MAX_UART_3, MAX_REG_ISR);	/* check isr registry  */
+
+	data = spiSingleReadTransfer(MAX_14830_DEVICE_SIDE, MAX_UART_0, MAX_REG_RX_FIFO_LVL); /* check how much characters there are to read in the hardware FIFO */
+	uint8_t spaceTaken = spiSingleReadTransfer(MAX_14830_DEVICE_SIDE, MAX_UART_0, MAX_REG_TX_FIFO_LVL);
+
+	readQueueAndWriteToHwBuf(MAX_14830_DEVICE_SIDE, MAX_UART_0, RxDeviceBytes[0], SINGLE_BYTE);
+}
 
 
 
@@ -173,9 +201,9 @@ void initSpiHandlerQueues(void)
 */
 uint8_t spiSingleReadTransfer(tSpiSlaves spiSlave, tUartNr uartNr, tMax14830Reg reg)
 {
-	static uint8_t readData = 0xAA; /* default value: 0b10101010. Variable needs to be static otherwise SPI_ReadBlock() will write to memory that is not available anymore after returning from this function */
-	spiTransfer(spiSlave, uartNr, reg, READ_TRANSFER, &readData, SINGLE_BYTE);
-	return readData;
+	static uint8_t readData[2]; /* spi transfer needs one extra byte for commando */
+	spiTransfer(spiSlave, uartNr, reg, READ_TRANSFER, readData, SINGLE_BYTE);
+	return readData[1];
 }
 
 
@@ -191,7 +219,9 @@ uint8_t spiSingleReadTransfer(tSpiSlaves spiSlave, tUartNr uartNr, tMax14830Reg 
 */
 bool spiSingleWriteTransfer(tSpiSlaves spiSlave, tUartNr uartNr, tMax14830Reg reg, uint8_t data)
 {
-	return spiTransfer(spiSlave, uartNr, reg, WRITE_TRANSFER, &data, SINGLE_BYTE);
+	static uint8_t writeData[2];
+	writeData[1] = data; /* write[0] will be filled with commando */
+	return spiTransfer(spiSlave, uartNr, reg, WRITE_TRANSFER, writeData, SINGLE_BYTE);
 }
 
 
@@ -250,14 +280,19 @@ bool spiTransfer(tSpiSlaves spiSlave, tUartNr uartNr, tMax14830Reg reg, bool wri
 	{
 		return false;
 	}
-	/* Add 1 byte of overhead for MAX14830 */
-	data[1] = write ? 0x80 : 0x0;
-	data[1] |= (uartNr << 5);
-	data[1] |= (0x1F & reg);
-	/* Add data bytes */
-	data[0] = write ? (pData[0]) : (0x0);
-	for(int i = 2; i < (numOfTransfers+1); i++)
-		data[i] = pData[i-1];
+	/* Add 1 byte of overhead for MAX14830 commando */
+	if(write)
+	{
+		pData[0] = 0x80;
+		pData[0] |= (uartNr << 5);
+		pData[0] |= (0x1F & reg);
+	}
+	else
+	{
+		data[0] = 0x0;
+		data[0] |= (uartNr << 5);
+		data[0] |= (0x1F & reg);
+	}
 	/* Select the correct slave */
 	if (spiSlave == MAX_14830_WIRELESS_SIDE)
 	{
@@ -276,14 +311,14 @@ bool spiTransfer(tSpiSlaves spiSlave, tUartNr uartNr, tMax14830Reg reg, bool wri
 	{
 		/* write transfer */
 		xSemaphoreTake(spiTxMutex, maxDelay / portTICK_PERIOD_MS); // wait for last write to complete
-		SPI_SendBlock(spiDevice, data, numOfTransfers); // wait for SPI to get ready for sending
+		SPI_SendBlock(spiDevice, pData, numOfTransfers+1); // wait for SPI to get ready for sending
 	}
 	else
 	{
 		/* read transfer */
 		xSemaphoreTake(spiTxMutex, maxDelay / portTICK_PERIOD_MS); /* wait for last write to complete */
-		SPI_ReceiveBlock(spiDevice, pData, numOfTransfers);
-		SPI_SendBlock(spiDevice, data, numOfTransfers);
+		SPI_ReceiveBlock(spiDevice, pData, numOfTransfers+1); /* add 1 byte for command */
+		SPI_SendBlock(spiDevice, data, numOfTransfers+1); /* add 1 byte for command */
 		xSemaphoreTake(spiRxMutex, maxDelay / portTICK_PERIOD_MS); /* wait for read to be completed so that variable holds valid information when returning from this function */
 	}
 	return true;
@@ -355,7 +390,7 @@ void configureHwBufBaudrate(tSpiSlaves spiSlave, tUartNr uartNr, unsigned int ba
 */
 static uint16_t readHwBufAndWriteToQueue(tSpiSlaves spiSlave, tUartNr uartNr, xQueueHandle queue)
 {
-	uint8_t buffer[HW_FIFO_SIZE];
+	uint8_t buffer[HW_FIFO_SIZE+1]; /* needs to be one byte bigger just in case we read HW_FIFO_SIZE number of bytes -> one additional byte received for sending command byte */
 	uint16_t dataToRead = 0;
 	uint16_t totalNumOfReadBytes = 0;
 	uint8_t fifoLevel = 0;
@@ -386,7 +421,7 @@ static uint16_t readHwBufAndWriteToQueue(tSpiSlaves spiSlave, tUartNr uartNr, xQ
 
 		/* send the read data to the corresponding queue */
 		/* const char* buf = (const char*) &buffer[0]; */
-		for (unsigned int cnt = 0; cnt < dataToRead; cnt++)
+		for (unsigned int cnt = 1; cnt < dataToRead+1; cnt++)
 		{
 			if (xQueueSendToBack(queue, &buffer[cnt], ( TickType_t ) 0 ) == errQUEUE_FULL)
 			{
@@ -426,8 +461,8 @@ static uint16_t readHwBufAndWriteToQueue(tSpiSlaves spiSlave, tUartNr uartNr, xQ
 */
 static uint16_t readQueueAndWriteToHwBuf(tSpiSlaves spiSlave, tUartNr uartNr, xQueueHandle queue, uint8_t numOfBytesToWrite)
 {
-	uint8_t buffer[HW_FIFO_SIZE];
-	uint16_t cnt = 0;
+	uint8_t buffer[HW_FIFO_SIZE+1];
+	uint16_t cnt = 1;
 	/* check how much space there is left in hardware buffer */
 	uint8_t spaceLeft = 0;
 	uint8_t spaceTaken = spiSingleReadTransfer(spiSlave, uartNr, MAX_REG_TX_FIFO_LVL);
@@ -446,7 +481,7 @@ static uint16_t readQueueAndWriteToHwBuf(tSpiSlaves spiSlave, tUartNr uartNr, xQ
 		{
 			numOfBytesToWrite = HW_FIFO_SIZE;
 		}
-		for (cnt = 0; cnt < numOfBytesToWrite; cnt++)
+		for (cnt = 1; cnt < numOfBytesToWrite; cnt++)
 		{
 			if (xQueueReceive(queue, &buffer[cnt], ( TickType_t ) 0 ) == errQUEUE_EMPTY)
 			{
@@ -479,7 +514,7 @@ static uint16_t readQueueAndWriteToHwBuf(tSpiSlaves spiSlave, tUartNr uartNr, xQ
 				spiSingleWriteTransfer(spiSlave, uartNr, MAX_REG_MODE1, 0x02);
 			}
 		}
-		spiTransfer(spiSlave, uartNr, MAX_REG_RHR_THR, true, buffer, cnt);
+		spiTransfer(spiSlave, uartNr, MAX_REG_RHR_THR, true, buffer, cnt-1);
 		/* reenable transmission */
 		if (spiSlave != MAX_14830_WIRELESS_SIDE)
 			spiSingleWriteTransfer(spiSlave, uartNr, MAX_REG_MODE1, 0x00);
