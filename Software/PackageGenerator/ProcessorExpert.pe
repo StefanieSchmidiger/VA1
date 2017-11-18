@@ -3,7 +3,7 @@
   <Header>
     <Name>PackageGenerator</Name>
     <SavedBy>Erich Styger Local</SavedBy>
-    <ModificationStamp>47</ModificationStamp>
+    <ModificationStamp>49</ModificationStamp>
     <Date>2017-04-24</Date>
     <IDE>Eclipse IDE</IDE>
     <PEversion>1.12.2.RT7_b1550-0615</PEversion>
@@ -29,7 +29,7 @@
     <UseExistingModules>true</UseExistingModules>
     <RenamePeripheries>false</RenamePeripheries>
     <Autodependency>true</Autodependency>
-    <ProjectCompNumb>98</ProjectCompNumb>
+    <ProjectCompNumb>100</ProjectCompNumb>
     <DelUnusedPreviouslyGenFiles>true</DelUnusedPreviouslyGenFiles>
     <GeneratedCodeFrozen>false</GeneratedCodeFrozen>
     <AssignInitComponentNameToPrph>true</AssignInitComponentNameToPrph>
@@ -28270,8 +28270,8 @@
         <ReadOnly>false</ReadOnly>
         <UserReadOnly>false</UserReadOnly>
         <PropertyModelIsAutomatic>false</PropertyModelIsAutomatic>
-        <Index>14</Index>
-        <EnumSymbVal>16</EnumSymbVal>
+        <Index>6</Index>
+        <EnumSymbVal>8</EnumSymbVal>
       </ItemState>
       <ItemState>
         <ItemSymbol>MSBFirst0</ItemSymbol>
