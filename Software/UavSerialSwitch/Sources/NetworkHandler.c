@@ -156,14 +156,14 @@ bool processReceivedPackage(tUartNr wirelessConnNr)
 		if(config.SendAckPerWirelessConn[wirelessConnNr])
 		{
 			tWirelessPackage ackPackage;
-			generateAckPackage(&package, &ackPackage);
-			if(xQueueSendToBack(queuePackagesToSend[wirelessConnNr], &ackPackage, ( TickType_t ) 0) != pdTRUE)
+			while(generateAckPackage(&package, &ackPackage) == false) /* allocates payload memory block for ackPackage */
+				vTaskDelay(pdMS_TO_TICKS(10));
+			if(xQueueSendToBack(queuePackagesToSend[wirelessConnNr], &ackPackage, ( TickType_t ) 0) != pdTRUE) // ToDo: try sending ACK package out on wireless connection configured (just like data package, iterate through priorities) */
 				vTaskDelay(pdMS_TO_TICKS(10)); /* array full */
-			/* memory is freed when package in PackageHandler task */
+			/* memory of ackPackage is freed after package in PackageHandler task, extracted and byte wise pushed to byte queue */
 		}
-		else
-			FRTOS_vPortFree(package.payload); /* because we do not send a package to PackageHandler task, we need to free memory here */
 	}
+
 	else /* acknowledge package received */
 	{
 		/* iterate though unacknowledged packages to find the corresponding one */
@@ -186,8 +186,8 @@ bool processReceivedPackage(tUartNr wirelessConnNr)
 				}
 			}
 		}
-		FRTOS_vPortFree(package.payload); /* because we do not send a package to PackageHandler task, we need to free memory here */
 	}
+	FRTOS_vPortFree(package.payload);
 	return true;
 }
 
@@ -304,6 +304,8 @@ static bool generateAckPackage(tWirelessPackage* pReceivedDataPack, tWirelessPac
 	pAckPack->crc8Header = CRC1_GetCRC8(crcNH, *((uint8_t*)(&pAckPack->payloadSize) + 0));
 	/* get space for acknowladge payload (which consists of sysTime of datapackage*/
 	pAckPack->payload = (uint8_t*) FRTOS_pvPortMalloc(pAckPack->payloadSize*sizeof(int8_t));
+	if(pAckPack->payload == NULL) /* malloc failed */
+		return false;
 	/* generate payload */
 	for (uint16_t cnt = 0; cnt < pAckPack->payloadSize; cnt++)
 	{
@@ -332,7 +334,12 @@ static bool storeNewPackageInUnacknowledgedPackagesArray(tWirelessPackage* pPack
 		{
 			unacknowledgedPackages[index] = *pPackage;
 			unacknowledgedPackages[index].payload = FRTOS_pvPortMalloc(unacknowledgedPackages[index].payloadSize*sizeof(int8_t));
-			// ToDo: copy payload into package
+			if(unacknowledgedPackages[index].payload == NULL)
+				return false;
+			for(int cnt = 0; cnt < pPackage->payloadSize; cnt++)
+			{
+				unacknowledgedPackages[index].payload[cnt] = pPackage->payload[cnt];
+			}
 			unacknowledgedPackagesOccupiedAtIndex[index] = 1;
 			return true;
 		}
