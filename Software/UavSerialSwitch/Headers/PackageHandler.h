@@ -89,6 +89,15 @@ void packageHandler_TaskInit(void);
 BaseType_t popReceivedPackFromQueue(tUartNr uartNr, tWirelessPackage *pPackage);
 uint16_t numberOfPacksInReceivedPacksQueue(tUartNr uartNr);
 
+/*!
+* \fn ByseType_t peakAtReceivedPackQueue(tUartNr uartNr, tWirelessPackage *pPackage)
+* \brief Package that will be popped next is stored in pPackage but not removed from queue.
+* \param uartNr: UART number the package should be transmitted to.
+* \param pPackage: The location where the package should be stored
+* \return Status if xQueuePeek has been successful, pdFAIL if uartNr was invalid or pop unsuccessful
+*/
+BaseType_t peekAtReceivedPackQueue(tUartNr uartNr, tWirelessPackage *pPackage);
+
 
 
 #endif /* HEADERS_PACKAGEHANDLER_H_ */

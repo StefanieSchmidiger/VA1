@@ -135,10 +135,14 @@ uint8_t getWlConnectionToUse(tUartNr uartNr, uint8_t desiredPrio)
 bool processReceivedPackage(tUartNr wirelessConnNr)
 {
 	tWirelessPackage package;
-	package.payload = (uint8_t*) FRTOS_pvPortMalloc(PACKAGE_MAX_PAYLOAD_SIZE*sizeof(int8_t));
+
+	if(peekAtReceivedPackQueue(wirelessConnNr, &package) != pdTRUE) /* peek at package to find out payload size for malloc */
+		return false;
+	package.payload = (uint8_t*) FRTOS_pvPortMalloc(package.payloadSize*sizeof(int8_t)); /* do malloc for payload */
 	if(package.payload == NULL)
 		return false;
-	popReceivedPackFromQueue(wirelessConnNr, &package);
+	if(popReceivedPackFromQueue(wirelessConnNr, &package) != pdTRUE) /* actually remove package from queue */
+		return false;
 	if(package.packType == PACK_TYPE_DATA_PACKAGE) /* data package received */
 	{
 		/* check if data is valid */
@@ -224,7 +228,8 @@ static bool generateDataPackage(tUartNr deviceNr, tWirelessPackage* pPackage, ui
 		/* get data from queue */
 		for (uint16_t cnt = 0; cnt < pPackage->payloadSize; cnt++)
 		{
-			popFromByteQueue(MAX_14830_DEVICE_SIDE, deviceNr, &pPackage->payload[cnt]);
+			while(popFromByteQueue(MAX_14830_DEVICE_SIDE, deviceNr, &pPackage->payload[cnt]) != pdTRUE)
+				vTaskDelay(pdMS_TO_TICKS(10)); /* try again later */
 		}
 		/* calculate CRC */
 		uint32_t crc16;

@@ -500,6 +500,22 @@ BaseType_t popReceivedPackFromQueue(tUartNr uartNr, tWirelessPackage *pPackage)
 	return pdFAIL; /* if uartNr was not in range */
 }
 
+/*!
+* \fn ByseType_t peekAtReceivedPackQueue(tUartNr uartNr, tWirelessPackage *pPackage)
+* \brief Package that will be popped next is stored in pPackage but not removed from queue.
+* \param uartNr: UART number the package should be transmitted to.
+* \param pPackage: The location where the package should be stored
+* \return Status if xQueuePeek has been successful, pdFAIL if uartNr was invalid or pop unsuccessful
+*/
+BaseType_t peekAtReceivedPackQueue(tUartNr uartNr, tWirelessPackage *pPackage)
+{
+	if(uartNr < NUMBER_OF_UARTS)
+	{
+		return FRTOS_xQueuePeek(ReceivedPackages[uartNr], pPackage, ( TickType_t ) 0 );
+	}
+	return pdFAIL; /* if uartNr was not in range */
+}
+
 
 /*!
 * \fn uint16_t numberOfPacksInReceivedPacksQueue(tUartNr uartNr)
