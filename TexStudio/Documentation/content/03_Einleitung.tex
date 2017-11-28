@@ -1,0 +1,104 @@
+% Einleitung
+%
+\section{Zu diesem Dokument}
+%
+Das vorliegende Dokument dient als Nachschlagewerk und als Vorlage beim Erstellen von Dokumenten mit \LaTeX . Die etwas seltsame Form mit vielen Platzhalterkapiteln hat seinen Grund: Werden die einzelnen .tex"=Dateien im Ordner \gf{content/} entfernt (oder erstetzt), kann dieses (dann fast vollkommen leere) Dokument für jegliche Berichte von Vertiefungsarbeiten und Master"=Thesen der HSLU/MSE direkt als Vorlage übernommen werden. \\\\%
+Die folgenden Abschnitte sollten weitgehend alle benötigten Informationen enthalten, die zur Herstellung der einzelnen Bausteine eines \LaTeX "=Berichtes benötigt werden. Ein Ausdruck dieser Vorlage ist insofern nur beschränkt dienlich, da bei sämtlichen Erklärungen davon ausgegangen wird, dass der Leser neben der fertigen PDF"=Datei auch den tex"=Quellcode vor sich hat. So kann zum einen direkt verifiziert werden, welcher Code welchen Output generiert und ferner können auf diese Weise gewünschte Codestellen für den Eigengebrauch direkt übernommen werden.%
+%
+\section{Wann \LaTeX ? Wann nicht?}%
+%
+Die Anwendung von \LaTeX zahlt sich vor allem im Fall von umfangreichen wissenschaftlichen Arbeiten aus. Die Vorteile, welche bei deren Erstellung zum Zuge kommen, werden im Kapitel \ref{seVorteileLatex} näher vertieft.%
+%
+\spicvH{Latex_effort}{\LaTeX und MS Word: Qualitative Darstellung des Aufwandes in Funktion der Dokument"=Komplexität}{\label{picAufwand}}{50}%
+%
+Bild \ref{picAufwand} zeigt in qualitativem Sinne, dass \LaTeX{} den WYSIWYG"=Editoren (what you see is what you get) wie beispielsweise \gf{MS Word} nur ab einem gewissen Mass an Dokument"=Komplexität überlegen ist. Dieses Mass an Komplexität ist in den MSE"=Dokumenten definitiv erreicht und die bisherigen Nutzer"=Feedbacks sind ausnahmslos sehr positiv.%
+%
+\section{Vorteile von \LaTeX} \label{seVorteileLatex}%
+%
+Die hier aufgeführten Vorteile beziehen sich auf alle Features die \LaTeX{} standardmässig bietet, oder die durch das Anwenden von Zusatzfunktionen durch das hsluBTmaster-Stylefile ermöglicht werden.%
+%
+\begin{itemize}
+\item Weltweiter Standard in der Wissenschaft und im Engineering%
+\item \LaTeX{} ist Freeware%
+\item \LaTeX{} wird permanent auf der ganzen Welt weiterentwickelt%
+\item Läuft extrem stabil, egal wie gross die Dokumente sind%
+\item \LaTeX -Dateien sind extrem klein%
+\item Layout eines Dokuments wird nicht beeinflusst, wenn die Datei mit einer neueren Version von \LaTeX{} editiert wird%
+\item Gefahr, dass man durch Unachtsamkeit etwas im Layout ungewollt verändert, ist fast ausgeschlossen%
+\item Diverse verschiedene Distriubtionen und Editoren für \LaTeX{} vorhanden, alle funktionieren aber genau gleich und generieren bei gleichem Input den selben Output%
+\item Kann bei Bildern mit fast allen Bildformaten umgehen, darunter JPG, PNG, PS, EPS, \linebreak \underline{und vor allem PDF}, Vektorgrafiken sind selbstredend auch nach dem Kompilieren noch in Vektorform gespeichert%
+\item  Anpassen von bereits in das Dokument eingefügte Bilddateien funktioniert sehr effizient.%
+\item Aus dem \LaTeX -Dokument generierte PDF's haben eine geringe Dateigrösse und besitzen viele Zusatz-Features:%
+%
+\begin{itemize}
+\item Bookmarks für das gesamte Dokument, die beim öffnen der Datei bereits sichtbar sind%
+\item Im PDF anklickbare Link-Funktionen (sind im hsluBTmaster-Style-File bereits so eingestellt). %
+%
+\begin{itemize}
+\item Jeder Eintrag im Inhaltsverzeichnis führt zum entsprechenden Kapitel%
+\item Querverweise auf Gleichungen, Bilder und Tabellen führen zu der entsprechenden Abbildung%
+\item Literaturverweise führen zur entsprechenden Stelle im Literaturverzeichnis%
+\item Rückverweise, bei jeder Literaturstelle ist verzeichnet, auf welcher Seite sie im Bericht verzeichnet ist. Der Verweis funktioniert wiederum als anklickbarer Link.%
+\end{itemize}
+\item Hinzufügen von Metadaten wie Titel, Thema, Autor, Stichworte, etc.%
+\item Doppelseiten-Ansicht beim öffnen, Titelblatt aber separat (wenn so gewünscht)%
+\end{itemize} 
+%
+\item Eingeben von Formeln verlangt keine Mausklicks für Sonderzeichen, Brüche, Operatoren etc., und ist somit einiges schneller%
+\item Es können mehrere Teildateien desselben Berichts gleichzeitig geöffnet sein (schnelles Arbeiten alleine, Kollaboration möglich)%
+\item Sehr leichter Umgang beim Zitieren aus Quellen, alle Dokumente können auf dasselbe persönliche Bibliography-File zugreifen%
+\item Sehr gute Kompatibilität mit fast allen Literaturverwaltungsprogrammen wie Zotero, Jabref, Citavi, etc. Drag-and-Drop-Features bei Zotero%
+\item Layout wird mit dem hsluBTmaster-Stylefile automatisch erstellt, ohne dass man sich darum kümmert, somit ist auch das Layout von Autor zu Autor identisch%
+\item Kann ganze PDF-Seiten (oder gar mehrseitige PDF-Dokumente) in das Dokument einfügen oder anhängen, z.B. bei Handgeschriebenen Seiten in einer Statik o. ä.%
+\item Extrem aktive Community im Internet bei Fragen%
+\item Viele Templates im Internet vorhanden, z.B. für Briefe, etc.%
+\item Funktion "'Beamer"' für Powerpoint-Präsentationen%
+\item Möglichkeiten unbegrenzt, beliebig ausbaufähig, programmieren eigener Commands möglich%
+\end{itemize}
+%
+%
+%
+%
+%
+%
+\section{Installation}
+%
+\subsection{Vorgehen}
+%
+Zur Bearbeitung von \LaTeX -Dateien muss eine \LaTeX "=Distribution und ein Editor heruntergeladen werden. Die folgenden beiden Programme haben sich als geeignet erwiesen:%
+%
+\begin{itemize}
+\item Distribution \gf{TexLive}, \\ https://www.tug.org/texlive/acquire-netinstall.html (install-tl-windows.exe)%
+\item Editor \gf{Texmaker}, \\ http://www.xm1math.net/texmaker/download.html%
+\end{itemize}
+%
+Beide Programme sind auch für Mac erhältlich. Bei der Installation muss unbedingt zuerst die Distribution komplett installiert werden, bevor der Editor dazu installiert wird, so dass dieser die Distribution bereits vorfindet und sich damit verknüpfen kann. Im Normalfall sollte dies problemlos funktionieren.\\%
+Tritt beim Kompilieren dennoch eine Fehlermeldung auf, welche \gf{latex -interaction=nonstopmode \%.tex} beinhaltet, hat TexMaker die Distribution nicht gefunden. In diesem Fall müssen unter \gf{Optionen} > \gf{Texmaker konfigurieren} > \gf{Befehle} die Pfade zu den Programmdateien der Distribution manuell eingegeben werden.%
+%
+\subsection{To do's nach der Installation}%
+%
+Nach der Installation sollte das Rechtschreibewörterbuch auf Deutsch geändert werden. \linebreak \gf{Optionen}  > \gf{Texmaker konfigurieren} > \gf{Editor} > \gf{Rechtschreibewörterbuch}. Am schnellsten geht es, wenn der text \gf{en\_{}GB.dic} per Tastatureingabe in \gf{de\_{}DE.dic} geändert wird. TexMaker findet im momentanen Verzeichnis die entsprechende Datei. \\\\%
+%
+Des weiteren können unter \gf{Benutzer/in} > \gf{Wortvervollständigung anpassen} zusätzliche Vervollständigungen aktiviert werden, so dass man nicht ständig die gesamten Commands tippen muss. Dies macht das Arbeiten um einiges bequemer. Vorgeschlagen werden an dieser Stelle Einträge zu den folgenden Funktionen:%
+%
+\begin{samepage}
+\begin{itemize}
+\item \textbackslash cite\{o\} \tabto{5cm} Zitieren%
+\item \textbackslash ee\{o\} \tabto{5cm} Einheit in Formeln%
+\item \textbackslash as\{o\} \tabto{5cm} Anführungs- und Schlusszeichen%
+\item \textbackslash gf\tabto{5cm} Gänsefüsschen%
+\item \textbackslash gc\tabto{5cm} Grad Celsius %
+\item \textbackslash jj\tabto{5cm} Kleiner Buchstabe \gf{j} bei Formeln (Zeichenabstand richtig!)%
+\item \textbackslash spic\{o\}\{o\}\{o\} \tabto{5cm} Einfügen eines Bildes (float, Breite 150mm)%
+\item \textbackslash spicH\{o\}\{o\}\{o\} \tabto{5cm} Einfügen eines Bildes (here, Breite 150mm)%
+\item \textbackslash spicv\{o\}\{o\}\{o\}\{o\} \tabto{5cm} Einfügen eines Bildes (float, Breite wählbar)%
+\item \textbackslash spicvH\{o\}\{o\}\{o\}\{o\} \tabto{5cm} Einfügen eines Bildes (here, Breite wählbar)%
+\item \textbackslash textbackslash \tabto{5cm} Backslash \textbackslash%
+\item \textbackslash textrm\{o\} \tabto{5cm} Für Text in Formeln%
+\item \textbackslash tabto\{o\} \tabto{5cm} Tabulator%
+\item \textbackslash blindtext \tabto{5cm} Erzeugt ein Fülltext %
+\end{itemize}
+\end{samepage}
+%
+Obige Funktionen sind zum Teil \LaTeX "= Standardfunktionen oder Funktionen aus dem Stylefile \gf{hsluBTmaster}.%
+%

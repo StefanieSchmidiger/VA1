@@ -1,0 +1,132 @@
+% Grundlagen
+%
+\section{Zum Codefile}%
+%
+Ein umfangreiches \LaTeX -Dokument besteht aus Hauptfile (inoffizielle Bezeichnung), importierten Teildateien, Stylefile und der Bibliography.%
+%
+\subsubsection{Hauptfile (.tex)}%
+%
+Im Hauptfile (hier \gf{Vorlagen\_{}XX.tex}) werden alle Teildateien des Dokuments importiert und wenn nötig werden Titelblätter, Vorwörter, Verzeichnisse, etc. generiert. Grössere Textbausteine sollten in Teildateien gespeichert und über den \textbackslash import-Befehl importiert werden. So wird Übersichtlichkeit gewährleistet. (siehe Beispiel in dieser Vorlage).%
+%
+\subsubsection{Importierte Teildateien (.tex) (\textbackslash input"= Befehl)}%
+%
+Am besten wird pro Kapitel (und pro Anhangteil) eine eigene Teildatei erstellt (vgl. Ordner \gf{content/}). Auf diese Weise können mehrere Kapitel gleichzeitig geöffnet und editiert werden und das Hauptfile bleibt übersichtlich. Auch die Einträge für die Bezeichnungen können in einer Teildatei abgelegt und importiert werden (hier \gf{content/Vorlagen\_{}XX\_{}Bezeichnungen.tex}).\\%
+Ferner werden im oben beschriebenen Hauptfile einige weitere nötige Bestandteile des Codes aus outsource"=Dateien eingefügt (vgl. Ordner \gf{corefiles}). Diese Dateien sollen grundsätzlich nicht editiert werden. Das Outsourcing dient wiederum hauptsächlich der Gewährleistung der Übersichtlichkeit.%
+%
+\subsubsection{Stylefile (.sty)}%
+%
+Das Stylefile (hier \gf{hsluBTmasterXX.sty} enthält alle Angaben, die \LaTeX{} braucht, um das Layout zu generieren. Darüber hinaus sind diverse sogenannte Commands hinterlegt, welche das einfache Erstellen von Titelblättern, Änderungsverzeichnissen, Selbstständigkeitserklärungen, Vorwörter, Abstracts, Bezeichnungsverzeichnissen, Literaturverzeichnissen und Bildern (und vielem mehr) ermöglichen. \\ %
+Das Stylefile (hier \gf{hsluBTmasterXX.sty}) enthält am Anfang ein Änderungsverzeichnis und ein Manual, das die Anwendung der im File definierten Commands erklärt.%
+%
+\subsubsection{Bibliography (.bib)}%
+%
+Wird auf Quellen verwiesen, ist ein zusätzliches Bibliography-File nötig (hier \gf{literatur.bib}). Das Vorlagenfile enthält zahlreiche Quellen aus verschiedenen Dokument-Kategorien. %
+%
+\subsubsection{Weitere Files}%
+%
+Abgesehen von obigen Files entstehen beim Kompilieren noch andere Dateien (.bbl, .log, .blg, .toc, .out, .aux, etc.) Diese Dateien werden komplett von \LaTeX{} gehandhabt. Wenn ein Dokument dupliziert oder transportiert wird (z.B. auf einen anderen Datenträger) müssen diese Dateien nicht mitkopiert werden. Sie werden beim nächsten Kompilieren neu generiert. Es ist aber damit zu rechnen, dass in solchen Fällen zwingend mehrere Kompilier"=Durchgänge nötig sind.%
+%
+\newpage%
+\section{Zur Anwendung des Stylefiles \gf{hsluBTmaster}}%
+%
+Wenn ein Bericht auf dieser Vorlage aufgebaut wird, sind die nachfolgenden Bedingungen bereits erfüllt und diesem Abschnitt muss somit keine Beachtung geschenkt werden.\\ \\%
+Damit das Stylefile \gf{hsluBTmaster} angewendet werden kann, und das damit beabsichtigte Layout komplett umgesetzt werden kann, müssen auch beim Hauptfile einige Bedingungen eingehalten werden.%
+%
+\begin{itemize}%
+\item Documentclass muss \gf{book} sein.%
+\item Bei der Documentclass müssen die fakultativen Argumente [a4paper, fleqn, german] lauten%
+\end{itemize}%
+%
+Damit das Layout wie in dieser Vorlage aussieht, müssen zudem diverse Codestellen analog zum Hauptfile dieses Dokuments eingesetzt sein. Es sind dies:%
+%
+\begin{itemize}%
+\item Im Preamble (alles vor \gf{\textbackslash begin\{document\}}):%
+\begin{itemize}%
+\item \textbackslash usepackage\{corefiles/hsluBTmasterXX\} \textit{Laden des Stylefiles}%
+\item \textbackslash hypersetup \textit{Ausfüllen diverser Parameter und Metadaten für das resultierende PDF}%
+\item \textbackslash graphicspath\{\{pictures/\}\}   \textit{Ordner für die Bilder}  %
+\item \textbackslash bibliography\{corefiles/literatur\} \textit{Datei für die Literaturverweise} %
+\item \textbackslash watermark\{truefirstpage\} \textit{Optionales Wasserzeichen \gf{Entwurf}}%
+\end{itemize}%
+\item Nach \gf{\textbackslash begin\{document\}}:%
+\begin{itemize}%
+\item \gf{\textbackslash lsstyle}  \textit{(regelt den Zeichenabstand zwischen den Buchstaben)}%
+\item \gf{\textbackslash fontsize\{10.5\}\{13.7\} \textbackslash selectfont} \textit{(regelt die Fontgrösse / Zeilenabstand)}%
+\item \gf{\textbackslash pagenumbering\{alph\}} \textit{(nur sofern unnummerierte Seiten vor dem Titelblatt benötigt werden, sorgt für korrekte Backref"=Verweise für alle unnummerierten Seiten)}%
+\end{itemize}%
+%
+\item Bei Inhaltsverzeichnis:%
+\begin{itemize}%
+\item \gf{\textbackslash input\{corefiles/outsource\_{}TOC\}} \textit{(generiert das Inhaltsverzeichnis)}%
+\end{itemize}%
+\item Vor Beginn der eigentlichen Kapitel:%
+\begin{itemize}%
+\item \gf{\textbackslash mainmatter} \textit{(Beginn der normalen Seitennummerierung)}%
+\item \gf{\textbackslash pagestyle\{fancy\}} \textit{(regelt Seitenzahlen und Kapitelangaben im Header)}%
+\end{itemize}%
+%
+\item Vor Beginn des Anhangs:%
+\begin{itemize}%
+\item \gf{\textbackslash input\{corefiles/outsource\_{}Appendix\}} \textit{(ändert Kapitelnummerierung)}%
+\end{itemize}%
+%
+\item Nach Ende des Anhangs:%
+\begin{itemize}%
+\item \gf{\textbackslash input\{corefiles/outsource\_{}endAppendix\}} \textit{(ändert Kapitelnummerierung zurück)}%
+\end{itemize}%
+\end{itemize}%
+%
+Alle diese Codestellen sollten nicht editiert werden.%
+%
+\subsection{Zur Funktion \gf{anhangstuff}}%
+%
+Die einzelnen Teile des Anhangs werden im zweiten Argument der Funktion  \gf{\textbackslash anhangstuff } eingefügt. Dabei ist \gf{\textbackslash chapter} wie gewohnt die höchste hierarchische Überschriftstufe (generiert Titel mit der alphabetischen Nummerierung A, B, C, etc.). Alle darunterliegenden Kapitel werden wie gewohnt mit  \gf{\textbackslash section},  \gf{\textbackslash subsection} und  \gf{\textbackslash subsubsection} eingefügt.%
+%
+\section{Nützliche Funktionen von TexMaker}%
+%
+\subsubsection{Blauer Pfeil (Ausführen) in "'Tools Toolbar"'}%
+%
+Kompiliert die Datei. Im Dropdown-Menü kann gewählt werden, wie kompiliert wird. %
+\begin{itemize}%
+\item Beim normalen Arbeiten: 1.  PDFLaTex 2. PDF anzeigen (wird in den Standardeinstellungen ausgelöst, wenn man "'Schnelles Übersetzen"' im Dropdown-Menü wählt. Damit das Inhaltsverzeichnis aktualisiert wird, sind in der Regel zwei solche Durchgänge nötig.%
+\item Mit Bibliography: 1. PDFLaTex 2. BibLaTex 3. PDFLaTex 4. PDFLaTex 5. PDF anzeigen (kann wie im nächsten Punkt beschrieben dem Dropdown-Menü-Punkt "'Schnelles Übersetzen"' zugewiesen werden).  Grundsätzlich ist dieser Vorgang nur ganz am Schluss nötig. Beim normalen Arbeiten spielt es keine Rolle, wenn die Bibliography noch nicht auf dem aktuellsten Stand ist.%
+\end{itemize}%
+%
+\subsubsection{Blauer Pfeil (Ansehen) in "'Tools Toolbar"'}%
+%
+Zeigt das zum aktuellen Dokument gehörende PDF an, ohne dass ein Kompiliervorgang ausgelöst wird. Die Schaltfläche kann auch dazu benutzt werden, um nach Absetzen des Cursors an einer beliebigen Stelle im Code zur korrespondierenden Stelle im PDF zu gelangen.%
+%
+\subsubsection{Optionen > Texmaker konfigurieren > Schnelles übersetzen}%
+%
+Auf diese Weise kann man beeinflussen, was passiert, wenn man den blauen Pfeil zum kompilieren drückt und \gf{schnelles Übersetzen} gewählt ist.%
+%
+\subsubsection{Optionen > Aktuelle Datei zur Master-Datei erklären}%
+%
+Die Datei, die gerade aktiv ist, wird zur Master-Datei. Wann auch immer man von diesem Zeitpunkt an kompiliert, wird immer das Masterfile zum als PDF generiert, egal welche tex-Datei gerade aktiv (sichtbar) ist.%
+%
+\subsubsection{Befehl-Vervollständigung}%
+%
+Tippt man einen Befehl, werden von TexMaker Vervollständigungs-Vorschläge gemacht. Mit den Pfeiltasten kann der entsprechende Befehl gewählt und mit Enter eingefügt werden. Diese Vorschläge werden auch beim Zitieren über den \textbackslash{}cite-Befehl für die Literaturquellen gemacht, sofern diese bereits im Bibliography-File hinterlegt sind.%
+%
+\subsubsection{Ctrl-Klick in der PDF Ansicht}%
+%
+Wird in der PDF-Ansicht bei gleichzeitig gedrückter Ctrl-Taste auf eine bestimmte Stelle im Dokument geklickt, gelangt man im Editor-Fenster an die entsprechende Stelle im Code.%
+%
+\subsubsection{Suchfunktion}%
+%
+Gesucht wird im Editor wie in allen anderen Programmen mit Ctrl+F.%
+%
+%
+\subsubsection{Message/Log}%
+%
+Messages und Log wird unterhalb des Editorfensters angezeigt. Dort werden alle Warnungen und Fehler, die beim Kompilieren aufgetreten sind aufgeführt. Diesen Warnungen sollte in jedem Fall Beachtung geschenkt werden. Nicht alle Warnungen sind aber zwingend gravierend.%
+%
+\subsubsection{Struktur-Fenster}%
+%
+Im Strukturfenster links sind alle Kapitel und Unterkapitel im aktuell geöffneten Tex-File aufgeführt. Sind der Datei Unterdateien mit dem Befehl \_{}include hinzugefügt, taucht im Strukturfenster ein Link auf, der direkt zu dieser Datei führt.%
+%
+\section{Zu beachten beim Arbeiten mit \LaTeX}%
+%
+\begin{itemize}%
+\item[--] Namen von Dateien, Bilddateien, Labels und Literaturverweisen sollten keine Umlaute und Leerschläge enthalten. Dies kann bei einigen Compilern zu Problemen führen.%
+\end{itemize}%
