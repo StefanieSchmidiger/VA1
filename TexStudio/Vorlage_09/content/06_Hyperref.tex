@@ -1,0 +1,43 @@
+% Hyperref
+%
+Ein mit der vorliegenden Vorlage erstelltes \LaTeX "=Dokument enthält zahlreiche Hyperref"=Links. Dies bedeutet, dass sämtliche Verweise im PDF auch direkt als Link fungieren. Klickt man den Verweis an, landet man auf der entsprechenden Seite. Hyperref"=Links funktionieren für:%
+%
+\begin{itemize}%
+\item Bilder%
+\item Tabellen%
+\item Überschriften%
+\item Gleichungen%
+\item Codeblöcke%
+\item Quellenverweise%
+\end{itemize}%
+%
+\section{Backref} \label{refHyperefSec}%
+%
+In den Quellenverweisen ist jeweils die Informaiton enthalten, auf welchen Seiten auf diese Quelle verwiesen wird (Zitiert auf Seite ...). Auch diese Verweise funktionieren wiederum als Links im PDF.%
+%
+\section{Autoref}%
+%
+Bei Verweisen, welche mit der Funktion \as{\textbackslash autoref}, bzw, \as{\textbackslash aref} oder \as{\textbackslash autoeqref} formuliert werden, wird beispielsweise der Begriff \as{Bild} automatisch dazugeschrieben. Dabei fungiert zudem im PDF nicht nur die Zahl als Link, sondern auch der ganze dazugehörige Begriff (z.B. \autoref{testBild} anstatt nur \ref{testBild}).%
+%
+das funktioniert natürlich auch mit:\\ \\%
+\autoref{testBild}\\%
+\autoref{tab:1}\\%
+\autoref{refHyperref}\\%
+\autoref{refHyperefSec}\\%
+\autoref{refGedrehteTab}\\ \\%
+%
+Im Fall von Anhängen wird der \as{\textbackslash aref\{\}}-Befehl (\textit{a} für appendix oder Anhang) benötigt:\\ \\%
+%
+\aref{refChapterAnhang}\\%
+\aref{refSectionAnhang}\\ \\%
+%
+Bei Formeln kann der Befehl \as{\textbackslash autoeqref} angewendet werden: \\ \\%
+%
+\autoeqref{Formellabel11} \hspace{10mm}%
+%
+\subsubsection{Tipp}%
+%
+\begin{itemize}%
+\item Labels mit einem Kürzel beginnen, das Auskunft darüber gibt, auf welche Art von Textbaustein es verweist (z.B. \as{picBeispiel} für Bild, \as{tabBeispiel} für Tabelle, \as{eqBeispiel} für Gleichung, \as{refBeispiel} für Überschriften).%
+\end{itemize}%
+%
