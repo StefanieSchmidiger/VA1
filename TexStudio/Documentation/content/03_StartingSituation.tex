@@ -1,5 +1,12 @@
 % Starting Situation
 %
-This project has been done for the company Aeroscout. It is a follow-up project of the work of Andreas Albisser from june 2017.%
-Talk about what the goal is of this project.
-Aufgabenstellung
+This project has been done for the company Aeroscout. Aeroscout specialized in the development of drones for various needs. //
+With unmanned aerial vehicles, the communication between the drone and the control device (located on the ground) is essential. For this purpose, a stable and reliable connection for data transmission is necessary. While the drone is within sight of the control device, data can be transmitted over a wireless connection. With increasing distances, other means of transmission have to be selected such as GPRS or even satellite.\\
+\spic{PreviousHwSetup.pdf}{Previous system setup for data transmission}{\label{Old Setups}}%
+So far, the switching between different transmission technologies could not be handled automatically. The data stream was directly connected to a modem and transmitted to the corresponding receiver with no way to switch to an other transmission technology in case of data transmission failure. A visualization of this set up can be seen from \autoref{Old Setup}\\
+\spic{NewHwSetup.pdf}{New system setup for data transmission}{\label{New Setups}}%
+The aim of this project is to provide a solution that provides the needed flexibility. The finished product should be configurable when it comes to which wireless connection to chose. The hardware should have multiple input/output interfaces for connecting devices and sensors and multiple interfaces for connecting modems for different transmission technologies. When one transmission technology fails to successfully transmit data, an other technology can be chosen for the next send attempt. Also, multiple sensors or input streams should be able to send out data over the same wireless connection. A visualization of this set up can be seen in \autoref{New Setup}\\
+There are various kinds of information exchanged between the drone and the control device such as state of charge of the battery, the exact location of the drone, control commandoes etc. Some information such as the exact location of the drone should be prioritized over battery status information when data transmission becomes unreliable. The finished product should therefore take data priority into account. \\
+Encryption should be configurable individually for each interface in case sensitive data is exchaged over a connection. \\
+The finished product should be easy to debug and should therefore have a debugging interface such as SWD and should also have a shell/command line interface. During run time, the software should log system data and any other relevant information to a file and periodically save it on an SD card. The SD card should also contain a configuration file so the behaviour of the hardware can be changed easily. \\
+The detailed description of all the requirements can be taken from the appendix Aufgabenstellung \todo{Link zur Aufgabenstellung im Appendix}.

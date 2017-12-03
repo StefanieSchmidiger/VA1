@@ -1,8 +1,129 @@
 % Existing Work
 %
 %
-Talk about what the hardware can and cannot do.
+It was not necessary to start from scratch for this project. \\
+In the beginning of 2017, Andreas Albisser has already started with an implementation and provided a first solution. \\
+He developed a hardware that was used as the interface between input/output data and modem for wireless transmission. He chose the Teensy 3.1 development board as a microcontroller and worked with the Arduino IDE and Arduino libraries. \\
+There are various problems still with his work which lead to this follow up project to improve the overall functionality.\\
+More details about the work Andras Albisser has done can be taken from this chapter. \\
+%
+%
+%
 \section{Existing Hardware}
-Andreas Albisser has already build a hardware that was then used in this project.
+\spic{HardwareUseCaseOverview.pdf}{Hardware overview}{\label{Hardware Overview}}%
+\spic{HardwareDetails.pdf}{Hardware details}{\label{Hardware Details}}%
+The hardware developed by Andreas Albisser has a total of eight interfaces where peripheral devices can be connected. Four connections are for control units, sensors or any other devices that process or generate data to be transmitted. On the other side, there are four connections where modems can be connected to allow different ways of transmission. An overview can be seen in \autoref{Hardware Overview}.\\
+Each interface accessible to the user is bidirectional which allows for more flexibility. \\
+From now on, the side where data generating and processing devices can be connected will be referred to as the device side and the side where modems can be connected will be referred to as the wireless side.\\
+On both device side and wireless side, periphery can be connected to the four UART serial interfaces. On device side, the user can chose between a UART interface and a USB mini interface individually for each interface with jumpers. When selecting the USB mini interface, one USB hub acts as a dual COM interface, allowing two serial COM ports to open up to simulate two serial interfaces. \\
+The serial interfaces are not connected to the Teensy 3.1 development board directly. There is a SPI to UART converter that acts as a hardware buffer between serial input/output and microcontroller.
+All serial connections work on RS232 level which is +-12V. Because the SPI to UART converter is not RS232 level compatible, a voltage regulator is used between the serial interface accessible to the user and the SPI to UART converter.\\
+Details about the components used on this hardware can be taken from the following section.
+A block diagram of the on-board hardware components can be taken from \autoref{Hardware Details}.\\
+%
+%
+\subsection{Serial Interfaces}
+There are a total of eight UART serial connections accessible to the user, four on device side and four on wireless side.\\
+The buad rate for each serial connection can be configured individually. \\
+UART is an ansynchronous serial interface which means that there is no shared clock line between the two components. Both sides need to be configured with the same baud rate so they can communicate correctly.\\
+A UART interface requires three wires: two unidirectional data lines (RX and TX) and a ground connection. \\
+%
+\subsection{RS232 to UART Converter}
+The serial interfaces accessible to the user work on RS232 level. Just behind the serial interface, there is a level shifter that converts the RS232 level to TTL (5V). \\
+This level shifter is bypassed on the device side in case the USB serial connection is used instead of the RS232 serial interface.
+%
+\subsection{USB Interface}
+On device side, the user can chose wether the data is provided via USB or via RS232 serial connection.\\
+A jumper is used to switch between RS232 input and USB input. \\
+In case when the USB input is selected, each USB hub acts as a dual serial COM port which means that when connecting the hardware to a computer, there will be two COM ports available per USB connection. \\
+The on board USB to UART converter acts as an interface between USB hub and SPI to UART converter.\\
+%
+\subsection{SPI to UART Converter}
+UART is an ansynchronous serial interface which requires three connections: ground and two unidirectional data lines. If the teensy was to communicate to each serial port directly, it would require eight of those UART interfaces (which would add up to 16 data lines). To facilitate communication to the serial interfaces, a SPI to UART converter was selected as an intermediate interface.\\
+There are two SPI to UART converters on board, one for the four device serial connections and one for the four wireless serial connections. SPI is a synchronous master-slave communication interface where the unidirectional data lines are shared amongst all participiants. The only individual line between master and slave is the Slave Select line that determines, which slave is allowed to communicate to the master at a time. \\
+Those converters are used as hardware buffers and can store up to 128 bytes.\\
+%
+%
+\subsection{Teensy 3.1 Development Board}
+Andreas Albisser used a Teensy 3.1 as a microcontroller.\\
+The Teensy development boards are breadboard compatible USB development boards. They are small, low-priced and yet equipped with a powerful ARM processor.\\
+The Teensy development boards all come with a pre-flashed bootloader to enable programming over USB. They use a less powerful processor as an interface to the developer to enable the use of Arduino libraries and the Arduino IDE.\\
+%
+%
+\subsection{Power Supply}
+The hardware needs 5V as a power supply. This can be achieved by using any of the USB connections or via a dedicated power connector located on the board. \\
+%
+%
 \section{Software}
+The software written by Andreas Albisser provided a good basis and reference for the software developed in the scope of this project.\\
+\spic{SuccessfulPackageTransmission.png}{Successful package transmission}{\label{Successful package transmission}}%
+The basic functionality provided by his software was the transmission of data packages on wireless side.\\
+The Teensy would frequently poll the SPI to UART hardware buffer for received data. In case the SPI to UART converter had data in its buffer, the Teensy would read the data in a second SPI command. The read data would then be wrapped in a package with header which contained CRC, timestamp and other information and sent out on the wireless side.\\
+The corresponding second hardware would receive this package on its wireless side, extract the payload from it and send it out on its device side. \\
+To ensure successful transmission of packages, the concept of acknowledges was applied in the software where the receiver sends back an acknowledge upon successful reception of a data package. A sequence diagram of a successful package transmission can be found in \autoref{Successful package transmission}.\\
+The maximum number of payload bytes per package can be configured in the software, just like the maximum time the application should wait for a package to fill up until it will be sent anyway.\\
+\spic{UnsuccessfulPackageTransmission.png}{Unsuccessful package transmission}{\label{Unsuccessful package transmission}}%
+In case the package transmission was unsuccessful, either if the package got lost or corrupted, the receiving hardware will not send an acknowledge back. The application that sent the package will wait for a configurable amount of time before trying to send the same package again. Details can be found in figure \autoref{Unsuccessful package transmission}.\\
+The maximum time to wait for an acknowledge before resending the same package can be configured in the software. The maximum number of resends per package can be configured for each wireless connection. \\
+All configuration possibilities of Andreas Albissers software can be taken from the table below:
+\begin{table}[h]
+    \begin{center}
+        \begin{tabular}{lrp{5cm}}
+            \hline
+            \textbf{Configuration parameter} & \textbf{Possible values} & \textbf{Description} \\
+            \hline
+            % --------------------------------------------------------
+            BAUD\_RATES\_WIRELESS\_CONN & 9600, 38400, 57600, 115200 & 
+            Baud rate to use on wireless side, configurable per wireless connection. Example: {9600, 38400, 57600, 115200} would result in 9600 baud for wireless connection 0, 38400 baud for wireless connection 1 etc.\\
+            \hline
+            % --------------------------------------------------------
+            BAUD\_RATES\_DEVICE\_CONN &  9600, 38400, 57600, 115200 & 
+            Baud rate to use on device side, configurable per cevice connection. Example: {9600, 38400, 57600, 115200} would result in 9600 baud for device connection 0, 38400 baud for device connection 1 etc.\\
+            \hline
+            % --------------------------------------------------------
+            PRIO\_WIRELESS\_CONN\_DEV\_X &  0, 1, 2, 3, 4 & 
+            This parameter determines over which wireless connection the data stream of a device will possibly be sent out. 0: this wireless connection will not be used. 1: Highest priority, data will be tried to send out over this connection first. 2: Second highest priority, data will be tried to send out over this connection should transmission over the first priority connection fail. 3: Third highest priority. 4: Lowest priority for data transmission. Example: {0, 2, 1, 0} would result in data being sent out over wireless connection 2 first and only sent out over wireless connection 1 in case of failure. All other wireless connections would not be used. Replace the X in the parameter name with 0, 1, 2 or 3.\\
+            \hline
+            % --------------------------------------------------------
+            SEND\_CNT\_WIRELESS\_CONN\_DEV\_X &  0...255 & 
+            Determines how many times a package should tried to be sent out over a wireless connection before moving on to retrying with the next lower priority wireless connection. Example: {0, 5, 4, 0} would result in the package being sent out over wireless connection 1 five times and four times over wireless connection 2. Together with PRIO\_WIRELESS\_CONN\_DEV\_X, this parameter determines the number of resends per connection. Replace the X in the parameter name with 0, 1, 2 or 3.\\
+            \hline
+            % --------------------------------------------------------
+            RESEND\_DELAY\_WIRELESS\_CONN\_DEV\_X &  0...255 & 
+            Determines how many milliseconds the software should wait for an acknowledge per wireless connection before sending the same package again. Example: {10, 0, 0, 0} would result in the software waiting for an acknowledge for 10ms when having sent a package out via wireless connection 0 before attempting a resend. Together with PRIO\_WIRELESS\_CONN\_DEV\_X, this parameter determines the delay of the resend behaviour Replace the X in the parameter name with 0, 1, 2 or 3.\\
+            \hline
+            % --------------------------------------------------------
+            MAX\_THROUGHPUT\_WIRELESS\_CONN
+             &  0...4294967295 & 
+            Limit of the maximum data throughput in bytes/s per wireless connection. If two devices use the same wireless connection with the same priority but the maximum throughput is reached, data of the lower priority device will be redirected to its wireless connection with the next lower priority or discarded (in case this was the  wireless connection with lowest priority already). Example: {0, 10000, 10000, 10000} means that wireless connection 0 will not be used.\\
+            \hline
+            % --------------------------------------------------------
+            USUAL\_PACKET\_SIZE\_DEVICE\_CONN  &  0...512 & 
+            Maximum number of payload bytes per wireless package. 0: unknown payload, the PACKAGE\_GEN\_MAX\_TIMEOUT parameter always determines the payload size. Example: {128, 0, 128, 128} results in a maximum payload of 128 bytes per package and an unknown maximum payload size for wireless connection 0.\\
+            \hline
+            % --------------------------------------------------------
+            PACKAGE\_GEN\_MAX\_TIMEOUT  &  0...255 & 
+            Maximum time (in milliseconds) that the software should wait for a package to fill up before sending it out anyway. Together with USUAL\_PACKET\_SIZE\_DEVICE\_CONN, this parameter determines the size of a package. Example: {50, 50, 50, 50} will result in data being sent out after a maximum wait time of 50ms.\\
+            \hline
+            % --------------------------------------------------------
+            DELAY\_DISMISS\_OLD\_PACK\_PER\_DEV &  0...255 & 
+            Maximum time (in milliseconds) an old package should be tried to resend while the next package with data from the same device is available for sending. Example: {5, 5, 5, 5} results in a package being discarded 5ms after the next package is available in case it has not been sent successfully until then.\\
+            \hline
+            % --------------------------------------------------------
+            SEND\_ACK\_PER\_WIRELESS\_CONN &  0, 1 & 
+            Acknowledges turned on/off for each wireless connection. Example: {1, 1, 0, 0} results in acknowledges being expected and sent over wireless connection 0 and 1 but not over wireless connection 2 and 3.\\
+            \hline
+            % --------------------------------------------------------
+            USE\_CTS\_PER\_WIRELESS\_CONN &  0, 1 & 
+            Hardware flow control turned on/off for each wireless connection. Example: {1, 1, 0, 0} results in hardware flow control (CTS) for wireless connection 0 and 1 only.\\
+            \hline
+            % --------------------------------------------------------
+        \end{tabular}
+    \end{center}
+    \stabcaption{Possible configurations}         
+    \label{tab:3}
+\end{table}
+%
+%
+%
 Talk about what the teensy was able to do in june 2017 and about the configuration possibilities.
