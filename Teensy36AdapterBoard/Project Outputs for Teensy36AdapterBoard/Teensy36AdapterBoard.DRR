@@ -1,5 +1,5 @@
 ---------------------------------------------------------------------------
-NCDrill File Report For: Teensy36AdapterBoard.PcbDoc   15.10.2017  14:29:46
+NCDrill File Report For: Teensy36AdapterBoard.PcbDoc   05.12.2017  15:17:59
 ---------------------------------------------------------------------------
 
 Layer Pair : Top Layer to Bottom Layer
@@ -7,11 +7,11 @@ ASCII RoundHoles File : Teensy36AdapterBoard.TXT
 
 Tool         Hole Size           Hole Type     Hole Count Plated       Tool Travel
 ---------------------------------------------------------------------------
-T1        24mil (0.6096mm)         Round          10               0.45 Inch (11.43 mm)
-T2        31mil (0.7874mm)         Round          100              12.71 Inch (322.85 mm)
+T1        24mil (0.6096mm)         Round          10               0.55 Inch (13.97 mm)
+T2        31mil (0.7874mm)         Round          100              12.59 Inch (319.70 mm)
 T3        35mil (0.889mm)          Round          6                0.95 Inch (24.13 mm)
 T4        114mil (2.8956mm)        Round          4                4.61 Inch (117.11 mm)
 ---------------------------------------------------------------------------
-Totals                                            120              18.72 Inch (475.52 mm)
+Totals                                            120              18.70 Inch (474.91 mm)
 
 Total Processing Time (hh:mm:ss) : 00:00:00

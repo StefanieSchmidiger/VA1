@@ -1,4 +1,0 @@
-Added Component: Designator=R1(0603)
-Added Pin To Net: NetName=NetP4_9 Pin=R1-1
-Added Pin To Net: NetName=3.3V Pin=R1-2
-Added Member To Class: ClassName=Teensy36AdapterBoard Member=Component R1 10k?

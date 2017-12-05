@@ -1,4 +1,0 @@
-Change Component Comment : Designator=X2 Old Comment=Teensy 3.6 New Comment=Teensy_3_6
-Added Pin To Net: NetName=NetP4_4 Pin=X2-DC
-Added Pin To Net: NetName=NetP4_2 Pin=X2-DD
-Added Pin To Net: NetName=GND Pin=X2-GND_4
