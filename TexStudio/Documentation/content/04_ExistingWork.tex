@@ -3,16 +3,15 @@
 %
 It was not necessary to start from scratch for this project. \\
 In the beginning of 2017, Andreas Albisser has already started with an implementation and provided a first solution. \\
-He developed a hardware that was used as the interface between input/output data and modem for wireless transmission. He chose the Teensy 3.1 development board as a microcontroller and worked with the Arduino IDE and Arduino libraries. \\
+He developed a hardware that was used as the interface between input/output data and modem for wireless transmission. He chose the Teensy 3.1 development board as a micro controller and worked with the Arduino IDE and Arduino libraries. \\
 There are various problems still with his work which lead to this follow up project to improve the overall functionality.\\
 More details about the work Andras Albisser has done can be taken from this chapter. \\
 %
 %
 %
 \section{Existing Hardware}
-\spic{HardwareUseCaseOverview.pdf}{Hardware overview}{\label{Hardware Overview}}%
-\spic{HardwareDetails.pdf}{Hardware details}{\label{Hardware Details}}%
 The hardware developed by Andreas Albisser has a total of eight interfaces where peripheral devices can be connected. Four connections are for control units, sensors or any other devices that process or generate data to be transmitted. On the other side, there are four connections where modems can be connected to allow different ways of transmission. An overview can be seen in \autoref{Hardware Overview}.\\
+\spicH{HardwareUseCaseOverview.png}{Hardware overview}{\label{Hardware Overview}}%
 Each interface accessible to the user is bidirectional which allows for more flexibility. \\
 From now on, the side where data generating and processing devices can be connected will be referred to as the device side and the side where modems can be connected will be referred to as the wireless side.\\
 On both device side and wireless side, periphery can be connected to the four UART serial interfaces. On device side, the user can chose between a UART interface and a USB mini interface individually for each interface with jumpers. When selecting the USB mini interface, one USB hub acts as a dual COM interface, allowing two serial COM ports to open up to simulate two serial interfaces. \\
@@ -20,12 +19,13 @@ The serial interfaces are not connected to the Teensy 3.1 development board dire
 All serial connections work on RS232 level which is +-12V. Because the SPI to UART converter is not RS232 level compatible, a voltage regulator is used between the serial interface accessible to the user and the SPI to UART converter.\\
 Details about the components used on this hardware can be taken from the following section.
 A block diagram of the on-board hardware components can be taken from \autoref{Hardware Details}.\\
+\spicH{HardwareDetails.png}{Hardware details}{\label{Hardware Details}}%
 %
 %
 \subsection{Serial Interfaces}
 There are a total of eight UART serial connections accessible to the user, four on device side and four on wireless side.\\
-The buad rate for each serial connection can be configured individually. \\
-UART is an ansynchronous serial interface which means that there is no shared clock line between the two components. Both sides need to be configured with the same baud rate so they can communicate correctly.\\
+The baud rate for each serial connection can be configured individually. \\
+UART is an asynchronous serial interface which means that there is no shared clock line between the two components. Both sides need to be configured with the same baud rate so they can communicate correctly.\\
 A UART interface requires three wires: two unidirectional data lines (RX and TX) and a ground connection. \\
 %
 \subsection{RS232 to UART Converter}
@@ -33,19 +33,19 @@ The serial interfaces accessible to the user work on RS232 level. Just behind th
 This level shifter is bypassed on the device side in case the USB serial connection is used instead of the RS232 serial interface.
 %
 \subsection{USB Interface}
-On device side, the user can chose wether the data is provided via USB or via RS232 serial connection.\\
+On device side, the user can chose whether data is provided via USB or via RS232 serial connection.\\
 A jumper is used to switch between RS232 input and USB input. \\
 In case when the USB input is selected, each USB hub acts as a dual serial COM port which means that when connecting the hardware to a computer, there will be two COM ports available per USB connection. \\
 The on board USB to UART converter acts as an interface between USB hub and SPI to UART converter.\\
 %
 \subsection{SPI to UART Converter}
-UART is an ansynchronous serial interface which requires three connections: ground and two unidirectional data lines. If the teensy was to communicate to each serial port directly, it would require eight of those UART interfaces (which would add up to 16 data lines). To facilitate communication to the serial interfaces, a SPI to UART converter was selected as an intermediate interface.\\
-There are two SPI to UART converters on board, one for the four device serial connections and one for the four wireless serial connections. SPI is a synchronous master-slave communication interface where the unidirectional data lines are shared amongst all participiants. The only individual line between master and slave is the Slave Select line that determines, which slave is allowed to communicate to the master at a time. \\
+UART is an asynchronous serial interface which requires three connections: ground and two unidirectional data lines. If the teensy was to communicate to each serial port directly, it would require eight of those UART interfaces (which would add up to 16 data lines). To facilitate communication to the serial interfaces, a SPI to UART converter was selected as an intermediate interface.\\
+There are two SPI to UART converters on board, one for the four device serial connections and one for the four wireless serial connections. SPI is a synchronous master-slave communication interface where the unidirectional data lines are shared amongst all participants. The only individual line between master and slave is the Slave Select line that determines, which slave is allowed to communicate to the master at a time. \\
 Those converters are used as hardware buffers and can store up to 128 bytes.\\
 %
 %
 \subsection{Teensy 3.1 Development Board}
-Andreas Albisser used a Teensy 3.1 as a microcontroller.\\
+Andreas Albisser used a Teensy 3.1 as a micro controller.\\
 The Teensy development boards are breadboard compatible USB development boards. They are small, low-priced and yet equipped with a powerful ARM processor.\\
 The Teensy development boards all come with a pre-flashed bootloader to enable programming over USB. They use a less powerful processor as an interface to the developer to enable the use of Arduino libraries and the Arduino IDE.\\
 %
@@ -59,16 +59,15 @@ The software written by Andreas Albisser provided a good basis and reference for
 \spic{SuccessfulPackageTransmission.png}{Successful package transmission}{\label{Successful package transmission}}%
 The basic functionality provided by his software was the transmission of data packages on wireless side.\\
 The Teensy would frequently poll the SPI to UART hardware buffer for received data. In case the SPI to UART converter had data in its buffer, the Teensy would read the data in a second SPI command. The read data would then be wrapped in a package with header which contained CRC, timestamp and other information and sent out on the wireless side.\\
-The corresponding second hardware would receive this package on its wireless side, extract the payload from it and send it out on its device side. \\
-To ensure successful transmission of packages, the concept of acknowledges was applied in the software where the receiver sends back an acknowledge upon successful reception of a data package. A sequence diagram of a successful package transmission can be found in \autoref{Successful package transmission}.\\
-The maximum number of payload bytes per package can be configured in the software, just like the maximum time the application should wait for a package to fill up until it will be sent anyway.\\
+The corresponding second hardware would receive this package on its wireless side, extract the payload from it and send the extracted payload out on its device side. \\
+To ensure successful transmission of packages, the concept of acknowledges was applied in the software where the receiver replies with an acknowledge to a successful package reception. A sequence diagram of a successful package transmission can be found in \autoref{Successful package transmission}.\\
+The maximum number of payload bytes per package can be configured in the software, just like the maximum amount of time the application should wait for a package to fill up until it will be sent anyway.\\
 \spic{UnsuccessfulPackageTransmission.png}{Unsuccessful package transmission}{\label{Unsuccessful package transmission}}%
 In case the package transmission was unsuccessful, either if the package got lost or corrupted, the receiving hardware will not send an acknowledge back. The application that sent the package will wait for a configurable amount of time before trying to send the same package again. Details can be found in figure \autoref{Unsuccessful package transmission}.\\
-The maximum time to wait for an acknowledge before resending the same package can be configured in the software. The maximum number of resends per package can be configured for each wireless connection. \\
-All configuration possibilities of Andreas Albissers software can be taken from the table below:
-\begin{table}[h]
-    \begin{center}
-        \begin{tabular}{lrp{5cm}}
+The maximum time to wait for an acknowledge before resending the same package can be configured in the software. The maximum number of resends per package can also be configured for each wireless connection. \\
+All configuration possibilities of Andreas Albissers software can be taken from the \autoref{Config old SW}:
+\begin{center}
+    \begin{longtable}{p{7cm}p{3cm}p{10cm}}
             \hline
             \textbf{Configuration parameter} & \textbf{Possible values} & \textbf{Description} \\
             \hline
@@ -118,11 +117,10 @@ All configuration possibilities of Andreas Albissers software can be taken from 
             Hardware flow control turned on/off for each wireless connection. Example: {1, 1, 0, 0} results in hardware flow control (CTS) for wireless connection 0 and 1 only.\\
             \hline
             % --------------------------------------------------------
-        \end{tabular}
-    \end{center}
-    \stabcaption{Possible configurations}         
-    \label{tab:3}
-\end{table}
+    \caption{Configuration parameters of the old software}
+    \label{Config old SW}    
+    \end{longtable}
+\end{center}
 %
 %
 %
