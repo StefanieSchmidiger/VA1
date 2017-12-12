@@ -286,6 +286,47 @@
 \usepackage[titletoc]{appendix}        % Für das Generieren des Anhangs
 \usepackage{upgreek}                       %damit mu auch nicht-kursiv geschrieben werden kann
 \usepackage{listings}                          %Code Umgebung (für Matlab Code in Bericht)
+\lstset{ %
+                language=C,                     % choose the language of the code
+                %basicstyle=\ttfamily, 
+                basicstyle=\footnotesize \ttfamily, 
+                %basicstyle=\footnotesize,      % the size of the fonts that are used for the code
+                keywordstyle=\color{red!50!black}\ttfamily,
+                stringstyle=\color{blue}\ttfamily,
+                commentstyle=\color{green!50!black}\ttfamily,
+                numbers=left,                   % where to put the line-numbers
+                numberstyle=\footnotesize,      % the size of the fonts that are used for the line-numbers
+                stepnumber=1,                   % the step between two line-numbers. If it's 1 each line 
+                                                % will be numbered
+                numbersep=5pt,                  % how far the line-numbers are from the code
+                backgroundcolor=\color{black!5},  % choose the background color. You must add \usepackage{color}
+                showspaces=false,               % show spaces adding particular underscores
+                showstringspaces=false,         % underline spaces within strings
+                showtabs=false,                 % show tabs within strings adding particular underscores
+                frame=single,                    % adds a frame around the code
+                tabsize=2,                               % sets default tabsize to 2 spaces
+                breaklines=true,                % sets automatic line breaking
+                breakatwhitespace=false,        % sets if automatic breaks should only happen at whitespace
+                aboveskip=4pt,                  % define the space above displayed listings
+                belowskip=-6pt,                 % define the space below displayed listings
+                framextopmargin=0pt,            % top margin inside the frame box
+                framexbottommargin=0pt,         % bottom margin inside the frame box
+                title=\lstname,                 % show the filename of files included with \lstinputlisting;
+                                                % also try caption instead of title
+                captionpos=b,                   % sets the caption-position to bottom
+%            abovecaptionskip=\smallskipamount, % default \smallskipamount, space above the top caption
+%            belowcaptionskip=\smallskipamount, % default \smallskipamount, space below caption
+%            aboveskip=\smallskipamount,        % default \medskipamount, try \vspace*{2ex}
+%            belowskip=\smallskipamount,        % default \medskipamount, try \smallskipamount
+%            escapeinside={\%*}{*)},         % if you want to add a comment within your code
+                keywords=[2]{\#if,\#endif,\#else,\#ifdef},
+   morekeywords={bool,true,false,size_t,__asm,uint8_t,int8_t,uint16_t,int16_t,uint32_t,int32_t,uint64_t,int64_t,*,...},            % if you want to add more keywords to the set
+                alsoother={\#},
+                otherkeywords={\#define,\#pragma,\#define,\#ifdef,\#ifndef,\#include,\#endif,\#else}, % so they work with spaces in front
+}
+% \mode<presentation>{\lstinputlisting[basicstyle=\tiny,numberstyle=\tiny]{./src/FunctionsPointers.c}}  % or use \scriptsize 
+% \vspace*{-2ex}
+\lstloadlanguages{C,C++} % load languages used
 \usepackage{beramono}                   %Schriftart in der Code-Umgebung (für Matlab Code in Bericht)
 \usepackage{tabto}						% Für einfaches Tabbing
 \usepackage{multirow}               % Multi-Zeilen bei Tabellen

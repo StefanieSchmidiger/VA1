@@ -1,8 +1,15 @@
 % Software
 %
-\section{Analysis of old Software}%
-%
-Pro and cons about old SW
+A complete documentation of the software written by Andreas Albisser for the Teensy 3.1 can be found in \ref{arduino software analysis}.\\
+Various issues found with his software can be found in \ref{Teensy 3.1 software problems}.\\
+Now there are two options on how to proceed
+\begin{itemize}
+    \item Port the existing software to C with FreeRTOS.
+    \item Create a new software concept and implement it.
+\end{itemize}
+Both options are evaluated below.\\
+\subsection{Start with existing Software}
+
 %
 \section{New Software}%
 %
@@ -12,3 +19,4 @@ Talk about new SW concept
 %
 Talk about the things that have not yet been implemented
 Package numbering instead of waiting for ACK
+No sending out the same package over multiple connections at the same time and only taking the one that was received first.

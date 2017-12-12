@@ -9,24 +9,23 @@ More details about the work Andras Albisser has done can be taken from this chap
 %
 %
 %
-\section{Existing Hardware}
-The hardware developed by Andreas Albisser has a total of eight interfaces where peripheral devices can be connected. Four connections are for control units, sensors or any other devices that process or generate data to be transmitted. On the other side, there are four connections where modems can be connected to allow different ways of transmission. An overview can be seen in \autoref{Hardware Overview}.\\
+\section{Hardware}
+The hardware developed by Andreas Albisser has a total of eight interfaces where peripheral devices can be connected. Four connections are for control units, sensors or any other devices that process or generate data to be transmitted. On the other side, there are four connectors for modems to allow different ways of transmission. An overview can be seen in \autoref{Hardware Overview}.\\
 \spicH{HardwareUseCaseOverview.png}{Hardware overview}{\label{Hardware Overview}}%
-Each interface accessible to the user is bidirectional which allows for more flexibility. \\
+Each interface accessible to the user is bidirectional which means that both sensors and actors can be connected.\\
 From now on, the side where data generating and processing devices can be connected will be referred to as the device side and the side where modems can be connected will be referred to as the wireless side.\\
 On both device side and wireless side, periphery can be connected to the four UART serial interfaces. On device side, the user can chose between a UART interface and a USB mini interface individually for each interface with jumpers. When selecting the USB mini interface, one USB hub acts as a dual COM interface, allowing two serial COM ports to open up to simulate two serial interfaces. \\
-The serial interfaces are not connected to the Teensy 3.1 development board directly. There is a SPI to UART converter that acts as a hardware buffer between serial input/output and microcontroller.
+The serial interfaces are not connected to the Teensy 3.1 development board directly. There is a SPI to UART converter that acts as a hardware buffer between serial input/output and micro controller.
 All serial connections work on RS232 level which is +-12V. Because the SPI to UART converter is not RS232 level compatible, a voltage regulator is used between the serial interface accessible to the user and the SPI to UART converter.\\
 Details about the components used on this hardware can be taken from the following section.
 A block diagram of the on-board hardware components can be taken from \autoref{Hardware Details}.\\
 \spicH{HardwareDetails.png}{Hardware details}{\label{Hardware Details}}%
 %
-%
 \subsection{Serial Interfaces}
 There are a total of eight UART serial connections accessible to the user, four on device side and four on wireless side.\\
 The baud rate for each serial connection can be configured individually. \\
 UART is an asynchronous serial interface which means that there is no shared clock line between the two components. Both sides need to be configured with the same baud rate so they can communicate correctly.\\
-A UART interface requires three wires: two unidirectional data lines (RX and TX) and a ground connection. \\
+A UART interface requires three wires: two unidirectional data lines (RX and TX) and a ground connection. Those three wires are accessible to the user, but with RS232 level, which is +-12V.
 %
 \subsection{RS232 to UART Converter}
 The serial interfaces accessible to the user work on RS232 level. Just behind the serial interface, there is a level shifter that converts the RS232 level to TTL (5V). \\
@@ -43,31 +42,53 @@ UART is an asynchronous serial interface which requires three connections: groun
 There are two SPI to UART converters on board, one for the four device serial connections and one for the four wireless serial connections. SPI is a synchronous master-slave communication interface where the unidirectional data lines are shared amongst all participants. The only individual line between master and slave is the Slave Select line that determines, which slave is allowed to communicate to the master at a time. \\
 Those converters are used as hardware buffers and can store up to 128 bytes.\\
 %
-%
 \subsection{Teensy 3.1 Development Board}
-Andreas Albisser used a Teensy 3.1 as a micro controller.\\
+Andreas Albisser used a Teensy 3.1 as a micro controller as can be seen in \autoref{Teensy 3.1}.\\
 The Teensy development boards are breadboard compatible USB development boards. They are small, low-priced and yet equipped with a powerful ARM processor.\\
 The Teensy development boards all come with a pre-flashed bootloader to enable programming over USB. They use a less powerful processor as an interface to the developer to enable the use of Arduino libraries and the Arduino IDE.\\
-%
+There is no hardware debugging interface available to the user on the Teensy development boards. Programming is only possible via USB.\\
+\spic{Teensy31.jpg}{Teensy 3.1}{\label{Teensy 3.1}}%
 %
 \subsection{Power Supply}
 The hardware needs 5V as a power supply. This can be achieved by using any of the USB connections or via a dedicated power connector located on the board. \\
 %
 %
-\section{Software}
+%
+%
+%
+%
+%
+\section{Software} \label{arduino software analysis}
+%
+%
+The following section gives you an overview of the Arduino software written by Andreas Albisser. \\
+There was only a brief documentation of the software available but fortunately, the comments in the code were helpful to get an understanding.\\
+Any information provided below has been reverse engineered.\\
+%
+\subsection{Software Development Tools}
+The software was written in C++ in Visual Studio. To compile the software, install the Visual Studio Enterprise 2015 version 14, the Arduino IDE extension for Visual Studio and the libraries "Queue by SMFSW" and "TaskScheduler by Anatoli Arkhipenko". Additionally, the old Arduino IDE version 1.8.1 has to be installed as well, together with the software add-on for Teensy support (Teensyduino).\\
+A detailed installation manual for all packages and environments needed can be found in the appendix. \todo{Link zur Installationsanleitung im Appendix}.
+%
+\subsection{Basic Functionality}
 The software written by Andreas Albisser provided a good basis and reference for the software developed in the scope of this project.\\
-\spic{SuccessfulPackageTransmission.png}{Successful package transmission}{\label{Successful package transmission}}%
-The basic functionality provided by his software was the transmission of data packages on wireless side.\\
-The Teensy would frequently poll the SPI to UART hardware buffer for received data. In case the SPI to UART converter had data in its buffer, the Teensy would read the data in a second SPI command. The read data would then be wrapped in a package with header which contained CRC, timestamp and other information and sent out on the wireless side.\\
+The basic functionality provided by his software was the transmission of data packages and acknowledges on wireless side. Generally it can be said that only packages are exchanged over wireless side and bytes are transmitted or received over device side. \\
+The Teensy would frequently poll its SPI to UART hardware buffers for received data. In case the SPI to UART converter had data in its device buffer, the Teensy would read the data in a second SPI command. The read data is then wrapped in a package with header which contained CRC, timestamp and other information and sent out on the wireless side.\\
 The corresponding second hardware would receive this package on its wireless side, extract the payload from it and send the extracted payload out on its device side. \\
-To ensure successful transmission of packages, the concept of acknowledges was applied in the software where the receiver replies with an acknowledge to a successful package reception. A sequence diagram of a successful package transmission can be found in \autoref{Successful package transmission}.\\
+To ensure successful transmission of packages, the concept of acknowledges is applied in the software where the receiver replies with an acknowledge to a successful package reception. A sequence diagram of a successful package transmission can be found in \autoref{Successful package transmission}.\\
+Both Serial Switches continuously do both tasks: poll on device side to generate data packages for sending and poll on wireless side to receive wireless packages and send that payload back out on its device side.\\ 
+\spicH{SuccessfulPackageTransmission.png}{Successful package transmission}{\label{Successful package transmission}}%
 The maximum number of payload bytes per package can be configured in the software, just like the maximum amount of time the application should wait for a package to fill up until it will be sent anyway.\\
-\spic{UnsuccessfulPackageTransmission.png}{Unsuccessful package transmission}{\label{Unsuccessful package transmission}}%
 In case the package transmission was unsuccessful, either if the package got lost or corrupted, the receiving hardware will not send an acknowledge back. The application that sent the package will wait for a configurable amount of time before trying to send the same package again. Details can be found in figure \autoref{Unsuccessful package transmission}.\\
-The maximum time to wait for an acknowledge before resending the same package can be configured in the software. The maximum number of resends per package can also be configured for each wireless connection. \\
-All configuration possibilities of Andreas Albissers software can be taken from the \autoref{Config old SW}:
+The maximum time to wait for an acknowledge before resending the same package can be configured in the software. The maximum number of resends per package can be configured for each wireless connection. \\
+\spicH{UnsuccessfulPackageTransmission.png}{Unsuccessful package transmission}{\label{Unsuccessful package transmission}}%
+%
+\subsection{Configuration}
+All basic configuration parameters of the Arduino software are in the file serialSwitch\_General.h\\
+For changes to be executed, the software has to be recompiled and uploaded. In order to do so, the necessary environment and all packages used by the software have to be installed on the computer as described in the user manual \todo{Link zum user manual FW installation von Andreas}. 
+All configuration possibilities of Andreas Albissers software can be taken from the \autoref{Config arduino SW}:
+%
 \begin{center}
-    \begin{longtable}{p{7cm}p{3cm}p{10cm}}
+    \begin{longtable}{p{4cm}p{2cm}p{8cm}}
             \hline
             \textbf{Configuration parameter} & \textbf{Possible values} & \textbf{Description} \\
             \hline
@@ -117,11 +138,254 @@ All configuration possibilities of Andreas Albissers software can be taken from 
             Hardware flow control turned on/off for each wireless connection. Example: {1, 1, 0, 0} results in hardware flow control (CTS) for wireless connection 0 and 1 only.\\
             \hline
             % --------------------------------------------------------
-    \caption{Configuration parameters of the old software}
-    \label{Config old SW}    
+    \caption{Configuration parameters of arduino software}
+    \label{Config arduino SW}    
+    \end{longtable}
+\end{center}
+%
+Further configuration parameters can be found in the file serialSwitch\_General.h\\
+There, the you can modify task interval of all tasks, enable hardware loopback and debug output or edit the preamble for a package start.
+%
+\begin{center}
+    \begin{longtable}{p{4cm}p{2cm}p{8cm}}
+        \hline
+        \textbf{Configuration parameter} & \textbf{Possible values} & \textbf{Description} \\
+        \hline
+        % --------------------------------------------------------
+        TEST\_HW\_LOOPBACK\_ONLY & 0, 1 & 
+        This parameter enables local echo. Any data received over any serial connection will be returned over the same connection immediately.\\
+        \hline
+        % --------------------------------------------------------
+        ENABLE\_TEST\_DATA\_GEN &  0, 1 & 
+        Random test data will be generated instead of waiting for device data to arrive to fill a package.\\
+        \hline
+        % --------------------------------------------------------
+        GENERATE\_THROUGHPUT\_OUTPUT &  0, 1 & 
+        Information about the data throughput on wireless side will be printed out on the serial terminal.\\
+        \hline
+        % --------------------------------------------------------
+        X\_INTERVAL &  0...65535 & 
+        Task interval in milliseconds for each task. Replace X with the name of the task. \\
+        \hline
+        % --------------------------------------------------------
+        \caption{General software configuration}
+        \label{Specific config arduino}    
+    \end{longtable}
+\end{center}
+%
+%
+\subsection{Software Concept}
+The software written by Andreas Albisser runs with ten main tasks that make up the basic functionality and several minor task that are responsible for debug output, blinking of LEDs and any other functionalities that can be enabled through the configuration header. The software concept can be seen in \autoref{Old SW concept}. \\
+\spicH{AndreasSwConcept.png}{Arduino software concept}{\label{Old SW concept}}%
+In the following sections, an overview will be given on the functionality performed by each task.
+\subsubsection{HW Buffer Reader}
+This task periodically polls the SPI to UART converters for new data. In case the converters have received data, the HW Buffer Reader will read and store the data in the corresponding queue. \\
+The HW Buffer Reader does not know anything about packages or any data structure. It simply reads bytes and stores them in a queue.\\
+The HW Buffer reader is responsible for the input data of both SPI to UART converters, the one on device side and on wireless side. This task has eight queues where the read data is stored, one queue for each UART interface accessible to the user. \\
+If there is more data available in the hardware buffer (SPI to UART converter) than can be stored in the corresponding output queue of the HW Buffer Reader, the HW Buffer Reader will flush the queue to discard all information previously read from the SPI to UART converter and store its read data in the now empty queue. \\
+%
+\begin{lstlisting}
+/* send the read data to the corresponding queue */
+/*const char* buf = (const char*) &buffer[0]; */
+for (unsigned int cnt = 0; cnt < dataToRead; cnt++)
+{
+    if ((*queuePtr).push(&buffer[cnt]) == false)
+    {
+        /* queue is full - flush queue, send character again and set error */
+        (*queuePtr).clean();
+        (*queuePtr).push(&buffer[cnt]);
+        if (spiSlave == MAX_14830_WIRELESS_SIDE)
+        {
+            char warnBuf[128];
+            sprintf(warnBuf, "cleaning full queue on wireless side, UART number %u", (unsigned int)uartNr);
+            showWarning(__FUNCTION__, warnBuf);
+        }
+        else
+        {
+            /* spiSlave == MAX_14830_DEVICE_SIDE */
+            char warnBuf[128];
+            sprintf(warnBuf, "cleaning full queue on device side, UART number %u", (unsigned int)uartNr);
+            showWarning(__FUNCTION__, warnBuf);
+        }
+    }
+}
+\end{lstlisting}
+%
+\subsubsection{HW Device Writer}
+This task transmits data to the SPI to UART converter on device side. It takes bytes from its queues and passes them to the SPI to UART converter.\\
+Communication to other tasks has been realized through four byte queues, one for each device interface accessible to the user. \\
+This task does not know anything about data packages or other data structures, it only takes bytes from the queues and writes them to the SPI to UART converter on device side.
+\subsubsection{HW WirelessX Writer}
+There are four tasks responsible for writing data to the SPI to UART converter on wireless side. Each task has its byte queue where data will be taken from and transmitted to the corresponding wireless user interface. \\
+These tasks do not know anything about data packages or other data structures, they only take bytes from the queues and write them to the SPI to UART converter on wireless side. \\
+Data is only taken from the queue and written to the hardware buffer if there is space available on the hardware buffer.\\
+\subsubsection{Package Extractor}
+This task reads the wireless bytes from the output queue of the HW Buffer Reader and assembles them to wireless packages.\\
+There are two types of wireless packages, acknowledges and data packages. The Package Extractor detects of which type an assembled package is and puts it on the corresponding queue.\\
+This task also verifies the checksums of both header and payload of a package and discards the package in case of incorrect checksum. \\
+In case of full output queues, new packages will be dropped and not stored in the corresponding queue.\\
+\subsubsection{Package Generator}
+This task reads the incoming device bytes from the output queue of the HW Buffer Reader and generates data packages with this device data as payload. The generated packages are then stored in the corresponding queue for further processing.\\
+The Package Generator also generates acknowledge packages when being told so by the output queue of the Package Extractor. The generated acknowledge are then put into the correct queue for a wireless connection.\\
+If the queue is full, the package is dropped, no matter if acknowledge package or data package.\\
+%
+\begin{lstlisting}
+/* check if there are some receive acknowledge packages that needs to be created */
+while (queueSendAck.pull(&ackData))
+{
+    if (generateRecAckPackage(&ackData, &wirelessAckPackage))
+    {
+        queueWirelessAckPack.push(&wirelessAckPackage);
+    }
+}
+
+/* generate data packages and put those into the package queue */
+if (generateDataPackage(0, &queueDeviceReceiveUart[0], &wirelessPackage))
+{
+    queueWirelessDataPackPerDev[0].push(&wirelessPackage);
+}
+if (generateDataPackage(1, &queueDeviceReceiveUart[1], &wirelessPackage))
+{
+    queueWirelessDataPackPerDev[1].push(&wirelessPackage);
+}
+if (generateDataPackage(2, &queueDeviceReceiveUart[2], &wirelessPackage))
+{
+    queueWirelessDataPackPerDev[2].push(&wirelessPackage);
+}
+if (generateDataPackage(3, &queueDeviceReceiveUart[3], &wirelessPackage))
+{
+    queueWirelessDataPackPerDev[3].push(&wirelessPackage);
+}
+\end{lstlisting}
+%
+The queue function call for push() returns false if unsuccessful there is no handling of an unsuccessful push in this code.\\
+%
+\subsubsection{Ack Handler}
+This task takes the acknowledge package generated by the Package Generator, splits it into bytes and puts those bytes into the corresponding wireless queue for the HW WirelessX Writer to send out.
+\subsubsection{Wireless Handler}
+This task handles the correct sending of wireless packages. It takes wireless packages from the output queues of the Package Generator, splits them into bytes and puts those bytes to the queue of the correct HW WirelessX Writer.\\
+This task has an internal buffer where packages with an expected acknowledge are stored. The Wireless Handler keeps track of the send attempts per wireless connection and handles the resending of packages.\\
+The Wireless Handler also does the prioritizing of data packages.
+%
+%
+\subsection{Wireless Package Structure}
+There are two types of packages that are exchanged over wireless side: acknowledges and data packages. Each package consists of a header and a payload of arbitrary size. Acknowledges and data packages can be distinguished by a parameter in the header of a package. \\
+More information about the structure of header and payload can be found in the following section.
+\subsubsection{Header}
+The structure of a header can be found in \autoref{Header structure}. \\
+%
+\begin{center}
+    \begin{longtable}{p{3cm}p{8cm}p{2cm}p{1cm}}
+        \hline
+        \textbf{Parameter name} & \textbf{Description} & \textbf{Value range} & \textbf{Length, bytes} \\
+        \hline
+        % --------------------------------------------------------
+        PACK\_START & Preamble for a package header start, indicates the beginning of a header. & 0x1B & 1\\
+        \hline
+        % --------------------------------------------------------
+        PACK\_TYPE &  Determines weather it is a data package or acknowledge. & 1: data pack, 2: acknowledge & 1\\
+        \hline
+        % --------------------------------------------------------
+        SESSION\_NR &  A random number generated upon startup of the software to keep the receiver from discarding all packages in case a reset has been made. & 0...255 & 1\\
+        \hline
+        % --------------------------------------------------------
+        SYS\_TIME &  Milliseconds since start of the software. This parameter is used as a substitute for package numbering. & 0...4294967295 & 4\\
+        \hline
+        % --------------------------------------------------------
+        PAYLOAD\_SIZE &  Number of bytes in payload of this package & 0...65535 & 2\\
+        \hline
+        % --------------------------------------------------------
+        CRC8\_HEADER &  8 bit CRC of this header & 0...255 & 1\\
+        \hline
+        % --------------------------------------------------------
+        \caption{Header structure}
+        \label{Header structure}    
+    \end{longtable}
+\end{center}
+When the software receives a package, it checks the system time to decide if it should be discarded. If the system time of a received package is lower than the last one received, it will be discarded.\\
+In case of a hardware reset, the system time starts over with 0 which means that all packages would be discarded on receiving side. This is the reason for the session number. When the session number changes, the receiver knows to start over with the system time and not to discard all received packages.\\
+%
+\subsubsection{Payload}
+Talk about payload and CRC32
+%
+%
+\begin{center}
+    \begin{longtable}{p{3cm}p{8cm}p{2cm}p{1cm}}
+        \hline
+        \textbf{Parameter name} & \textbf{Description} & \textbf{Value range} & \textbf{Length, bytes} \\
+        \hline
+        % --------------------------------------------------------
+        PAYLOAD & Data bytes to send out & 0...255 & 0...65535\\
+        \hline
+        % --------------------------------------------------------
+        CRC16\_PAYLOAD &  16 bit CRC of the payload & 0...65535 & 2\\
+        \hline
+        % --------------------------------------------------------
+        \caption{Payload structure}
+        \label{Payload structure}    
     \end{longtable}
 \end{center}
 %
 %
 %
-Talk about what the teensy was able to do in june 2017 and about the configuration possibilities.
+%
+%
+\section{Discussion and Problems} \label{Teensy 3.1 software problems}
+There was no documentation available on test conducted or issues discovered with Andreas Albissers work.\\
+All information below has been recalled by the people involved.\\
+%
+\subsection{Overall Functionality Tests}
+The software was only tested briefly and testing was not documented. \\
+When connecting two serial switches directly with a cable, the functionality was as expected. Acknowledges were transmitted and packages resent in case no acknowledge was received. Packages were not acknowledged when the checksum did not match and were resent after the configured delay. \\
+Problems arose when working with modems instead of a direct wired connection. When connecting one modem and one device only, the data stream was still reliable. But once two modems were connected and more than one device was generating data, the connection could not be established and no data stream was output on the receiving side. \\
+Those tests were repeated when no acknowledge was configured but the result was similar: no data link could be established. \\
+One possible reason for this faulty behavior could be the lack of package numbering. The header only contains session number and system time but no variable with a monotonic counter. The system time does not provide any information about missing packages because it might jump up in case no package was generated for some amount of time. The parameter system time corresponds to the runtime of the software since start up in milliseconds.\\
+The following code section is copied from the software Andreas Albisser developed. It shows that packages will be discarded when their time stamp (sysTime) is older than the one of the last package.
+%
+\begin{lstlisting}
+/* make sure to not send old data to the device - but also make sure overflow is handled */
+if ((currentWirelessPackage[wirelessConnNr].sysTime > timestampLastValidPackage[currentWirelessPackage[wirelessConnNr].devNum]) ||
+((timestampLastValidPackage[currentWirelessPackage[wirelessConnNr].devNum] - currentWirelessPackage[wirelessConnNr].sysTime) > (UINT32_MAX / 2)))
+{
+    /* package OK, send it to device */
+    timestampLastValidPackage[currentWirelessPackage[wirelessConnNr].devNum] = currentWirelessPackage[wirelessConnNr].sysTime;
+    Queue* sendQueue;
+    sendQueue = &queueDeviceTransmitUart[currentWirelessPackage[wirelessConnNr].devNum];
+    for (uint16_t cnt = 0; cnt < currentWirelessPackage[wirelessConnNr].payloadSize; cnt++)
+    {
+        if (sendQueue->push(&data[wirelessConnNr][cnt]) == false)
+        {
+            char warnBuf[128];
+            sprintf(warnBuf, "Unable to send data to device number %u, queue is full", currentWirelessPackage[wirelessConnNr].devNum);
+            showWarning(__FUNCTION__, warnBuf);
+            break;
+        }
+    }
+}
+else
+{
+    /* received old package */
+    /* also can happen when we have two redundant streams.. */
+    static char infoBuf[128];
+    sprintf(infoBuf, 
+    "received old package, device %u - check configuration if this message occurres often",
+    currentWirelessPackage[wirelessConnNr].devNum);
+    showInfo(__FUNCTION__, infoBuf);
+}
+\end{lstlisting}
+%
+%
+\subsection{Dropping Data when Transmission Unreliable}
+Also, improvements of data handling when the queue is full should be made.\\
+%
+%
+\subsection{Debugging}
+The software concept implemented by Andreas Albisser is difficult to debug because Arduino provides no hardware debugging options, only prints on a serial connection are available. \\
+%
+%
+\subsection{Software Concept}
+The software is also difficult to debug because of its many tasks. The software concept needs major refactoring and needs to be simplified.
+%
+%
+\subsection{Data Priority}
+There is no way to prioritize data of a device over data of an other device. When data transmission becomes unreliable, the software needs to know which data is most important to be exchanged.\\
