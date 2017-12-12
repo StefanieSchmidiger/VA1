@@ -31,6 +31,11 @@
 */
 #define QUEUE_NUM_OF_CHARS_DEV_RX_QUEUE		2048 /* 4 queues of this length will be created */
 
+/*! \def NUM_OF_BYTES_TO_DELETE_ON_QUEUE_FULL
+*  \brief Number of queue entries that will be lost in case a queue is full
+*/
+#define NUM_OF_BYTES_TO_DELETE_ON_QUEUE_FULL		10
+
 
 
 /*! \enum eMax14830Reg
@@ -119,11 +124,16 @@ extern xSemaphoreHandle spiTxMutex;
 
 
 /*!
-* \fn void spiHandler_TaskEntry(void* p)
-* \brief This task handles the HW interface (SPI)
+* \fn void spiHandler_TaskEntry(void)
+* \brief Task initializes SPI, used queues and MAX14830.
+* Periodically reads and writes bytes to and from byte queue.
 */
 void spiHandler_TaskEntry(void* p);
 
+/*!
+* \fn void spiHandler_TaskInit(void)
+* \brief Initializes all components used in spiHandler_TaskEntry(): Queues, SPI, Semaphores and gets MAX14830 ready for usage
+*/
 void spiHandler_TaskInit(void);
 
 /*!

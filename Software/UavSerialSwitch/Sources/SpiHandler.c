@@ -2,11 +2,13 @@
 #include "SPI.h"
 #include "SpiHandler.h" // queues, tasks, semaphores
 #include <stdio.h> // sprintf
+#include <string.h> // strlen
 #include "Config.h" // baudrates
 #include "nResetDeviceSide.h" // pin configuration
 #include "nResetWirelessSide.h" // pin configuration
 #include "nIrqDeviceSide.h" // pin configuration
 #include "nIrqWirelessSide.h" // pin configuration
+#include "Shell.h" // to print out debug information
 
 #define CS_DEVICE 			0
 #define CS_WIRELESS 		1
@@ -15,7 +17,7 @@
 #define READ_TRANSFER 		false
 #define SINGLE_BYTE			1
 
-// global variables, only used in this file
+/* global variables, only used in this file */
 LDD_TDeviceData* spiDevice; /* For different functions to access SPI device */
 static xQueueHandle TxWirelessBytes[NUMBER_OF_UARTS]; /* Incoming data from wireless side stored here */
 static xQueueHandle RxWirelessBytes[NUMBER_OF_UARTS]; /* Outgoing data to wireless side stored here */
@@ -28,7 +30,7 @@ const char* queueNameRxDeviceBytes[] = {"RxDeviceBytes0", "RxDeviceBytes1", "RxD
 const char* queueNameTxWirelessBytes[] = {"TxWirelessBytes0", "TxWirelessBytes1", "TxWirelessBytes2", "TxWirelessBytes3"};
 const char* queueNameTxDeviceBytes[] = {"TxDeviceBytes0", "TxDeviceBytes1", "TxDeviceBytes2", "TxDeviceBytes3"};
 
-// prototypes, only used in this file
+/* prototypes, only used in this file */
 void spiHandler_TaskInit(void);
 bool spiTransfer(tSpiSlaves spiSlave, tUartNr uartNr, tMax14830Reg reg, bool write, uint8_t* pData, uint8_t numOfTransfers);
 void spiWriteToAllUartInterfaces(tMax14830Reg reg, uint8_t data);
@@ -58,11 +60,17 @@ void spiHandler_TaskEntry(void* p)
 			/* read data from device spi interface */
 			readHwBufAndWriteToQueue(MAX_14830_DEVICE_SIDE, uartNr, RxDeviceBytes[uartNr]);
 			/* write data from queue to device spi interface */
-			readQueueAndWriteToHwBuf(MAX_14830_DEVICE_SIDE, uartNr, TxDeviceBytes[uartNr], HW_FIFO_SIZE);
+			if(config.TestHwLoopbackOnly)
+				readQueueAndWriteToHwBuf(MAX_14830_DEVICE_SIDE, uartNr, RxDeviceBytes[uartNr], HW_FIFO_SIZE);
+			else
+				readQueueAndWriteToHwBuf(MAX_14830_DEVICE_SIDE, uartNr, TxDeviceBytes[uartNr], HW_FIFO_SIZE);
 			/* read data from wireless spi interface */
 			readHwBufAndWriteToQueue(MAX_14830_WIRELESS_SIDE, uartNr, RxWirelessBytes[uartNr]);
 			/* write data from queue to wireless spi interface */
-			readQueueAndWriteToHwBuf(MAX_14830_WIRELESS_SIDE, uartNr, TxWirelessBytes[uartNr], HW_FIFO_SIZE);
+			if(config.TestHwLoopbackOnly)
+				readQueueAndWriteToHwBuf(MAX_14830_WIRELESS_SIDE, uartNr, RxWirelessBytes[uartNr], HW_FIFO_SIZE);
+			else
+				readQueueAndWriteToHwBuf(MAX_14830_WIRELESS_SIDE, uartNr, TxWirelessBytes[uartNr], HW_FIFO_SIZE);
 		}
 		vTaskDelayUntil( &lastWakeTime, taskInterval ); /* Wait for the next cycle */
 	}
@@ -344,19 +352,20 @@ void configureHwBufBaudrate(tSpiSlaves spiSlave, tUartNr uartNr, unsigned int ba
 		{
 			sprintf(warnBuf, "Unsupported baud rate on device side at UART number %u", (unsigned int)uartNr);
 		}
-		//showWarning(__FUNCTION__, warnBuf);
+		pushMsgToShellQueue(warnBuf, strlen(warnBuf));
 		return;
 	}
 	char infoBuf[128];
 	if (spiSlave == MAX_14830_WIRELESS_SIDE)
 	{
 		sprintf(infoBuf, "Set baud rate on UART %u on wireless side: %u baud", (unsigned int)uartNr, baudRateToSet);
+
 	}
 	else
 	{
 		sprintf(infoBuf, "Set baud rate on UART %u on device side: %u baud", (unsigned int)uartNr, baudRateToSet);
 	}
-	//showInfo(__FUNCTION__, infoBuf);
+	pushMsgToShellQueue(infoBuf, strlen(infoBuf));
 }
 
 
@@ -407,20 +416,24 @@ static uint16_t readHwBufAndWriteToQueue(tSpiSlaves spiSlave, tUartNr uartNr, xQ
 		{
 			if (xQueueSendToBack(queue, &buffer[cnt], ( TickType_t ) 0 ) == errQUEUE_FULL)
 			{
-				/* queue is full - flush queue, send character again and set error */
-				xQueueReset(queue);
+				/* queue is full -> delete oldest NUM_OF_BYTES_TO_DELETE_ON_QUEUE_FULL bytes */
+				for(int i = 0; i < NUM_OF_BYTES_TO_DELETE_ON_QUEUE_FULL; i++)
+				{
+					static uint8_t* pData;
+					xQueueReceive(RxWirelessBytes[uartNr], pData, ( TickType_t ) 0 );
+				}
 				xQueueSendToBack(queue, &buffer[cnt], ( TickType_t ) 0 );
 				if (spiSlave == MAX_14830_WIRELESS_SIDE)
 				{
 					char warnBuf[128];
-					sprintf(warnBuf, "cleaning full queue on wireless side, UART number %u", (unsigned int)uartNr);
-					//showWarning(__FUNCTION__, warnBuf);
+					sprintf(warnBuf, "cleaning %u bytes on wireless side, UART number %u", (unsigned int) NUM_OF_BYTES_TO_DELETE_ON_QUEUE_FULL, (unsigned int)uartNr);
+					pushMsgToShellQueue(warnBuf, strlen(warnBuf));
 				}
 				else /* spiSlave == MAX_14830_DEVICE_SIDE */
 				{
 					char warnBuf[128];
-					sprintf(warnBuf, "cleaning full queue on device side, UART number %u", (unsigned int)uartNr);
-					//showWarning(__FUNCTION__, warnBuf);
+					sprintf(warnBuf, "cleaning %u bytes on device side, UART number %u", (unsigned int) NUM_OF_BYTES_TO_DELETE_ON_QUEUE_FULL, (unsigned int)uartNr);
+					pushMsgToShellQueue(warnBuf, strlen(warnBuf));
 				}
 			}
 		}

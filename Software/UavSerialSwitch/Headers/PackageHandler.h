@@ -32,13 +32,10 @@
 #define PACK_FILL									((uint8_t)' ')
 
 
-
-
 /*! \def PACKAGE_HEADER_SIZE
 *  \brief Size of wireless package header in bytes - see tWirelessPackage without payload stuff plus sizeof PACK_START
 */
 #define PACKAGE_HEADER_SIZE							(11)
-
 
 
 /*! \def PACKAGE_MAX_PAYLOAD_SIZE
@@ -77,20 +74,37 @@ typedef struct sWirelessPackage
 	/* internal information, needed for (re)sending package */
 	uint8_t currentPrioConnection;
 	uint8_t sendAttemptsLeftPerWirelessConnection[NUMBER_OF_UARTS];
+	uint32_t timestampFirstSendAttempt;
 	uint32_t timestampLastSendAttempt[NUMBER_OF_UARTS];	/* holds the timestamp when the packet was sent the last time for every wireless connection */
 	uint16_t totalNumberOfSendAttemptsPerWirelessConnection[NUMBER_OF_UARTS];		/* to save the total number of send attempts that were needed for this package */
 
 } tWirelessPackage;
 
 
-
+/*!
+* \fn void packageHandler_TaskEntry(void)
+* \brief Task assembles packages from bytes and puts it on ReceivedPackages queue.
+* Generated packages are popped from PackagesToSend queue are sent to byte queue for transmission.
+*/
 void packageHandler_TaskEntry(void* p);
-void packageHandler_TaskInit(void);
-BaseType_t popReceivedPackFromQueue(tUartNr uartNr, tWirelessPackage *pPackage);
-uint16_t numberOfPacksInReceivedPacksQueue(tUartNr uartNr);
 
 /*!
-* \fn ByseType_t peakAtReceivedPackQueue(tUartNr uartNr, tWirelessPackage *pPackage)
+* \fn void packageHandler_TaskInit(void)
+* \brief Initializes queues created by package handler and HW CRC generator
+*/
+void packageHandler_TaskInit(void);
+
+/*!
+* \fn ByseType_t popReadyToSendPackFromQueue(tUartNr uartNr, tWirelessPackage *pPackage)
+* \brief Stores a single byte from the selected queue in pData.
+* \param uartNr: UART number the package should be transmitted to.
+* \param pPackage: The location where the package should be stored
+* \return Status if xQueueReceive has been successful, pdFAIL if uartNr was invalid or pop unsuccessful
+*/
+BaseType_t popReceivedPackFromQueue(tUartNr uartNr, tWirelessPackage *pPackage);
+
+/*!
+* \fn ByseType_t peekAtReceivedPackQueue(tUartNr uartNr, tWirelessPackage *pPackage)
 * \brief Package that will be popped next is stored in pPackage but not removed from queue.
 * \param uartNr: UART number the package should be transmitted to.
 * \param pPackage: The location where the package should be stored
@@ -98,6 +112,13 @@ uint16_t numberOfPacksInReceivedPacksQueue(tUartNr uartNr);
 */
 BaseType_t peekAtReceivedPackQueue(tUartNr uartNr, tWirelessPackage *pPackage);
 
+/*!
+* \fn uint16_t numberOfPacksInReceivedPacksQueue(tUartNr uartNr)
+* \brief Returns the number of packages stored in the queue that are ready to be received/processed by this program
+* \param uartNr: UART number the packages should be read from.
+* \return Number of packages waiting to be processed/received
+*/
+uint16_t numberOfPacksInReceivedPacksQueue(tUartNr uartNr);
 
 
 #endif /* HEADERS_PACKAGEHANDLER_H_ */

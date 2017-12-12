@@ -9,14 +9,20 @@
 #define DEFAULT_INT 1000
 
 
-// prototypes
+/* prototypes */
 void csvToInt(char inputString[], int outputArray[]);
 void csvToBool(char inputString[], bool outputArray[]);
 
-// global variables
+/* global variables */
 Configuration config;
 
-
+/*!
+* \fn void csvToInt(char inputString[], int outputArray[])
+* \brief reads a string with format "2350, 324087, 134098,3407,23407" and returns it as array.
+*  Values need to be comma separated, whitespaces are ignored and can be of any length.
+* \param inputString: string where numbers should be read from
+* \param outputArray: Array where parsed numbers should be stored
+*/
 void csvToInt(char inputString[], int outputArray[])
 {
 	int indexLastDigit = 0;
@@ -40,6 +46,13 @@ void csvToInt(char inputString[], int outputArray[])
 	}
 }
 
+/*!
+* \fn void csvToBool(char inputString[], bool outputArray[])
+* \brief reads a string with format "1, 0, 1, 0,0" and returns it as array.
+*  Values need to be comma separated, whitespaces are ignored and can be of any length.
+* \param inputString: string where numbers should be read from
+* \param outputArray: Array where parsed numbers should be stored
+*/
 void csvToBool(char inputString[], bool outputArray[])
 {
 	int indexLastDigit = 0;
@@ -63,6 +76,11 @@ void csvToBool(char inputString[], bool outputArray[])
 	}
 }
 
+/*!
+* \fn bool readTestConfig(void)
+* \brief Reads "TestConfiguration.ini" file -> to check if above functions work correctly
+* \return true if test config was read successfully
+*/
 bool readTestConfig(void)
 {
 	char sectionName[] = "TestConfiguration";
@@ -81,6 +99,10 @@ bool readTestConfig(void)
   	return true;
 }
 
+/*!
+* \fn uint16_t numberOfBytesInRxByteQueue(tSpiSlaves spiSlave, tUartNr uartNr)
+* \brief Reads config file and stores it in global variable
+*/
 bool readConfig(void)
 {
 	int numberOfCharsCopied;
@@ -100,52 +122,52 @@ bool readConfig(void)
   	/* -------- ConnectionConfiguration -------- */
   	/* PRIO_WIRELESS_CONN_DEV_0 */
   	numberOfCharsCopied = MINI_ini_gets("ConnectionConfiguration", "PRIO_WIRELESS_CONN_DEV_0",  DEFAULT_CSV_STRING, copiedCsv, TEMP_CSV_SIZE, "serialSwitch_Config.ini");
-  	csvToInt(copiedCsv, config.PrioWirelessConnDev0);
+  	csvToInt(copiedCsv, config.PrioWirelessConnDev[0]);
 
   	/* PRIO_WIRELESS_CONN_DEV_1 */
   	numberOfCharsCopied = MINI_ini_gets("ConnectionConfiguration", "PRIO_WIRELESS_CONN_DEV_1",  DEFAULT_CSV_STRING, copiedCsv, TEMP_CSV_SIZE, "serialSwitch_Config.ini");
-  	csvToInt(copiedCsv, config.PrioWirelessConnDev1);
+  	csvToInt(copiedCsv, config.PrioWirelessConnDev[1]);
 
   	/* PRIO_WIRELESS_CONN_DEV_2 */
   	numberOfCharsCopied = MINI_ini_gets("ConnectionConfiguration", "PRIO_WIRELESS_CONN_DEV_2",  DEFAULT_CSV_STRING, copiedCsv, TEMP_CSV_SIZE, "serialSwitch_Config.ini");
-  	csvToInt(copiedCsv, config.PrioWirelessConnDev2);
+  	csvToInt(copiedCsv, config.PrioWirelessConnDev[2]);
 
   	/* PRIO_WIRELESS_CONN_DEV_3 */
     numberOfCharsCopied = MINI_ini_gets("ConnectionConfiguration", "PRIO_WIRELESS_CONN_DEV_3",  DEFAULT_CSV_STRING, copiedCsv, TEMP_CSV_SIZE, "serialSwitch_Config.ini");
-  	csvToInt(copiedCsv, config.PrioWirelessConnDev3);
+  	csvToInt(copiedCsv, config.PrioWirelessConnDev[3]);
 
   	/* SEND_CNT_WIRELESS_CONN_DEV_0 */
   	numberOfCharsCopied = MINI_ini_gets("ConnectionConfiguration", "SEND_CNT_WIRELESS_CONN_DEV_0",  DEFAULT_CSV_STRING, copiedCsv, TEMP_CSV_SIZE, "serialSwitch_Config.ini");
-  	csvToInt(copiedCsv, config.SendCntWirelessConnDev0);
+  	csvToInt(copiedCsv, config.SendCntWirelessConnDev[0]);
 
   	/* SEND_CNT_WIRELESS_CONN_DEV_1 */
   	numberOfCharsCopied = MINI_ini_gets("ConnectionConfiguration", "SEND_CNT_WIRELESS_CONN_DEV_1",  DEFAULT_CSV_STRING, copiedCsv, TEMP_CSV_SIZE, "serialSwitch_Config.ini");
-  	csvToInt(copiedCsv, config.SendCntWirelessConnDev1);
+  	csvToInt(copiedCsv, config.SendCntWirelessConnDev[1]);
 
   	/* SEND_CNT_WIRELESS_CONN_DEV_2 */
   	numberOfCharsCopied = MINI_ini_gets("ConnectionConfiguration", "SEND_CNT_WIRELESS_CONN_DEV_2",  DEFAULT_CSV_STRING, copiedCsv, TEMP_CSV_SIZE, "serialSwitch_Config.ini");
-  	csvToInt(copiedCsv, config.SendCntWirelessConnDev2);
+  	csvToInt(copiedCsv, config.SendCntWirelessConnDev[2]);
 
   	/* SEND_CNT_WIRELESS_CONN_DEV_3 */
     numberOfCharsCopied = MINI_ini_gets("ConnectionConfiguration", "SEND_CNT_WIRELESS_CONN_DEV_3",  DEFAULT_CSV_STRING, copiedCsv, TEMP_CSV_SIZE, "serialSwitch_Config.ini");
-    csvToInt(copiedCsv, config.SendCntWirelessConnDev3);
+    csvToInt(copiedCsv, config.SendCntWirelessConnDev[3]);
 
   	/* -------- TransmissionConfiguration -------- */
   	/* PRIO_WIRELESS_CONN_DEV_0 */
   	numberOfCharsCopied = MINI_ini_gets("TransmissionConfiguration", "RESEND_DELAY_WIRELESS_CONN_DEV_0",  DEFAULT_CSV_STRING, copiedCsv, TEMP_CSV_SIZE, "serialSwitch_Config.ini");
-  	csvToInt(copiedCsv, config.ResendDelayWirelessConnDev0);
+  	csvToInt(copiedCsv, config.ResendDelayWirelessConnDev[0]);
 
   	/* PRIO_WIRELESS_CONN_DEV_1 */
   	numberOfCharsCopied = MINI_ini_gets("TransmissionConfiguration", "RESEND_DELAY_WIRELESS_CONN_DEV_1",  DEFAULT_CSV_STRING, copiedCsv, TEMP_CSV_SIZE, "serialSwitch_Config.ini");
-  	csvToInt(copiedCsv, config.ResendDelayWirelessConnDev1);
+  	csvToInt(copiedCsv, config.ResendDelayWirelessConnDev[1]);
 
   	/* PRIO_WIRELESS_CONN_DEV_2 */
   	numberOfCharsCopied = MINI_ini_gets("TransmissionConfiguration", "RESEND_DELAY_WIRELESS_CONN_DEV_2",  DEFAULT_CSV_STRING, copiedCsv, TEMP_CSV_SIZE, "serialSwitch_Config.ini");
-  	csvToInt(copiedCsv, config.ResendDelayWirelessConnDev2);
+  	csvToInt(copiedCsv, config.ResendDelayWirelessConnDev[2]);
 
   	/* PRIO_WIRELESS_CONN_DEV_3 */
   	numberOfCharsCopied = MINI_ini_gets("TransmissionConfiguration", "RESEND_DELAY_WIRELESS_CONN_DEV_3",  DEFAULT_CSV_STRING, copiedCsv, TEMP_CSV_SIZE, "serialSwitch_Config.ini");
-  	csvToInt(copiedCsv, config.ResendDelayWirelessConnDev3);
+  	csvToInt(copiedCsv, config.ResendDelayWirelessConnDev[3]);
 
   	/* MAX_THROUGHPUT_WIRELESS_CONN */
   	numberOfCharsCopied = MINI_ini_gets("TransmissionConfiguration", "MAX_THROUGHPUT_WIRELESS_CONN",  DEFAULT_CSV_STRING, copiedCsv, TEMP_CSV_SIZE, "serialSwitch_Config.ini");

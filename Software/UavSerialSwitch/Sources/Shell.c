@@ -7,7 +7,6 @@
  */
 
 #include "Platform.h"
-#if PL_HAS_SHELL
 #include "Shell.h"
 #include "CLS1.h"
 #include "Application.h"
@@ -22,16 +21,14 @@
   #include "TmDt1.h"
 #endif
 #include "KIN1.h"
+#include "Config.h"
 
 /* prototypes */
-void SHELL_TaskInit(void);
-void SHELL_Deinit(void);
+void pullMsgFromQueueAndPrint(void);
 
-
-
-void SHELL_SendString(unsigned char *msg) {
-  CLS1_SendStr(msg, CLS1_GetStdio()->stdOut);
-}
+/* global variables */
+static unsigned char localConsole_buf[48];
+static xQueueHandle msgQueue;
 
 static const CLS1_ParseCommandCallback CmdParserTable[] =
 {
@@ -58,11 +55,13 @@ static const CLS1_ParseCommandCallback CmdParserTable[] =
   NULL /* Sentinel */
 };
 
-static unsigned char localConsole_buf[48];
 
+/*!
+* \fn void Shell_TaskEntry (void *pvParameters)
+* \brief Parses commands in shell and prints debug information if configured in ini file.
+*/
 void Shell_TaskEntry (void *pvParameters)
 {
-	SHELL_TaskInit();
 	#if CLS1_DEFAULT_SERIAL
 		CLS1_ConstStdIOTypePtr ioLocal = CLS1_GetStdio();
 	#endif
@@ -70,7 +69,7 @@ void Shell_TaskEntry (void *pvParameters)
 			bool cardMounted = FALSE;
 			static FAT1_FATFS fileSystemObject;
 	#endif
-	(void)pvParameters; /* not used */
+
 	for(;;)
 	{
 		#if PL_HAS_SD_CARD
@@ -79,19 +78,67 @@ void Shell_TaskEntry (void *pvParameters)
 		#if CLS1_DEFAULT_SERIAL
 			(void)CLS1_ReadAndParseWithCommandTable(localConsole_buf, sizeof(localConsole_buf), ioLocal, CmdParserTable);
 		#endif
+
+		pullMsgFromQueueAndPrint();
+
 		vTaskDelay(50/portTICK_RATE_MS);
-	} /* for */
+	}
 }
 
-void SHELL_TaskInit(void) {
+
+/*!
+* \fn void Shell_TaskInit(void)
+* \brief Initializes the queue used for debug message storage
+*/
+void Shell_TaskInit(void)
+{
   localConsole_buf[0] = '\0';
   CLS1_Init();
   #if PL_HAS_SD_CARD
   FAT1_Init();
   #endif
+
+  msgQueue = xQueueCreate( MAX_NUMBER_OF_MESSAGES_STORED, sizeof(char*));
+  if(msgQueue == NULL)
+	  for(;;){} /* malloc for queue failed */
 }
 
-void SHELL_Deinit(void) {
-  CLS1_Deinit();
+
+
+/*!
+* \fn void pullMsgFromQueueAndPrint(void)
+* \brief Pulls debug messages from queue and sends them to shell if GenerateDebugOutput == 1
+*/
+void pullMsgFromQueueAndPrint(void)
+{
+#if 0
+  static unsigned char pMsg[100];
+  while(xQueueReceive(msgQueue, pMsg, 0) == pdTRUE)
+  {
+	  if(config.GenerateDebugOutput)
+		  CLS1_SendStr(pMsg, CLS1_GetStdio()->stdOut);
+	  FRTOS_vPortFree(pMsg);
+  }
+#endif
 }
-#endif /* PL_HAS_SHELL */
+
+/*!
+* \fn BaseType_t pushMsgToShellQueue(unsigned char* msg, int numberOfChars)
+* \brief Stores pData in queue
+* \param pMsg: The location where the string is stored
+* \return Status if xQueueSendToBack has been successful
+*/
+BaseType_t pushMsgToShellQueue(unsigned char* pMsg, int numberOfChars)
+{
+#if 0
+	static char* pTmpMsg;
+	pTmpMsg = FRTOS_pvPortMalloc(numberOfChars * sizeof(unsigned char));
+	if(pTmpMsg == NULL)
+		return pdFAIL;
+	for(int i=0; i < numberOfChars; i++)
+	{
+		pTmpMsg[i] = pMsg[i];
+	}
+	return xQueueSendToBack(msgQueue, pTmpMsg, ( TickType_t ) 0 );
+#endif
+}

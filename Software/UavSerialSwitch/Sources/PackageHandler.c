@@ -4,17 +4,19 @@
 #include "Config.h"
 #include "CRC1.h" // crc_8, crc_16
 #include <stdio.h> // sprintf
+#include "Shell.h" // to print out debug information
 
 #define TASKDELAY_QUEUE_FULL_MS 1
 
 
-// global variables, only used in this file
+/* global variables, only used in this file */
 static xQueueHandle ReceivedPackages[NUMBER_OF_UARTS]; /* Outgoing data to wireless side stored here */
 static tWirelessPackage nextDataPacketToSend[NUMBER_OF_UARTS]; /* data buffer of outgoing wireless packages, stored in here once pulled from queue */
 static LDD_TDeviceData* crcPH;
 const char* queueName[] = {"ReceivedPackages0", "ReceivedPackages1", "ReceivedPackages2", "ReceivedPackages3"};
+uint8_t numOfInvalidRecWirelessPack[NUMBER_OF_UARTS];
 
-// prototypes
+/* prototypes */
 void initPackageHandlerQueues(void);
 void packageHandler_TaskInit(void);
 static void sendPackageToWirelessQueue(tUartNr uartNr, tWirelessPackage* pWirelessPackage);
@@ -74,6 +76,10 @@ void packageHandler_TaskEntry(void* p)
 	}
 }
 
+/*!
+* \fn void packageHandler_TaskInit(void)
+* \brief Initializes queues created by package handler and HW CRC generator
+*/
 void packageHandler_TaskInit(void)
 {
 	initPackageHandlerQueues();
@@ -182,6 +188,7 @@ static void readAndExtractWirelessData(uint8_t wirelessConnNr)
 	static uint16_t patternReplaced[NUMBER_OF_UARTS];
 	static uint16_t dataCntToAddAfterReadPayload[NUMBER_OF_UARTS];
 	uint8_t chr;
+	static char infoBuf[128];
 
 	/* check if parameters are valid */
 	if (wirelessConnNr >= NUMBER_OF_UARTS)
@@ -211,9 +218,8 @@ static void readAndExtractWirelessData(uint8_t wirelessConnNr)
 						if (checkForPackStartReplacement(&data[wirelessConnNr][0], &dataCntr[wirelessConnNr], &patternReplaced[wirelessConnNr]))
 						{
 							dataCntr[wirelessConnNr] = 0;
-#if GENERATE_DEBUG_OUTPUT > 0
-							showInfo(__FUNCTION__, "restart state machine, start of package detected");
-#endif /* GENERATE_DEBUG_OUTPUT */
+							sprintf(infoBuf, "restart state machine, start of package detected");
+							pushMsgToShellQueue(infoBuf, strlen(infoBuf));
 						}
 					}
 					else
@@ -224,9 +230,8 @@ static void readAndExtractWirelessData(uint8_t wirelessConnNr)
 					if (checkForPackStartReplacement(&data[wirelessConnNr][0], &dataCntr[wirelessConnNr], &patternReplaced[wirelessConnNr]))
 					{
 						dataCntr[wirelessConnNr] = 0;
-#if GENERATE_DEBUG_OUTPUT > 0
-						showInfo(__FUNCTION__, "restart state machine, start of package detected");
-#endif /* GENERATE_DEBUG_OUTPUT */
+						sprintf(infoBuf, "restart state machine, start of package detected");
+						pushMsgToShellQueue(infoBuf, strlen(infoBuf));
 					}
 					break;
 				}
@@ -245,9 +250,8 @@ static void readAndExtractWirelessData(uint8_t wirelessConnNr)
 			{
 				/* found start of package, restart reading header */
 				dataCntr[wirelessConnNr] = 0;
-#if GENERATE_DEBUG_OUTPUT > 0
-				showInfo(__FUNCTION__, "restart state machine, start of package detected");
-#endif /* GENERATE_DEBUG_OUTPUT */
+				sprintf(infoBuf, "restart state machine, start of package detected");
+				pushMsgToShellQueue(infoBuf, strlen(infoBuf));
 			}
 			if (dataCntr[wirelessConnNr] >= (PACKAGE_HEADER_SIZE - 1 + 2)) /* -1: without PACK_START; +2 to read the first 2 bytes from the payload to check if the replacement pattern is there */
 			{
@@ -272,9 +276,8 @@ static void readAndExtractWirelessData(uint8_t wirelessConnNr)
 					/* start of package detected, restart reading header */
 					dataCntr[wirelessConnNr] = 0;
 					currentRecHandlerState[wirelessConnNr] = STATE_READ_HEADER;
-#if GENERATE_DEBUG_OUTPUT > 0
-					showInfo(__FUNCTION__, "restart state machine, start of package detected");
-#endif /* GENERATE_DEBUG_OUTPUT */
+					sprintf(infoBuf, "restart state machine, start of package detected");
+					pushMsgToShellQueue(infoBuf, strlen(infoBuf));
 					break;
 				}
 				/* finish reading header. Check if header is valid */
@@ -313,12 +316,11 @@ static void readAndExtractWirelessData(uint8_t wirelessConnNr)
 				{
 					/* invalid header, reset state machine */
 					currentRecHandlerState[wirelessConnNr] = STATE_START;
-					//numOfInvalidRecWirelessPack[wirelessConnNr]++;
+					numOfInvalidRecWirelessPack[wirelessConnNr]++;
 					patternReplaced[wirelessConnNr] = 0;
 					dataCntr[wirelessConnNr] = 0;
-#if GENERATE_DEBUG_OUTPUT > 0
-					showInfo(__FUNCTION__, "invalid header received, reset state machine");
-#endif /* GENERATE_DEBUG_OUTPUT */
+					sprintf(infoBuf, "invalid header received, reset state machine");
+					pushMsgToShellQueue(infoBuf, strlen(infoBuf));
 				}
 			}
 			break;
@@ -329,9 +331,8 @@ static void readAndExtractWirelessData(uint8_t wirelessConnNr)
 				/* start of package detected, restart reading header */
 				dataCntr[wirelessConnNr] = 0;
 				currentRecHandlerState[wirelessConnNr] = STATE_READ_HEADER;
-#if GENERATE_DEBUG_OUTPUT > 0
-				showInfo(__FUNCTION__, "restart state machine, start of package detected");
-#endif /* GENERATE_DEBUG_OUTPUT */
+				sprintf(infoBuf, "restart state machine, start of package detected");
+				pushMsgToShellQueue(infoBuf, strlen(infoBuf));
 				break;
 			}
 			/* read payload plus crc */
@@ -353,17 +354,15 @@ static void readAndExtractWirelessData(uint8_t wirelessConnNr)
 					if (currentWirelessPackage[wirelessConnNr].packType == PACK_TYPE_REC_ACKNOWLEDGE)
 					{
 						/* received acknowledge - send message to queueRecAck */
-#if GENERATE_DEBUG_OUTPUT > 0
-						char infoBuf[128];
-						sprintf(infoBuf, "received ACK package, device %u; systemtime: %lu", currentWirelessPackage[wirelessConnNr].devNum, millis());
-						showInfo(__FUNCTION__, infoBuf);
-#endif /* GENERATE_DEBUG_OUTPUT */
+						sprintf(infoBuf, "received ACK package, device %u", currentWirelessPackage[wirelessConnNr].devNum);
+						pushMsgToShellQueue(infoBuf, strlen(infoBuf));
+
 						currentWirelessPackage[wirelessConnNr].sysTime = *((uint32_t*)&data[wirelessConnNr][dataCntr[wirelessConnNr] - 6]);
 						while(xQueueSendToBack(ReceivedPackages[wirelessConnNr], &currentWirelessPackage[wirelessConnNr], ( TickType_t ) 0) != pdTRUE)
 						{
 							vTaskDelay(pdMS_TO_TICKS(10)); /* queue full */
-							/* queue is full */
-							//showWarning(__FUNCTION__, "received acknowledge but unable to push this messaege to the send handler");
+							sprintf(infoBuf, "received acknowledge but unable to push this message to the send handler for wireless queue %u because queue full", (unsigned int) wirelessConnNr);
+								pushMsgToShellQueue(infoBuf, strlen(infoBuf));
 						}
 					}
 					else if (currentWirelessPackage[wirelessConnNr].packType == PACK_TYPE_DATA_PACKAGE)
@@ -377,15 +376,11 @@ static void readAndExtractWirelessData(uint8_t wirelessConnNr)
 						while(xQueueSendToBack(ReceivedPackages[wirelessConnNr], &currentWirelessPackage[wirelessConnNr], ( TickType_t ) 0) != pdTRUE)
 						{
 							vTaskDelay(pdMS_TO_TICKS(10)); /* queue full */
-							/* queue is full */
-							//showWarning(__FUNCTION__, "received acknowledge but unable to push this messaege to the send handler");
+							sprintf(infoBuf, "received data package but unable to push this message to the send handler for wireless queue %u because queue full", (unsigned int) wirelessConnNr);
+							pushMsgToShellQueue(infoBuf, strlen(infoBuf));
 						}
-#if GENERATE_DEBUG_OUTPUT > 0
-						char infoBuf[128];
-						sprintf(infoBuf, "received data package, device %u; timestamp package: %lu; systemtime: %lu",
-							currentWirelessPackage[wirelessConnNr].devNum, currentWirelessPackage[wirelessConnNr].sysTime, millis());
-						showInfo(__FUNCTION__, infoBuf);
-#endif /* GENERATE_DEBUG_OUTPUT */
+						sprintf(infoBuf, "received data package, device %u; timestamp package: %lu", currentWirelessPackage[wirelessConnNr].devNum, currentWirelessPackage[wirelessConnNr].sysTime);
+						pushMsgToShellQueue(infoBuf, strlen(infoBuf));
 						/* update average size of received payload packages */
 						//updateAvPayloadSizeRecDataPack(wirelessConnNr, currentWirelessPackage[wirelessConnNr].payloadSize);
 						/* check if it's the same session number as before */
@@ -399,16 +394,16 @@ static void readAndExtractWirelessData(uint8_t wirelessConnNr)
 					else
 					{
 						/* something went wrong - invalid package type. Reset state machine and send out error. */
-						//showWarning(__FUNCTION__, "invalid package type. Mustn't happen at this stage, there is probably an error in the implementation");
+						sprintf(infoBuf, "invalid package type. Mustn't happen at this stage, there is probably an error in the implementation");
+						pushMsgToShellQueue(infoBuf, strlen(infoBuf));
 					}
 				}
 				else
 				{
 					/* received invalid payload */
-					//numOfInvalidRecWirelessPack[wirelessConnNr]++;
-#if GENERATE_DEBUG_OUTPUT > 0
-					showInfo(__FUNCTION__, "received invalid payload, reset state machine");
-#endif /* GENERATE_DEBUG_OUTPUT */
+					numOfInvalidRecWirelessPack[wirelessConnNr]++;
+					sprintf(infoBuf, "received %u invalid payload, reset state machine", (unsigned int) numOfInvalidRecWirelessPack[wirelessConnNr]);
+					pushMsgToShellQueue(infoBuf, strlen(infoBuf));
 				}
 				/* reset state machine */
 				currentRecHandlerState[wirelessConnNr] = STATE_START;
@@ -427,7 +422,8 @@ static void readAndExtractWirelessData(uint8_t wirelessConnNr)
 			}
 			break;
 		default:
-			//showError(__FUNCTION__, "invalid state in state machine");
+			sprintf(infoBuf, "invalid state in state machine");
+			pushMsgToShellQueue(infoBuf, strlen(infoBuf));
 			break;
 		}
 	}

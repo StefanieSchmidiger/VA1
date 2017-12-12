@@ -9,26 +9,17 @@ typedef struct Configurations {
    int BaudRatesWirelessConn[NUMBER_OF_UARTS]; //
    int BaudRatesDeviceConn[NUMBER_OF_UARTS]; //
    /* ConnectionConfiguration */
-   int PrioWirelessConnDev0[NUMBER_OF_UARTS];
-   int PrioWirelessConnDev1[NUMBER_OF_UARTS];
-   int PrioWirelessConnDev2[NUMBER_OF_UARTS];
-   int PrioWirelessConnDev3[NUMBER_OF_UARTS];
-   int SendCntWirelessConnDev0[NUMBER_OF_UARTS];
-   int SendCntWirelessConnDev1[NUMBER_OF_UARTS];
-   int SendCntWirelessConnDev2[NUMBER_OF_UARTS];
-   int SendCntWirelessConnDev3[NUMBER_OF_UARTS];
+   int PrioWirelessConnDev[NUMBER_OF_UARTS][NUMBER_OF_UARTS]; /* [uartNr][prioPerUart] */
+   int SendCntWirelessConnDev[NUMBER_OF_UARTS][NUMBER_OF_UARTS]; /* [uartNr][numberOfSendAttempts] */
    /* TransmissionConfiguration */
-   int ResendDelayWirelessConnDev0[NUMBER_OF_UARTS];
-   int ResendDelayWirelessConnDev1[NUMBER_OF_UARTS];
-   int ResendDelayWirelessConnDev2[NUMBER_OF_UARTS];
-   int ResendDelayWirelessConnDev3[NUMBER_OF_UARTS];
-   int MaxThroughputWirelessConn[NUMBER_OF_UARTS];
-   int UsualPacketSizeDeviceConn[NUMBER_OF_UARTS]; //
-   int PackageGenMaxTimeout[NUMBER_OF_UARTS]; //
-   int DelayDismissOldPackagePerDev[NUMBER_OF_UARTS];
+   int ResendDelayWirelessConnDev[NUMBER_OF_UARTS][NUMBER_OF_UARTS]; /* [uartNr][DelayPerUart] */
+   int MaxThroughputWirelessConn[NUMBER_OF_UARTS]; // ToDo: unused!!
+   int UsualPacketSizeDeviceConn[NUMBER_OF_UARTS];
+   int PackageGenMaxTimeout[NUMBER_OF_UARTS];
+   int DelayDismissOldPackagePerDev[NUMBER_OF_UARTS]; //ToDo: unused!!
    bool SendAckPerWirelessConn[NUMBER_OF_UARTS];
    bool UseCtsPerWirelessConn[NUMBER_OF_UARTS];
-
+   /* SoftwareConfiguration */
    bool TestHwLoopbackOnly;
    bool GenerateDebugOutput;
    int SpiHandlerTaskInterval;
@@ -39,7 +30,17 @@ typedef struct Configurations {
 
 extern Configuration config;
 
+/*!
+* \fn uint16_t numberOfBytesInRxByteQueue(tSpiSlaves spiSlave, tUartNr uartNr)
+* \brief Reads config file and stores it in global variable
+*/
 bool readConfig(void);
+
+/*!
+* \fn bool readTestConfig(void)
+* \brief Reads "TestConfiguration.ini" file -> to check if above functions work correctly
+* \return true if test config was read successfully
+*/
 bool readTestConfig(void);
 
 #endif

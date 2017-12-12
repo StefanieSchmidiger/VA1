@@ -7,10 +7,13 @@
 #include "NetworkHandler.h"
 #include "Blinky.h"
 
-
+/* prototypes for functions that are only within this file scope */
 bool createAllTasks(void);
 
-
+/*!
+* \fn void SysInit_TaskEntry(void* param)
+* \brief Reads config file and creates all other tasks afterwards (because other tasks need config file)
+*/
 void SysInit_TaskEntry(void* param)
 {
   bool cardMounted = false;
@@ -24,13 +27,18 @@ void SysInit_TaskEntry(void* param)
   vTaskDelete(NULL); // task deletes itself
 }
 
+/*!
+* \fn bool createAllTasks(void)
+* \brief Initializes and creates all tasks for serial switch
+* \return true if all tasks were created successfully
+*/
 bool createAllTasks(void)
 {
-	/* make sure all queues are initialized before being accessed from other taks */
+	/* make sure all queues are initialized before being accessed from other tasks */
+	Shell_TaskInit();
 	spiHandler_TaskInit();
 	packageHandler_TaskInit();
 	networkHandler_TaskInit();
-
 
 	/* create Shell task */
 	if (xTaskCreate(Shell_TaskEntry, "Shell", 2000/sizeof(StackType_t), NULL, tskIDLE_PRIORITY+1, NULL) != pdPASS) {
@@ -41,19 +49,18 @@ bool createAllTasks(void)
 	if (xTaskCreate(spiHandler_TaskEntry, "SPI_Handler", 2000/sizeof(StackType_t), NULL, tskIDLE_PRIORITY+1, NULL) != pdPASS) {
 	    for(;;) {}} /* error */
 
-#if 1
-	/* create network handler task */
+
+	/* create package handler task */
 	if (xTaskCreate(packageHandler_TaskEntry, "Package_Handler", 2000/sizeof(StackType_t), NULL, tskIDLE_PRIORITY+1, NULL) != pdPASS) {
 		for(;;) {}} /* error */
-#endif
 
-#if 1
+
 	/* create network handler task */
 	if (xTaskCreate(networkHandler_TaskEntry, "Network_Handler", 2000/sizeof(StackType_t), NULL, tskIDLE_PRIORITY+1, NULL) != pdPASS) {
 		for(;;) {}} /* error */
-#endif
 
-	/* create blinky task */
+
+	/* create blinky task last to let user know that all init methods and mallocs were successful when LED blinks */
 	if (xTaskCreate(blinky_TaskEntry, "Blinky", 400/sizeof(StackType_t), NULL, tskIDLE_PRIORITY+1, NULL) != pdPASS) {
 	    for(;;) {}} /* error */
 
