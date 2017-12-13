@@ -30,7 +30,7 @@ void Shell_TaskInit(void);
 * \param pMsg: The location where the string is stored
 * \return Status if xQueueSendToBack has been successful
 */
-BaseType_t pushMsgToShellQueue(unsigned char* pMsg, int numberOfChars);
+BaseType_t pushMsgToShellQueue(char* pMsg, int numberOfChars);
 
 /*! \def MAX_NUMBER_OF_MESSAGES_STORED
 *  \brief Size of queue for messages to be printed in shell.

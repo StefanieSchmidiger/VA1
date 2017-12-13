@@ -6,6 +6,7 @@
 #include "PackageHandler.h"
 #include "NetworkHandler.h"
 #include "Blinky.h"
+#include "ThroughputPrintout.h"
 
 /* prototypes for functions that are only within this file scope */
 bool createAllTasks(void);
@@ -58,6 +59,10 @@ bool createAllTasks(void)
 	/* create network handler task */
 	if (xTaskCreate(networkHandler_TaskEntry, "Network_Handler", 2000/sizeof(StackType_t), NULL, tskIDLE_PRIORITY+1, NULL) != pdPASS) {
 		for(;;) {}} /* error */
+
+	/* create network handler task */
+		if (xTaskCreate(throughputPrintout_TaskEntry, "Throughput_Printout", 2000/sizeof(StackType_t), NULL, tskIDLE_PRIORITY+1, NULL) != pdPASS) {
+			for(;;) {}} /* error */
 
 
 	/* create blinky task last to let user know that all init methods and mallocs were successful when LED blinks */

@@ -62,6 +62,9 @@ static const CLS1_ParseCommandCallback CmdParserTable[] =
 */
 void Shell_TaskEntry (void *pvParameters)
 {
+	const TickType_t taskInterval = pdMS_TO_TICKS(config.ShellTaskInterval); /* task interval  */
+	TickType_t lastWakeTime = xTaskGetTickCount(); /* Initialize the xLastWakeTime variable with the current time. */
+
 	#if CLS1_DEFAULT_SERIAL
 		CLS1_ConstStdIOTypePtr ioLocal = CLS1_GetStdio();
 	#endif
@@ -72,6 +75,8 @@ void Shell_TaskEntry (void *pvParameters)
 
 	for(;;)
 	{
+		vTaskDelayUntil( &lastWakeTime, taskInterval ); /* Wait for the next cycle */
+
 		#if PL_HAS_SD_CARD
 			(void)FAT1_CheckCardPresence(&cardMounted, (unsigned char*)"0" /*volume*/, &fileSystemObject, CLS1_GetStdio());
 		#endif
@@ -101,6 +106,7 @@ void Shell_TaskInit(void)
   msgQueue = xQueueCreate( MAX_NUMBER_OF_MESSAGES_STORED, sizeof(char*));
   if(msgQueue == NULL)
 	  for(;;){} /* malloc for queue failed */
+  vQueueAddToRegistry(msgQueue, "DebugMessageQueue");
 }
 
 
@@ -111,34 +117,44 @@ void Shell_TaskInit(void)
 */
 void pullMsgFromQueueAndPrint(void)
 {
-#if 0
-  static unsigned char pMsg[100];
-  while(xQueueReceive(msgQueue, pMsg, 0) == pdTRUE)
+  char* pMsg;
+  while(xQueueReceive(msgQueue, &pMsg, 0) == pdTRUE)
   {
 	  if(config.GenerateDebugOutput)
 		  CLS1_SendStr(pMsg, CLS1_GetStdio()->stdOut);
-	  FRTOS_vPortFree(pMsg);
+	  FRTOS_vPortFree(pMsg); /* free memory allocated when message was pushed into queue */
   }
-#endif
 }
 
 /*!
-* \fn BaseType_t pushMsgToShellQueue(unsigned char* msg, int numberOfChars)
+* \fn BaseType_t pushMsgToShellQueue(char* msg, int numberOfChars)
 * \brief Stores pData in queue
 * \param pMsg: The location where the string is stored
 * \return Status if xQueueSendToBack has been successful
 */
-BaseType_t pushMsgToShellQueue(unsigned char* pMsg, int numberOfChars)
+BaseType_t pushMsgToShellQueue(char* pMsg, int numberOfChars)
 {
-#if 0
-	static char* pTmpMsg;
-	pTmpMsg = FRTOS_pvPortMalloc(numberOfChars * sizeof(unsigned char));
-	if(pTmpMsg == NULL)
-		return pdFAIL;
-	for(int i=0; i < numberOfChars; i++)
+	/* saves config data in queue if debug output enabled */
+	if(config.GenerateDebugOutput)
 	{
-		pTmpMsg[i] = pMsg[i];
+		static char* pTmpMsg;
+		/* limit number of chars in message */
+		//numberOfChars = (numberOfChars <= MAX_NUMBER_OF_CHARS_PER_MESSAGE) ? numberOfChars : MAX_NUMBER_OF_CHARS_PER_MESSAGE; /* limit message length in queue */
+		/* allocate memory for string */
+		pTmpMsg = (char*) FRTOS_pvPortMalloc(numberOfChars * sizeof(char));
+		if(pTmpMsg == NULL)
+			return pdFAIL;
+		/* copy string to new memory location */
+		for(int i=0; i < numberOfChars; i++)
+		{
+			pTmpMsg[i] = pMsg[i];
+		}
+		if(xQueueSendToBack(msgQueue, &pTmpMsg, ( TickType_t ) 0 ) != pdTRUE)
+		{
+			/* free memory before returning */
+			FRTOS_vPortFree(pTmpMsg); /* free memory allocated when message was pushed into queue */
+			return pdFAIL;
+		}
 	}
-	return xQueueSendToBack(msgQueue, pTmpMsg, ( TickType_t ) 0 );
-#endif
+	return pdTRUE; /* return success if debug output not enabled */
 }

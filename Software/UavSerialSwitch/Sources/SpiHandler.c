@@ -49,11 +49,12 @@ static uint16_t readQueueAndWriteToHwBuf(tSpiSlaves spiSlave, tUartNr uartNr, xQ
 */
 void spiHandler_TaskEntry(void* p)
 {
-	TickType_t lastWakeTime;
 	const TickType_t taskInterval = pdMS_TO_TICKS(config.SpiHandlerTaskInterval);
+	TickType_t lastWakeTime = xTaskGetTickCount(); /* Initialize the xLastWakeTime variable with the current time. */
+
 	for(;;)
 	{
-		lastWakeTime = xTaskGetTickCount(); /* Initialize the xLastWakeTime variable with the current time. */
+		vTaskDelayUntil( &lastWakeTime, taskInterval ); /* Wait for the next cycle */
 		/* read all data and write it to queue */
 		for(int uartNr = 0; uartNr < NUMBER_OF_UARTS; uartNr++)
 		{
@@ -72,7 +73,6 @@ void spiHandler_TaskEntry(void* p)
 			else
 				readQueueAndWriteToHwBuf(MAX_14830_WIRELESS_SIDE, uartNr, TxWirelessBytes[uartNr], HW_FIFO_SIZE);
 		}
-		vTaskDelayUntil( &lastWakeTime, taskInterval ); /* Wait for the next cycle */
 	}
 }
 
@@ -346,11 +346,11 @@ void configureHwBufBaudrate(tSpiSlaves spiSlave, tUartNr uartNr, unsigned int ba
 	default:
 		if (spiSlave == MAX_14830_WIRELESS_SIDE)
 		{
-			sprintf(warnBuf, "Unsupported baud rate on wireless side at UART number %u", (unsigned int)uartNr);
+			sprintf(warnBuf, "Unsupported baud rate on wireless side at UART number %u\r\n", (unsigned int)uartNr);
 		}
 		else
 		{
-			sprintf(warnBuf, "Unsupported baud rate on device side at UART number %u", (unsigned int)uartNr);
+			sprintf(warnBuf, "Unsupported baud rate on device side at UART number %u\r\n", (unsigned int)uartNr);
 		}
 		pushMsgToShellQueue(warnBuf, strlen(warnBuf));
 		return;
@@ -358,12 +358,12 @@ void configureHwBufBaudrate(tSpiSlaves spiSlave, tUartNr uartNr, unsigned int ba
 	char infoBuf[128];
 	if (spiSlave == MAX_14830_WIRELESS_SIDE)
 	{
-		sprintf(infoBuf, "Set baud rate on UART %u on wireless side: %u baud", (unsigned int)uartNr, baudRateToSet);
+		sprintf(infoBuf, "Set baud rate for UART %u on wireless side: %u baud\r\n", (unsigned int)uartNr, baudRateToSet);
 
 	}
 	else
 	{
-		sprintf(infoBuf, "Set baud rate on UART %u on device side: %u baud", (unsigned int)uartNr, baudRateToSet);
+		sprintf(infoBuf, "Set baud rate for UART %u on device side: %u baud\r\n", (unsigned int)uartNr, baudRateToSet);
 	}
 	pushMsgToShellQueue(infoBuf, strlen(infoBuf));
 }
@@ -419,20 +419,20 @@ static uint16_t readHwBufAndWriteToQueue(tSpiSlaves spiSlave, tUartNr uartNr, xQ
 				/* queue is full -> delete oldest NUM_OF_BYTES_TO_DELETE_ON_QUEUE_FULL bytes */
 				for(int i = 0; i < NUM_OF_BYTES_TO_DELETE_ON_QUEUE_FULL; i++)
 				{
-					static uint8_t* pData;
-					xQueueReceive(RxWirelessBytes[uartNr], pData, ( TickType_t ) 0 );
+					static uint8_t data;
+					xQueueReceive(RxWirelessBytes[uartNr], &data, ( TickType_t ) 0 );
 				}
 				xQueueSendToBack(queue, &buffer[cnt], ( TickType_t ) 0 );
 				if (spiSlave == MAX_14830_WIRELESS_SIDE)
 				{
 					char warnBuf[128];
-					sprintf(warnBuf, "cleaning %u bytes on wireless side, UART number %u", (unsigned int) NUM_OF_BYTES_TO_DELETE_ON_QUEUE_FULL, (unsigned int)uartNr);
+					sprintf(warnBuf, "Cleaning %u bytes on wireless side, UART number %u\r\n", (unsigned int) NUM_OF_BYTES_TO_DELETE_ON_QUEUE_FULL, (unsigned int)uartNr);
 					pushMsgToShellQueue(warnBuf, strlen(warnBuf));
 				}
 				else /* spiSlave == MAX_14830_DEVICE_SIDE */
 				{
 					char warnBuf[128];
-					sprintf(warnBuf, "cleaning %u bytes on device side, UART number %u", (unsigned int) NUM_OF_BYTES_TO_DELETE_ON_QUEUE_FULL, (unsigned int)uartNr);
+					sprintf(warnBuf, "Cleaning %u bytes on device side, UART number %u\r\n", (unsigned int) NUM_OF_BYTES_TO_DELETE_ON_QUEUE_FULL, (unsigned int)uartNr);
 					pushMsgToShellQueue(warnBuf, strlen(warnBuf));
 				}
 			}

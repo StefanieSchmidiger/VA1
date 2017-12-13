@@ -213,5 +213,11 @@ bool readConfig(void)
   	/* TOGGLE_GREEN_LED_INTERVAL */
   	config.ToggleGreenLedInterval = MINI_ini_getl("SoftwareConfiguration", "TOGGLE_GREEN_LED_INTERVAL",  DEFAULT_INT, "serialSwitch_Config.ini");
 
+  	/* THROUGHPUT_PRINTOUT_TASK_INTERVAL */
+	config.ThroughputPrintoutTaskInterval = MINI_ini_getl("SoftwareConfiguration", "THROUGHPUT_PRINTOUT_TASK_INTERVAL",  DEFAULT_INT, "serialSwitch_Config.ini");
+
+	/* SHELL_TASK_INTERVAL */
+	config.ShellTaskInterval = MINI_ini_getl("SoftwareConfiguration", "SHELL_TASK_INTERVAL",  DEFAULT_INT, "serialSwitch_Config.ini");
+
   	return true;
 }

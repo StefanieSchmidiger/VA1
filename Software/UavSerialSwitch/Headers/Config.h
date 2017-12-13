@@ -26,6 +26,8 @@ typedef struct Configurations {
    int PackageHandlerTaskInterval;
    int NetworkHandlerTaskInterval;
    int ToggleGreenLedInterval;
+   int ThroughputPrintoutTaskInterval;
+   int ShellTaskInterval;
 } Configuration;
 
 extern Configuration config;
