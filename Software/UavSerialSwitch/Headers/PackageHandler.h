@@ -43,6 +43,11 @@
 */
 #define PACKAGE_MAX_PAYLOAD_SIZE					(512)
 
+/*! \def MAX_DELAY_PACK_HANDLER_MS
+*  \brief Maximal delay on queue operations inside packageHandler task.
+*/
+#define MAX_DELAY_PACK_HANDLER_MS					(0)
+
 
 typedef enum ePackType
 {

@@ -132,26 +132,23 @@ void pullMsgFromQueueAndPrint(void)
 * \param pMsg: The location where the string is stored
 * \return Status if xQueueSendToBack has been successful
 */
-BaseType_t pushMsgToShellQueue(char* pMsg, int numberOfChars)
+BaseType_t pushMsgToShellQueue(char* pMsg)
 {
+	/* limit string in shell in case terminating zero not added */
+	int numberOfChars = (strlen(pMsg) <= MAX_NUMBER_OF_CHARS_PER_MESSAGE) ? strlen(pMsg) : MAX_NUMBER_OF_CHARS_PER_MESSAGE; /* limit message length in queue */
 	/* saves config data in queue if debug output enabled */
 	if(config.GenerateDebugOutput)
 	{
+		/* allocate memory for string in queue */
 		char* pTmpMsg;
-		/* limit number of chars in message */
-		//numberOfChars = (numberOfChars <= MAX_NUMBER_OF_CHARS_PER_MESSAGE) ? numberOfChars : MAX_NUMBER_OF_CHARS_PER_MESSAGE; /* limit message length in queue */
-		/* allocate memory for string */
 		pTmpMsg = (char*) FRTOS_pvPortMalloc(numberOfChars * sizeof(char));
 		if(pTmpMsg == NULL)
 		{
 			return pdFAIL;
 		}
-		/* copy string to new memory location */
-		for(int i=0; i < numberOfChars; i++)
-		{
-			pTmpMsg[i] = pMsg[i];
-		}
-		if(xQueueSendToBack(msgQueue, &pTmpMsg, ( TickType_t ) pdMS_TO_TICKS(50) ) != pdTRUE)
+		UTIL1_strcpy(pTmpMsg, numberOfChars+1, pMsg); /* copy string to new memory location */
+		/* push string to queue */
+		if(xQueueSendToBack(msgQueue, &pTmpMsg, ( TickType_t ) pdMS_TO_TICKS(5) ) != pdTRUE)
 		{
 			/* free memory before returning */
 			FRTOS_vPortFree(pTmpMsg); /* free memory allocated when message was pushed into queue */

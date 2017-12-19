@@ -20,6 +20,11 @@
 */
 #define MAX_NUMBER_OF_UNACK_PACKS_STORED		100
 
+/*! \def MAX_DELAY_NETW_HANDLER_MS
+*  \brief Maximal delay on queue operations inside networkHandler task.
+*/
+#define MAX_DELAY_NETW_HANDLER_MS				(0)
+
 /*!
 * \fn void networkHandler_TaskEntry(void)
 * \brief Task generates packages from received bytes (received on device side) and sends those down to

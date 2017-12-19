@@ -3,6 +3,7 @@
 #include "FRTOS.h"
 #include "Config.h"
 #include <stdio.h> // sprintf
+#include "XF1.h" //xsprintf
 
 /* global variables */
 long unsigned int numberOfAckReceived[NUMBER_OF_UARTS];
@@ -43,48 +44,47 @@ void throughputPrintout_TaskEntry(void* p)
 		/* calculate throughput in byte per sec */
 		for(int cnt = 0; cnt < NUMBER_OF_UARTS; cnt++)
 		{
-			averagePayloadReceived[cnt] = lastNumberOfPayloadBytesExtracted[cnt]/lastNumberOfPacksReceived[cnt];
-			averagePayloadSent[cnt] = lastNumberOfPayloadBytesSent[cnt]/lastNumberOfPacksSent[cnt];
-			averagePacksReceived[cnt] = lastNumberOfPacksReceived[cnt]/config.ThroughputPrintoutTaskInterval;
-			averagePacksSent[cnt] = lastNumberOfPacksSent[cnt]/config.ThroughputPrintoutTaskInterval;
-			averageAcksReceived[cnt] = lastNumberOfAckReceived[cnt]/config.ThroughputPrintoutTaskInterval;
-			averageAcksSent[cnt] = lastNumberOfAcksSent[cnt]/config.ThroughputPrintoutTaskInterval;
+			averagePacksReceived[cnt] = (numberOfPacksReceived[cnt]-lastNumberOfPacksReceived[cnt])/config.ThroughputPrintoutTaskInterval;
+			averagePacksSent[cnt] = (numberOfPacksSent[cnt]-lastNumberOfPacksSent[cnt]) / config.ThroughputPrintoutTaskInterval;
+			averageAcksReceived[cnt] = (numberOfAckReceived[cnt]-lastNumberOfAckReceived[cnt])/config.ThroughputPrintoutTaskInterval;
+			averageAcksSent[cnt] = (numberOfAcksSent[cnt]-lastNumberOfAcksSent[cnt])/config.ThroughputPrintoutTaskInterval;
+			averagePayloadReceived[cnt] = (numberOfPayloadBytesExtracted[cnt]-lastNumberOfPayloadBytesExtracted[cnt])/(numberOfPacksReceived[cnt]-lastNumberOfPacksReceived[cnt]);
+			averagePayloadSent[cnt] = (numberOfPayloadBytesSent[cnt]-lastNumberOfPayloadBytesSent[cnt])/(numberOfPacksSent[cnt]-lastNumberOfPacksSent[cnt]);
 		}
 
-		sprintf(buf, "--------------------------------------------------------------\r\n");
-		pushMsgToShellQueue(buf, strlen(buf));
-#if 0
+		XF1_xsprintf(buf, "-----------------------------------------------------------\r\n");
+		pushMsgToShellQueue(buf);
 		/* print throughput information */
-		sprintf(buf, "Wireless: Sent packages [packages/s]: %.1f,%.1f,%.1f,%.1f; Received packages: [packages/s] %.1f,%.1f,%.1f,%.1f\r\n",
+		XF1_xsprintf(buf, "Wireless: Sent packages [packages/s]: %.1f,%.1f,%.1f,%.1f; Received packages: [packages/s] %.1f,%.1f,%.1f,%.1f\r\n",
 				averagePacksSent[0], averagePacksSent[1], averagePacksSent[2], averagePacksSent[3],
 				averagePacksReceived[0], averagePacksReceived[1], averagePacksReceived[2], averagePacksReceived[3]);
-		pushMsgToShellQueue(buf, strlen(buf));
+		pushMsgToShellQueue(buf);
 
-		sprintf(buf, "Wireless: Average payload sent [bytes/pack]: %.1f,%.1f,%.1f,%.1f; Average payload received: [bytes/pack] %.1f,%.1f,%.1f,%.1f\r\n",
+		XF1_xsprintf(buf, "Wireless: Average payload sent [bytes/pack]: %.1f,%.1f,%.1f,%.1f; Average payload received: [bytes/pack] %.1f,%.1f,%.1f,%.1f\r\n",
 				averagePayloadSent[0], averagePayloadSent[1], averagePayloadSent[2], averagePayloadSent[3],
 				averagePayloadReceived[0], averagePayloadReceived[1], averagePayloadReceived[2], averagePayloadReceived[3]);
-		pushMsgToShellQueue(buf, strlen(buf));
+		pushMsgToShellQueue(buf);
 
-		sprintf(buf, "Wireless: Sent acknowledges [acks/s]: %.1f,%.1f,%.1f,%.2f; Received acknowledges: [acks/s] %.1f,%.1f,%.1f,%.1f\r\n",
+		XF1_xsprintf(buf, "Wireless: Sent acknowledges [acks/s]: %.1f,%.1f,%.1f,%.2f; Received acknowledges: [acks/s] %.1f,%.1f,%.1f,%.1f\r\n",
 				averageAcksSent[0], averageAcksSent[1], averageAcksSent[2], averageAcksSent[3],
 				averageAcksReceived[0], averageAcksReceived[1], averageAcksReceived[2], averageAcksReceived[3]);
-		pushMsgToShellQueue(buf, strlen(buf));
-#endif
-		sprintf(buf, "Wireless: Total number of dropped packages per device input: %lu,%lu,%lu,%lu\r\n",
+		pushMsgToShellQueue(buf);
+
+		XF1_xsprintf(buf, "Wireless: Total number of dropped packages per device input: %lu,%lu,%lu,%lu\r\n",
 				numberOfDroppedPackages[0], numberOfDroppedPackages[1], numberOfDroppedPackages[2], numberOfDroppedPackages[3]);
-		pushMsgToShellQueue(buf, strlen(buf));
+		pushMsgToShellQueue(buf);
 
-		sprintf(buf, "Wireless: Total number of dropped acknowledges per wireless input: %lu,%lu,%lu,%lu\r\n",
+		XF1_xsprintf(buf, "Wireless: Total number of dropped acknowledges per wireless input: %lu,%lu,%lu,%lu\r\n",
 				numberOfDroppedAcks[0], numberOfDroppedAcks[1], numberOfDroppedAcks[2], numberOfDroppedAcks[3]);
-		pushMsgToShellQueue(buf, strlen(buf));
+		pushMsgToShellQueue(buf);
 
-		sprintf(buf, "Wireless: Total number of invalid packages per wireless input: %lu,%lu,%lu,%lu\r\n",
+		XF1_xsprintf(buf, "Wireless: Total number of invalid packages per wireless input: %lu,%lu,%lu,%lu\r\n",
 				numberOfInvalidPackages[0], numberOfInvalidPackages[1], numberOfInvalidPackages[2], numberOfInvalidPackages[3]);
-		pushMsgToShellQueue(buf, strlen(buf));
+		pushMsgToShellQueue(buf);
 
-		sprintf(buf, "Device: Total number of dropped bytes per device input: %lu,%lu,%lu,%lu\r\n",
+		XF1_xsprintf(buf, "Device: Total number of dropped bytes per device input: %lu,%lu,%lu,%lu\r\n",
 				numberOfDroppedBytes[0], numberOfDroppedBytes[1], numberOfDroppedBytes[2], numberOfDroppedBytes[3]);
-		pushMsgToShellQueue(buf, strlen(buf));
+		pushMsgToShellQueue(buf);
 
 		/* reset measurement */
 		for(int cnt = 0; cnt < NUMBER_OF_UARTS; cnt++)

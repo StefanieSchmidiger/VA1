@@ -22,12 +22,12 @@ typedef struct Configurations {
    /* SoftwareConfiguration */
    bool TestHwLoopbackOnly;
    bool GenerateDebugOutput;
-   int SpiHandlerTaskInterval;
-   int PackageHandlerTaskInterval;
-   int NetworkHandlerTaskInterval;
-   int ToggleGreenLedInterval;
-   int ThroughputPrintoutTaskInterval;
-   int ShellTaskInterval;
+   int SpiHandlerTaskInterval; // [ms]
+   int PackageHandlerTaskInterval; // [ms]
+   int NetworkHandlerTaskInterval; // [ms]
+   int ToggleGreenLedInterval; // [ms]
+   int ThroughputPrintoutTaskInterval; // [sec]
+   int ShellTaskInterval; // [ms]
 } Configuration;
 
 extern Configuration config;

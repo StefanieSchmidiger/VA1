@@ -25,12 +25,12 @@ void Shell_TaskEntry (void *pvParameters);
 void Shell_TaskInit(void);
 
 /*!
-* \fn BaseType_t pushMsgToShellQueue(unsigned char* msg, int numberOfChars)
+* \fn BaseType_t pushMsgToShellQueue(unsigned char* msg)
 * \brief Stores pData in queue
 * \param pMsg: The location where the string is stored
 * \return Status if xQueueSendToBack has been successful
 */
-BaseType_t pushMsgToShellQueue(char* pMsg, int numberOfChars);
+BaseType_t pushMsgToShellQueue(char* pMsg);
 
 /*! \def MAX_NUMBER_OF_MESSAGES_STORED
 *  \brief Size of queue for messages to be printed in shell.
@@ -41,7 +41,7 @@ BaseType_t pushMsgToShellQueue(char* pMsg, int numberOfChars);
 /*! \def MAX_NUMBER_OF_CHARS_PER_MESSAGE
 *  \brief Size of queue element per messages to be printed in shell.
 */
-#define MAX_NUMBER_OF_CHARS_PER_MESSAGE		50
+#define MAX_NUMBER_OF_CHARS_PER_MESSAGE		200
 
 
 #endif /* SHELL_H_ */

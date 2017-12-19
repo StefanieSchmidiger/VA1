@@ -3,7 +3,7 @@
 #include "NetworkHandler.h"
 #include "Config.h"
 #include "CRC1.h" // crc_8, crc_16
-#include <stdio.h> // sprintf
+#include "XF1.h" // xsprintf
 #include "Shell.h" // to print out debug information
 #include "ThroughputPrintout.h"
 #include "LedRed.h"
@@ -131,9 +131,9 @@ static bool sendPackageToWirelessQueue(tUartNr wlConn, tWirelessPackage* pWirele
 	static char infoBuf[100];
 	if ((wlConn > NUMBER_OF_UARTS) || (pWirelessPackage == NULL) || (pWirelessPackage->payloadSize > PACKAGE_MAX_PAYLOAD_SIZE))
 	{
-		sprintf(infoBuf, "Error: Implementation error occurred on pushing package byte wise to wireless %u queue\r\n", wlConn);
+		XF1_xsprintf(infoBuf, "Error: Implementation error occurred on pushing package byte wise to wireless %u queue\r\n", wlConn);
 		LedRed_On();
-		pushMsgToShellQueue(infoBuf, strlen(infoBuf));
+		pushMsgToShellQueue(infoBuf);
 		return false;
 	}
 	static uint8_t startChar = PACK_START;
@@ -231,7 +231,7 @@ static void readAndExtractWirelessData(uint8_t wlConn)
 	static uint16_t patternReplaced[NUMBER_OF_UARTS];
 	static uint16_t dataCntToAddAfterReadPayload[NUMBER_OF_UARTS];
 	uint8_t chr;
-	static char infoBuf[128];
+	char infoBuf[128];
 
 	/* check if parameters are valid */
 	if (wlConn >= NUMBER_OF_UARTS)
@@ -262,8 +262,8 @@ static void readAndExtractWirelessData(uint8_t wlConn)
 						{
 							dataCntr[wlConn] = 0;
 							numberOfInvalidPackages[wlConn]++;
-							sprintf(infoBuf, "Info: Restart state machine, start of package detected\r\n");
-							pushMsgToShellQueue(infoBuf, strlen(infoBuf));
+							XF1_xsprintf(infoBuf, "Info: Restart state machine, start of package detected\r\n");
+							pushMsgToShellQueue(infoBuf);
 						}
 					}
 					else
@@ -275,8 +275,8 @@ static void readAndExtractWirelessData(uint8_t wlConn)
 					{
 						dataCntr[wlConn] = 0;
 						numberOfInvalidPackages[wlConn]++;
-						sprintf(infoBuf, "Info: Restart state machine, start of package detected\r\n");
-						pushMsgToShellQueue(infoBuf, strlen(infoBuf));
+						XF1_xsprintf(infoBuf, "Info: Restart state machine, start of package detected\r\n");
+						pushMsgToShellQueue(infoBuf);
 					}
 					break;
 				}
@@ -296,8 +296,8 @@ static void readAndExtractWirelessData(uint8_t wlConn)
 				/* found start of package, restart reading header */
 				dataCntr[wlConn] = 0;
 				numberOfInvalidPackages[wlConn]++;
-				sprintf(infoBuf, "Info: Restart state machine, start of package detected\r\n");
-				pushMsgToShellQueue(infoBuf, strlen(infoBuf));
+				XF1_xsprintf(infoBuf, "Info: Restart state machine, start of package detected\r\n");
+				pushMsgToShellQueue(infoBuf);
 			}
 			if (dataCntr[wlConn] >= (PACKAGE_HEADER_SIZE - 1 + 2)) /* -1: without PACK_START; +2 to read the first 2 bytes from the payload to check if the replacement pattern is there */
 			{
@@ -323,8 +323,8 @@ static void readAndExtractWirelessData(uint8_t wlConn)
 					dataCntr[wlConn] = 0;
 					currentRecHandlerState[wlConn] = STATE_READ_HEADER;
 					numberOfInvalidPackages[wlConn]++;
-					sprintf(infoBuf, "Info: Restart state machine, start of package detected\r\n");
-					pushMsgToShellQueue(infoBuf, strlen(infoBuf));
+					XF1_xsprintf(infoBuf, "Info: Restart state machine, start of package detected\r\n");
+					pushMsgToShellQueue(infoBuf);
 					break;
 				}
 				/* finish reading header. Check if header is valid */
@@ -367,8 +367,8 @@ static void readAndExtractWirelessData(uint8_t wlConn)
 					patternReplaced[wlConn] = 0;
 					dataCntr[wlConn] = 0;
 					numberOfInvalidPackages[wlConn]++;
-					sprintf(infoBuf, "Info: Invalid header received, reset state machine\r\n");
-					pushMsgToShellQueue(infoBuf, strlen(infoBuf));
+					XF1_xsprintf(infoBuf, "Info: Invalid header received, reset state machine\r\n");
+					pushMsgToShellQueue(infoBuf);
 				}
 			}
 			break;
@@ -380,8 +380,8 @@ static void readAndExtractWirelessData(uint8_t wlConn)
 				dataCntr[wlConn] = 0;
 				currentRecHandlerState[wlConn] = STATE_READ_HEADER;
 				numberOfInvalidPackages[wlConn]++;
-				sprintf(infoBuf, "Info: Restart state machine, start of package detected\r\n");
-				pushMsgToShellQueue(infoBuf, strlen(infoBuf));
+				XF1_xsprintf(infoBuf, "Info: Restart state machine, start of package detected\r\n");
+				pushMsgToShellQueue(infoBuf);
 				break;
 			}
 			/* read payload plus crc */
@@ -405,14 +405,14 @@ static void readAndExtractWirelessData(uint8_t wlConn)
 						/* received acknowledge - send message to queueRecAck */
 						currentWirelessPackage[wlConn].sysTime = *((uint32_t*)&data[wlConn][dataCntr[wlConn] - 6]);
 						numberOfAckReceived[wlConn]++;
-						if(xQueueSendToBack(ReceivedPackages[wlConn], &currentWirelessPackage[wlConn], ( TickType_t ) 0) != pdTRUE) /* ToDo: handle failure on pushing package to receivedPackages queue , currently it is dropped if unsuccessful */
+						if(xQueueSendToBack(ReceivedPackages[wlConn], &currentWirelessPackage[wlConn], ( TickType_t ) pdMS_TO_TICKS(MAX_DELAY_PACK_HANDLER_MS) ) != pdTRUE) /* ToDo: handle failure on pushing package to receivedPackages queue , currently it is dropped if unsuccessful */
 						{
+							/* queue full */
 							numberOfDroppedAcks[wlConn]++;
 							FRTOS_vPortFree(currentWirelessPackage[wlConn].payload); /* free memory since it wont be done on popping from queue */
-							vTaskDelay(pdMS_TO_TICKS(10)); /* queue full */
-							sprintf(infoBuf, "Error: Received acknowledge but unable to push this message to the send handler for wireless queue %u because queue full\r\n", (unsigned int) wlConn);
+							XF1_xsprintf(infoBuf, "Error: Received acknowledge but unable to push this message to the send handler for wireless queue %u because queue full\r\n", (unsigned int) wlConn);
 							LedRed_On();
-							pushMsgToShellQueue(infoBuf, strlen(infoBuf));
+							pushMsgToShellQueue(infoBuf);
 						}
 					}
 					else if (currentWirelessPackage[wlConn].packType == PACK_TYPE_DATA_PACKAGE)
@@ -427,14 +427,14 @@ static void readAndExtractWirelessData(uint8_t wlConn)
 						numberOfPacksReceived[wlConn]++;
 						numberOfPayloadBytesExtracted[wlConn] += currentWirelessPackage[wlConn].payloadSize;
 						/* received data package - send data to corresponding devices plus inform package generator to prepare a receive acknowledge */
-						if(xQueueSendToBack(ReceivedPackages[wlConn], &currentWirelessPackage[wlConn], ( TickType_t ) 0) != pdTRUE) /* ToDo: handle queue full, now package is discarded */
+						if(xQueueSendToBack(ReceivedPackages[wlConn], &currentWirelessPackage[wlConn], ( TickType_t ) pdMS_TO_TICKS(MAX_DELAY_PACK_HANDLER_MS) ) != pdTRUE) /* ToDo: handle queue full, now package is discarded */
 						{
 							/* queue full */
 							numberOfDroppedPackages[wlConn]++;
 							FRTOS_vPortFree(currentWirelessPackage[wlConn].payload); /* free memory of this package since it wont be freed when popped from queue */
-							sprintf(infoBuf, "Error: Received data package but unable to push this message to the send handler for wireless queue %u because queue full\r\n", (unsigned int) wlConn);
+							XF1_xsprintf(infoBuf, "Error: Received data package but unable to push this message to the send handler for wireless queue %u because queue full\r\n", (unsigned int) wlConn);
 							LedRed_On();
-							pushMsgToShellQueue(infoBuf, strlen(infoBuf));
+							pushMsgToShellQueue(infoBuf);
 						}
 						//sprintf(infoBuf, "Received data package, device %u; timestamp package: %lu\r\n", currentWirelessPackage[wirelessConnNr].devNum, currentWirelessPackage[wlConn].sysTime);
 						//pushMsgToShellQueue(infoBuf, strlen(infoBuf));
@@ -452,9 +452,9 @@ static void readAndExtractWirelessData(uint8_t wlConn)
 					{
 						/* something went wrong - invalid package type. Reset state machine and send out error. */
 						numberOfInvalidPackages[wlConn]++;
-						sprintf(infoBuf, "Error: Invalid package type! There is probably an error in the implementation\r\n");
+						XF1_xsprintf(infoBuf, "Error: Invalid package type! There is probably an error in the implementation\r\n");
 						LedRed_On();
-						pushMsgToShellQueue(infoBuf, strlen(infoBuf));
+						pushMsgToShellQueue(infoBuf);
 					}
 				}
 				else
@@ -462,8 +462,8 @@ static void readAndExtractWirelessData(uint8_t wlConn)
 					/* received invalid payload */
 					numOfInvalidRecWirelessPack[wlConn]++;
 					numberOfInvalidPackages[wlConn]++;
-					sprintf(infoBuf, "Info: Received %u invalid payload, reset state machine", (unsigned int) numOfInvalidRecWirelessPack[wlConn]);
-					pushMsgToShellQueue(infoBuf, strlen(infoBuf));
+					XF1_xsprintf(infoBuf, "Info: Received %u invalid payload, reset state machine", (unsigned int) numOfInvalidRecWirelessPack[wlConn]);
+					pushMsgToShellQueue(infoBuf);
 				}
 				/* reset state machine */
 				currentRecHandlerState[wlConn] = STATE_START;
@@ -482,10 +482,10 @@ static void readAndExtractWirelessData(uint8_t wlConn)
 			}
 			break;
 		default:
-			sprintf(infoBuf, "Error: Invalid state in state machine\r\n");
+			XF1_xsprintf(infoBuf, "Error: Invalid state in state machine\r\n");
 			LedRed_On();
 			numberOfInvalidPackages[wlConn]++;
-			pushMsgToShellQueue(infoBuf, strlen(infoBuf));
+			pushMsgToShellQueue(infoBuf);
 			break;
 		}
 	}
@@ -553,7 +553,7 @@ BaseType_t popReceivedPackFromQueue(tUartNr uartNr, tWirelessPackage *pPackage)
 {
 	if(uartNr < NUMBER_OF_UARTS)
 	{
-		return xQueueReceive(ReceivedPackages[uartNr], pPackage, ( TickType_t ) 0 );
+		return xQueueReceive(ReceivedPackages[uartNr], pPackage, ( TickType_t ) pdMS_TO_TICKS(MAX_DELAY_PACK_HANDLER_MS) );
 	}
 	return pdFAIL; /* if uartNr was not in range */
 }
@@ -569,7 +569,7 @@ BaseType_t peekAtReceivedPackQueue(tUartNr uartNr, tWirelessPackage *pPackage)
 {
 	if(uartNr < NUMBER_OF_UARTS)
 	{
-		return FRTOS_xQueuePeek(ReceivedPackages[uartNr], pPackage, ( TickType_t ) 0 );
+		return FRTOS_xQueuePeek(ReceivedPackages[uartNr], pPackage, ( TickType_t ) pdMS_TO_TICKS(MAX_DELAY_PACK_HANDLER_MS) );
 	}
 	return pdFAIL; /* if uartNr was not in range */
 }
