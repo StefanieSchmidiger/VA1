@@ -25,9 +25,9 @@ static bool unacknowledgedPackagesOccupiedAtIndex[MAX_NUMBER_OF_UNACK_PACKS_STOR
 static int numberOfUnacknowledgedPackages;
 
 /* prototypes of local functions */
-static bool generateDataPackage(tUartNr deviceNr, tWirelessPackage* pPackage, uint8_t sessionNr);
+static bool generateDataPackage(tUartNr wlConn, tWirelessPackage* pPackage, uint8_t sessionNr);
 static void initNetworkHandlerQueues(void);
-static bool processReceivedPackage(tUartNr wirelessConnNr);
+static bool processReceivedPackage(tUartNr wlConn);
 static bool sendAndStoreGeneratedWlPackage(tWirelessPackage* pPackage, tUartNr rawDataUartNr);
 static bool storeNewPackageInUnacknowledgedPackagesArray(tWirelessPackage* pPackage);
 static char* queueName[] = {"queuePackagesToSend0", "queuePackagesToSend1", "queuePackagesToSend2", "queuePackagesToSend3"};
@@ -111,36 +111,35 @@ static void initNetworkHandlerQueues(void)
 */
 static bool sendAndStoreGeneratedWlPackage(tWirelessPackage* pPackage, tUartNr rawDataUartNr)
 {
-	uint8_t wlConnectionToUse = 0;
+	uint8_t wlConn = 0;
 	char infoBuf[100];
 	/* find configured WL connection number for first send of this package */
 	for(int prio=1; prio <= NUMBER_OF_UARTS; prio++)
 	{
-		wlConnectionToUse = getWlConnectionToUse(rawDataUartNr, prio);
-		if(wlConnectionToUse >= NUMBER_OF_UARTS)
+		wlConn = getWlConnectionToUse(rawDataUartNr, prio);
+		if(wlConn >= NUMBER_OF_UARTS)
 			return false;
 		/* send generated WL package to correct package queue */
-		if(xQueueSendToBack(queuePackagesToSend[wlConnectionToUse], pPackage, ( TickType_t ) 0) != pdTRUE)
+		if(xQueueSendToBack(queuePackagesToSend[wlConn], pPackage, ( TickType_t ) 0) != pdTRUE)
 			continue; /* try next priority -> go though for-loop again */
 		/* update throughput printout */
-		numberOfPacksSent[wlConnectionToUse]++;
-		numberOfPayloadBytesSent[wlConnectionToUse] += pPackage->payloadSize;
+		numberOfPacksSent[wlConn]++;
+		numberOfPayloadBytesSent[wlConn] += pPackage->payloadSize;
 		/* store generated package in internal array if acknowledge is expected from this WL connection */
-		if(config.SendAckPerWirelessConn[wlConnectionToUse])
+		if(config.SendAckPerWirelessConn[wlConn])
 		{
-			pPackage->sendAttemptsLeftPerWirelessConnection[wlConnectionToUse]--;
-			pPackage->timestampLastSendAttempt[wlConnectionToUse] = xTaskGetTickCount();
+			pPackage->sendAttemptsLeftPerWirelessConnection[wlConn]--;
+			pPackage->timestampLastSendAttempt[wlConn] = xTaskGetTickCount();
 			pPackage->timestampFirstSendAttempt = xTaskGetTickCount();
-			while(storeNewPackageInUnacknowledgedPackagesArray(pPackage) == false)
-			{
-				sprintf(infoBuf, "Unacknowledged packages array is full\r\n");
-				pushMsgToShellQueue(infoBuf, strlen(infoBuf));
-				vTaskDelay(pdMS_TO_TICKS(10)); /* array full */
-			}
-			return true; /* success */
+			if(storeNewPackageInUnacknowledgedPackagesArray(pPackage) == true)
+				return true; /* success */
 		}
 	}
+	/* ToDo: handle failure of storeNewPackageInUnacknowledgedPackagesArray() */
+	sprintf(infoBuf, "Unacknowledged packages array is full\r\n");
+	pushMsgToShellQueue(infoBuf, strlen(infoBuf));
 	FRTOS_vPortFree(pPackage->payload); /* free memory since it wont be freed when popped from queue */
+	numberOfDroppedPackages[wlConn]++;
 	return false;
 }
 
@@ -163,14 +162,14 @@ static uint8_t getWlConnectionToUse(tUartNr uartNr, uint8_t desiredPrio)
 * data package -> generates ACK and sends it to package handler queue for packages to send.
 * \param wirelessConnNr: The wireless device number where we look for received packages
 */
-static bool processReceivedPackage(tUartNr wirelessConnNr)
+static bool processReceivedPackage(tUartNr wlConn)
 {
 	tWirelessPackage package;
 	char infoBuf[100];
 
-	if(peekAtReceivedPackQueue(wirelessConnNr, &package) != pdTRUE) /* peek at package to find out payload size for malloc */
+	if(peekAtReceivedPackQueue(wlConn, &package) != pdTRUE) /* peek at package to find out payload size for malloc */
 		return false;
-	if(popReceivedPackFromQueue(wirelessConnNr, &package) != pdTRUE) /* actually remove package from queue */
+	if(popReceivedPackFromQueue(wlConn, &package) != pdTRUE) /* actually remove package from queue */
 		return false;
 	if(package.packType == PACK_TYPE_DATA_PACKAGE) /* data package received */
 	{
@@ -186,27 +185,28 @@ static bool processReceivedPackage(tUartNr wirelessConnNr)
 			{
 				sprintf(infoBuf, "Device byte array for UART %u is full", package.devNum);
 				pushMsgToShellQueue(infoBuf, strlen(infoBuf));
-				//vTaskDelay(pdMS_TO_TICKS(10)); /* array full */
+				numberOfDroppedBytes[package.devNum]++;
 			}
 		}
 		/* generate ACK if it is configured and send it to package queue */
-		if(config.SendAckPerWirelessConn[wirelessConnNr])
+		if(config.SendAckPerWirelessConn[wlConn])
 		{
 			tWirelessPackage ackPackage;
 			if(generateAckPackage(&package, &ackPackage) == false) /* allocates payload memory block for ackPackage, ToDo: handle malloc fault */
 			{
 				sprintf(infoBuf, "Could not allocate payload memory for acknowledge");
 				pushMsgToShellQueue(infoBuf, strlen(infoBuf));
-				//vTaskDelay(pdMS_TO_TICKS(10));
+				numberOfDroppedAcks[wlConn]++;
 			}
-			if(xQueueSendToBack(queuePackagesToSend[wirelessConnNr], &ackPackage, ( TickType_t ) 0) != pdTRUE) // ToDo: try sending ACK package out on wireless connection configured (just like data package, iterate through priorities) */
+			if(xQueueSendToBack(queuePackagesToSend[wlConn], &ackPackage, ( TickType_t ) 0) != pdTRUE) // ToDo: try sending ACK package out on wireless connection configured (just like data package, iterate through priorities) */
 			{
+				numberOfDroppedPackages[wlConn]++;
 				FRTOS_vPortFree(ackPackage.payload); /* free memory since it wont be done on popping from queue */
 				sprintf(infoBuf, "Acknowledge cannot be sent because package queue full");
 				pushMsgToShellQueue(infoBuf, strlen(infoBuf));
 			}
 			/* memory of ackPackage is freed after package in PackageHandler task, extracted and byte wise pushed to byte queue */
-			numberOfAcksSent[wirelessConnNr]++;
+			numberOfAcksSent[wlConn]++;
 		}
 	}
 	else /* acknowledge package received */
@@ -227,6 +227,7 @@ static bool processReceivedPackage(tUartNr wirelessConnNr)
 				{
 					/* free memory of saved package if we got ACK */
 					FRTOS_vPortFree(unacknowledgedPackages[index].payload);
+					numberOfDroppedAcks[wlConn]++;
 					unacknowledgedPackagesOccupiedAtIndex[index] = false;
 					numberOfUnacknowledgedPackages--;
 					return true; /* unacknowledged package found, leave for-loop */
@@ -264,6 +265,21 @@ static bool generateDataPackage(tUartNr deviceNr, tWirelessPackage* pPackage, ui
 		((dataWaitingToBeSent[deviceNr] == true) && (timeWaitedForPackFull >= pdMS_TO_TICKS(config.PackageGenMaxTimeout[deviceNr]))))
 	{
 		/* reached usual packet size or timeout, generate package */
+		/* check if there is enough space to store package in queue before generating it
+		 * Dropping of data in case all queues are full is handled in byte queue.
+		 * When reading data from HW buf but no space in byte queue, oldest bytes will be popped from queue and dropped.
+		 * Hopefully, this will do and no dropping of data on purpose is needed anywhere else for Rx side. */
+		uint8_t wlConn = NUMBER_OF_UARTS;
+		for(int prio = 1; prio <= NUMBER_OF_UARTS; prio++) /* go thorough all configured priorities to see if any queue has space */
+		{
+			wlConn = getWlConnectionToUse(deviceNr, prio);
+			if(wlConn >= NUMBER_OF_UARTS) /* check if this priority has been configured */
+				return false;
+			if(uxQueueMessagesWaiting(queuePackagesToSend[wlConn]) < QUEUE_NUM_OF_WL_PACK_TO_SEND) /* space left in the queue? */
+				break; /* found a wlConn where there is space to store package */
+		}
+		if(wlConn >= NUMBER_OF_UARTS)
+			return false; /* there is no queue with space for this package */
 		/* Put together package */
 		/* put together payload by allocating memory and copy data */
 		pPackage->payloadSize = numberOfBytesInRxQueue;
@@ -275,9 +291,17 @@ static bool generateDataPackage(tUartNr deviceNr, tWirelessPackage* pPackage, ui
 		{
 			if(popFromByteQueue(MAX_14830_DEVICE_SIDE, deviceNr, &pPackage->payload[cnt]) != pdTRUE) /* ToDo: handle queue failure */
 			{
+#if 0
 				sprintf(infoBuf, "Pop from UART %u not successful", pPackage->devNum);
+#else
+				UTIL1_strcpy(infoBuf, sizeof(infoBuf), "Pop from UART ");
+				UTIL1_strcatNum8u(infoBuf, sizeof(infoBuf), pPackage->devNum);
+				UTIL1_strcat(infoBuf, sizeof(infoBuf), " not successful");
+#endif
 				pushMsgToShellQueue(infoBuf, strlen(infoBuf));
+				numberOfDroppedBytes[deviceNr] += cnt;
 				return false;
+
 			}
 		}
 		/* calculate CRC */
@@ -401,23 +425,23 @@ static void handleResendingOfUnacknowledgedPackages(void)
 			int prio = 1;
 			while(prio <= NUMBER_OF_UARTS) /* iterate though all priorities (starting at highest priority) to see if resend is required */
 			{
-				int wlConnection = getWlConnectionToUse(unacknowledgedPackages[index].devNum, prio);
+				int wlConn = getWlConnectionToUse(unacknowledgedPackages[index].devNum, prio);
 				/* max number of resends done for all connections or maximum delay in config reached for this package */
-				if((wlConnection >= NUMBER_OF_UARTS) ||
+				if((wlConn >= NUMBER_OF_UARTS) ||
 						(unacknowledgedPackages[index].timestampFirstSendAttempt + pdMS_TO_TICKS(config.DelayDismissOldPackagePerDev[unacknowledgedPackages[index].devNum]) < xTaskGetTickCount()) )
 				{
-					sprintf(infoBuf, "Max number of retries reached and no ACK received -> discard package for device %u\r\n", unacknowledgedPackages[index].devNum);
-					pushMsgToShellQueue(infoBuf, strlen(infoBuf));
+					//sprintf(infoBuf, "Max number of retries reached and no ACK received -> discard package for device %u\r\n", unacknowledgedPackages[index].devNum);
+					//pushMsgToShellQueue(infoBuf, strlen(infoBuf));
 					FRTOS_vPortFree(unacknowledgedPackages[index].payload); /* free allocated memory when package dropped*/
 					unacknowledgedPackagesOccupiedAtIndex[index] = 0;
 					numberOfUnacknowledgedPackages--;
 					prio = NUMBER_OF_UARTS; /* leave iteration over priorities */
 					numberOfDroppedPackages[unacknowledgedPackages[index].devNum]++; /* update throughput printout */
 				}
-				if(unacknowledgedPackages[index].sendAttemptsLeftPerWirelessConnection[wlConnection] > 0)
+				if(unacknowledgedPackages[index].sendAttemptsLeftPerWirelessConnection[wlConn] > 0)
 				{
 					/* is timeout for ACK done?*/
-					if(xTaskGetTickCount() - unacknowledgedPackages[index].timestampLastSendAttempt[wlConnection] > pdMS_TO_TICKS(config.ResendDelayWirelessConnDev[wlConnection][unacknowledgedPackages[index].devNum]))
+					if(xTaskGetTickCount() - unacknowledgedPackages[index].timestampLastSendAttempt[wlConn] > pdMS_TO_TICKS(config.ResendDelayWirelessConnDev[wlConn][unacknowledgedPackages[index].devNum]))
 					{
 						/* create new package for queue because memory is freed once package is pulled from queue */
 						package = unacknowledgedPackages[index];
@@ -432,18 +456,19 @@ static void handleResendingOfUnacknowledgedPackages(void)
 							package.payload[cnt] = unacknowledgedPackages[index].payload[cnt];
 						}
 						/* send package */
-						if(xQueueSendToBack(queuePackagesToSend[wlConnection], &package, ( TickType_t ) 0) == pdTRUE)
+						if(xQueueSendToBack(queuePackagesToSend[wlConn], &package, ( TickType_t ) 0) == pdTRUE)
 						{
-							unacknowledgedPackages[index].sendAttemptsLeftPerWirelessConnection[wlConnection]--;
-							unacknowledgedPackages[index].timestampLastSendAttempt[wlConnection] = xTaskGetTickCount();
+							unacknowledgedPackages[index].sendAttemptsLeftPerWirelessConnection[wlConn]--;
+							unacknowledgedPackages[index].timestampLastSendAttempt[wlConn] = xTaskGetTickCount();
 							//sprintf(infoBuf, "Retry to send package\r\n");
 							//pushMsgToShellQueue(infoBuf, strlen(infoBuf));
 							prio = NUMBER_OF_UARTS; /* leave priority-while loop because package will be sent, now to wait on acknowledge */
 							/* update throughput printout */
-							numberOfPayloadBytesSent[wlConnection] += unacknowledgedPackages[index].payloadSize;
+							numberOfPayloadBytesSent[wlConn] += unacknowledgedPackages[index].payloadSize;
 						}
 						else
 						{
+							numberOfDroppedPackages[wlConn]++;
 							FRTOS_vPortFree(package.payload); /* free memory since it wont be popped from queue and freed there */
 						}
 					}
@@ -451,7 +476,7 @@ static void handleResendingOfUnacknowledgedPackages(void)
 						prio = NUMBER_OF_UARTS; /* leave priority-while loop */
 				}
 				/* no send attempt left but we are waiting for ACK of very last send attempt on one wireless connection */
-				else if((unacknowledgedPackages[index].sendAttemptsLeftPerWirelessConnection[wlConnection] == 0) &&  (xTaskGetTickCount() - unacknowledgedPackages[index].timestampLastSendAttempt[wlConnection] < pdMS_TO_TICKS(config.ResendDelayWirelessConnDev[wlConnection][unacknowledgedPackages[index].devNum])))
+				else if((unacknowledgedPackages[index].sendAttemptsLeftPerWirelessConnection[wlConn] == 0) &&  (xTaskGetTickCount() - unacknowledgedPackages[index].timestampLastSendAttempt[wlConn] < pdMS_TO_TICKS(config.ResendDelayWirelessConnDev[wlConn][unacknowledgedPackages[index].devNum])))
 				{
 					prio = NUMBER_OF_UARTS;
 				}
@@ -492,16 +517,32 @@ static bool storeNewPackageInUnacknowledgedPackagesArray(tWirelessPackage* pPack
 
 /*!
 * \fn ByseType_t popReadyToSendPackFromQueue(tUartNr uartNr, tWirelessPackage *pPackage)
-* \brief Stores a single byte from the selected queue in pData.
+* \brief Stores a single package from the selected queue in pPackage.
 * \param uartNr: UART number the package should be transmitted to.
 * \param pPackage: The location where the package should be stored
 * \return Status if xQueueReceive has been successful, pdFAIL if uartNr was invalid or pop unsuccessful
 */
-BaseType_t popReadyToSendPackFromQueue(tUartNr uartNr, tWirelessPackage *pPackage)
+BaseType_t popReadyToSendPackFromQueue(tUartNr uartNr, tWirelessPackage* pPackage)
 {
 	if(uartNr < NUMBER_OF_UARTS)
 	{
 		return xQueueReceive(queuePackagesToSend[uartNr], pPackage, ( TickType_t ) 0 );
+	}
+	return pdFAIL; /* if uartNr was not in range */
+}
+
+/*!
+* \fn ByseType_t peekAtNextReadyToSendPack(tUartNr uartNr, tWirelessPackage *pPackage)
+* \brief Stores a single package from the selected queue in pPackage. Package will not be deleted from queue!
+* \param uartNr: UART number the package should be transmitted to.
+* \param pPackage: The location where the package should be stored
+* \return Status if xQueuePeek has been successful, pdFAIL if uartNr was invalid or pop unsuccessful
+*/
+BaseType_t peekAtNextReadyToSendPack(tUartNr uartNr, tWirelessPackage *pPackage)
+{
+	if(uartNr < NUMBER_OF_UARTS)
+	{
+		return FRTOS_xQueuePeek(queuePackagesToSend[uartNr], pPackage, ( TickType_t ) 0 );
 	}
 	return pdFAIL; /* if uartNr was not in range */
 }

@@ -1,5 +1,6 @@
 
 #include "SPI.h"
+#include "LedOrange.h"
 #include "SpiHandler.h" // queues, tasks, semaphores
 #include <stdio.h> // sprintf
 #include <string.h> // strlen
@@ -9,6 +10,7 @@
 #include "nIrqDeviceSide.h" // pin configuration
 #include "nIrqWirelessSide.h" // pin configuration
 #include "Shell.h" // to print out debug information
+#include "ThroughputPrintout.h" //to store debug information
 
 #define CS_DEVICE 			0
 #define CS_WIRELESS 		1
@@ -346,24 +348,25 @@ void configureHwBufBaudrate(tSpiSlaves spiSlave, tUartNr uartNr, unsigned int ba
 	default:
 		if (spiSlave == MAX_14830_WIRELESS_SIDE)
 		{
-			sprintf(warnBuf, "Unsupported baud rate on wireless side at UART number %u\r\n", (unsigned int)uartNr);
+			sprintf(warnBuf, "Warning: Unsupported baud rate on wireless side at UART number %u\r\n", (unsigned int)uartNr);
 		}
 		else
 		{
-			sprintf(warnBuf, "Unsupported baud rate on device side at UART number %u\r\n", (unsigned int)uartNr);
+			sprintf(warnBuf, "Warning: Unsupported baud rate on device side at UART number %u\r\n", (unsigned int)uartNr);
 		}
 		pushMsgToShellQueue(warnBuf, strlen(warnBuf));
+		LedOrange_On();
 		return;
 	}
 	char infoBuf[128];
 	if (spiSlave == MAX_14830_WIRELESS_SIDE)
 	{
-		sprintf(infoBuf, "Set baud rate for UART %u on wireless side: %u baud\r\n", (unsigned int)uartNr, baudRateToSet);
+		sprintf(infoBuf, "Info: Set baud rate for UART %u on wireless side: %u baud\r\n", (unsigned int)uartNr, baudRateToSet);
 
 	}
 	else
 	{
-		sprintf(infoBuf, "Set baud rate for UART %u on device side: %u baud\r\n", (unsigned int)uartNr, baudRateToSet);
+		sprintf(infoBuf, "Info: Set baud rate for UART %u on device side: %u baud\r\n", (unsigned int)uartNr, baudRateToSet);
 	}
 	pushMsgToShellQueue(infoBuf, strlen(infoBuf));
 }
@@ -422,17 +425,20 @@ static uint16_t readHwBufAndWriteToQueue(tSpiSlaves spiSlave, tUartNr uartNr, xQ
 					static uint8_t data;
 					xQueueReceive(RxWirelessBytes[uartNr], &data, ( TickType_t ) 0 );
 				}
+				numberOfDroppedBytes[uartNr] += NUM_OF_BYTES_TO_DELETE_ON_QUEUE_FULL;
 				xQueueSendToBack(queue, &buffer[cnt], ( TickType_t ) 0 );
 				if (spiSlave == MAX_14830_WIRELESS_SIDE)
 				{
 					char warnBuf[128];
-					sprintf(warnBuf, "Cleaning %u bytes on wireless side, UART number %u\r\n", (unsigned int) NUM_OF_BYTES_TO_DELETE_ON_QUEUE_FULL, (unsigned int)uartNr);
+					sprintf(warnBuf, "Warning: Cleaning %u bytes on wireless side, UART number %u\r\n", (unsigned int) NUM_OF_BYTES_TO_DELETE_ON_QUEUE_FULL, (unsigned int)uartNr);
+					LedOrange_On();
 					pushMsgToShellQueue(warnBuf, strlen(warnBuf));
 				}
 				else /* spiSlave == MAX_14830_DEVICE_SIDE */
 				{
 					char warnBuf[128];
-					sprintf(warnBuf, "Cleaning %u bytes on device side, UART number %u\r\n", (unsigned int) NUM_OF_BYTES_TO_DELETE_ON_QUEUE_FULL, (unsigned int)uartNr);
+					sprintf(warnBuf, "Warning: Cleaning %u bytes on device side, UART number %u\r\n", (unsigned int) NUM_OF_BYTES_TO_DELETE_ON_QUEUE_FULL, (unsigned int)uartNr);
+					LedOrange_On();
 					pushMsgToShellQueue(warnBuf, strlen(warnBuf));
 				}
 			}

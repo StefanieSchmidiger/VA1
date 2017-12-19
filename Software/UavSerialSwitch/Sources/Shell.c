@@ -137,19 +137,21 @@ BaseType_t pushMsgToShellQueue(char* pMsg, int numberOfChars)
 	/* saves config data in queue if debug output enabled */
 	if(config.GenerateDebugOutput)
 	{
-		static char* pTmpMsg;
+		char* pTmpMsg;
 		/* limit number of chars in message */
 		//numberOfChars = (numberOfChars <= MAX_NUMBER_OF_CHARS_PER_MESSAGE) ? numberOfChars : MAX_NUMBER_OF_CHARS_PER_MESSAGE; /* limit message length in queue */
 		/* allocate memory for string */
 		pTmpMsg = (char*) FRTOS_pvPortMalloc(numberOfChars * sizeof(char));
 		if(pTmpMsg == NULL)
+		{
 			return pdFAIL;
+		}
 		/* copy string to new memory location */
 		for(int i=0; i < numberOfChars; i++)
 		{
 			pTmpMsg[i] = pMsg[i];
 		}
-		if(xQueueSendToBack(msgQueue, &pTmpMsg, ( TickType_t ) 0 ) != pdTRUE)
+		if(xQueueSendToBack(msgQueue, &pTmpMsg, ( TickType_t ) pdMS_TO_TICKS(50) ) != pdTRUE)
 		{
 			/* free memory before returning */
 			FRTOS_vPortFree(pTmpMsg); /* free memory allocated when message was pushed into queue */

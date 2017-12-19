@@ -47,17 +47,17 @@ bool createAllTasks(void)
 
 
 	/* create SPI handler task */
-	if (xTaskCreate(spiHandler_TaskEntry, "SPI_Handler", 2000/sizeof(StackType_t), NULL, tskIDLE_PRIORITY+1, NULL) != pdPASS) {
+	if (xTaskCreate(spiHandler_TaskEntry, "SPI_Handler", 2000/sizeof(StackType_t), NULL, tskIDLE_PRIORITY+3, NULL) != pdPASS) {
 	    for(;;) {}} /* error */
 
 
 	/* create package handler task */
-	if (xTaskCreate(packageHandler_TaskEntry, "Package_Handler", 2000/sizeof(StackType_t), NULL, tskIDLE_PRIORITY+1, NULL) != pdPASS) {
+	if (xTaskCreate(packageHandler_TaskEntry, "Package_Handler", 2000/sizeof(StackType_t), NULL, tskIDLE_PRIORITY+2, NULL) != pdPASS) {
 		for(;;) {}} /* error */
 
 
 	/* create network handler task */
-	if (xTaskCreate(networkHandler_TaskEntry, "Network_Handler", 2000/sizeof(StackType_t), NULL, tskIDLE_PRIORITY+1, NULL) != pdPASS) {
+	if (xTaskCreate(networkHandler_TaskEntry, "Network_Handler", 2000/sizeof(StackType_t), NULL, tskIDLE_PRIORITY+2, NULL) != pdPASS) {
 		for(;;) {}} /* error */
 
 	/* create network handler task */

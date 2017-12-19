@@ -6,6 +6,8 @@
 #include <stdio.h> // sprintf
 #include "Shell.h" // to print out debug information
 #include "ThroughputPrintout.h"
+#include "LedRed.h"
+#include "LedOrange.h"
 
 #define TASKDELAY_QUEUE_FULL_MS 1
 
@@ -21,9 +23,9 @@ uint8_t numOfInvalidRecWirelessPack[NUMBER_OF_UARTS];
 /* prototypes */
 void initPackageHandlerQueues(void);
 void packageHandler_TaskInit(void);
-static bool sendPackageToWirelessQueue(tUartNr uartNr, tWirelessPackage* pWirelessPackage);
+static bool sendPackageToWirelessQueue(tUartNr wlConn, tWirelessPackage* pWirelessPackage);
 static bool sendNonPackStartCharacter(tUartNr uartNr, uint8_t* pCharToSend);
-static void readAndExtractWirelessData(uint8_t wirelessConnNr);
+static void readAndExtractWirelessData(uint8_t wlConn);
 static bool checkForPackStartReplacement(uint8_t* ptrToData, uint16_t* dataCntr, uint16_t* patternReplaced);
 uint16_t numberOfPacksInReceivedPacksQueue(tUartNr uartNr);
 
@@ -53,29 +55,37 @@ void packageHandler_TaskEntry(void* p)
 	for(;;)
 	{
 		vTaskDelayUntil( &xLastWakeTime, taskInterval ); /* Wait for the next cycle */
-		for(int uartNr = 0; uartNr < NUMBER_OF_UARTS; uartNr++)
+		for(int wlConn = 0; wlConn < NUMBER_OF_UARTS; wlConn++)
 		{
-			/* send generated data packages out on wireless side */
-			if(numberOfBytesInTxByteQueue(MAX_14830_WIRELESS_SIDE, uartNr) < QUEUE_NUM_OF_CHARS_WL_TX_QUEUE) /* there is space available in Queue */
+			/* send packages byte wise to spi queue as long as there is enough space available for a full package */
+			while(true)
 			{
-				while(popReadyToSendPackFromQueue(uartNr, &package) == pdTRUE) /* there is a package ready for sending */
+				/* check how much space is needed for next data package */
+				int freeSpace = QUEUE_NUM_OF_CHARS_WL_TX_QUEUE - numberOfBytesInTxByteQueue(MAX_14830_WIRELESS_SIDE, wlConn);
+				if(peekAtNextReadyToSendPack(wlConn, &package) != pdTRUE)
+					break; /* leave inner while-loop if queue access unsuccessful and continue with next wlConn */
+				/* enough space for next package available? */
+				if(freeSpace > (sizeof(tWirelessPackage) + package.payloadSize - 4))  /*subtract 4 bytes because pointer to payload in tWirelessPackage is 4 bytes*/
 				{
-					if(sendPackageToWirelessQueue(uartNr, &package) != true) /* ToDo: handle resending of package */
+					if(popReadyToSendPackFromQueue(wlConn, &package) == pdTRUE) /* there is a package ready for sending */
 					{
-						FRTOS_vPortFree(package.payload); /* free memory of package */
-						break; /* exit while loop */
+						if(sendPackageToWirelessQueue(wlConn, &package) != true) /* ToDo: handle resending of package */
+						{
+							numberOfDroppedPackages[wlConn]++;
+							FRTOS_vPortFree(package.payload); /* free memory of package before returning from while loop */
+							break; /* exit while loop, no more packages are extracted for this uartNr */
+						}
+						else
+							FRTOS_vPortFree(package.payload); /* free memory of package once it is sent to device */
 					}
-					else
-						FRTOS_vPortFree(package.payload); /* free memory of package */
 				}
 			}
-
 			/* assemble received bytes to form a full data package */
-			if(numberOfPacksInReceivedPacksQueue(uartNr) < QUEUE_NUM_OF_WL_PACK_TO_SEND) /* there is space available in Queue */
+			if(numberOfPacksInReceivedPacksQueue(wlConn) < QUEUE_NUM_OF_WL_PACK_RECEIVED) /* there is space available in Queue */
 			{
-				if(numberOfBytesInRxByteQueue(MAX_14830_WIRELESS_SIDE, uartNr) > 0) /* there are characters waiting */
+				if(numberOfBytesInRxByteQueue(MAX_14830_WIRELESS_SIDE, wlConn) > 0) /* there are characters waiting */
 				{
-					readAndExtractWirelessData(uartNr);
+					readAndExtractWirelessData(wlConn);
 				}
 			}
 		}
@@ -116,45 +126,45 @@ void initPackageHandlerQueues(void)
 * \param tWirelessPackage: Pointer to wireless package that needs to be sent.
 * \ret true if successful, false otherwise.
 */
-static bool sendPackageToWirelessQueue(tUartNr uartNr, tWirelessPackage* pWirelessPackage)
+static bool sendPackageToWirelessQueue(tUartNr wlConn, tWirelessPackage* pWirelessPackage)
 {
 	static char infoBuf[100];
-	if ((uartNr > NUMBER_OF_UARTS) || (pWirelessPackage == NULL) || (pWirelessPackage->payloadSize > PACKAGE_MAX_PAYLOAD_SIZE))
+	if ((wlConn > NUMBER_OF_UARTS) || (pWirelessPackage == NULL) || (pWirelessPackage->payloadSize > PACKAGE_MAX_PAYLOAD_SIZE))
 	{
-		sprintf(infoBuf, "Error occurred on pushing package byte wise to wireless %u queue\r\n", uartNr);
+		sprintf(infoBuf, "Error: Implementation error occurred on pushing package byte wise to wireless %u queue\r\n", wlConn);
+		LedRed_On();
 		pushMsgToShellQueue(infoBuf, strlen(infoBuf));
 		return false;
 	}
 	static uint8_t startChar = PACK_START;
-	if(pushToByteQueue(MAX_14830_WIRELESS_SIDE, uartNr, &startChar) == errQUEUE_FULL)
+	if(pushToByteQueue(MAX_14830_WIRELESS_SIDE, wlConn, &startChar) == errQUEUE_FULL)
 	{
-		sprintf(infoBuf, "Error occurred on pushing package byte wise to wireless %u queue\r\n", uartNr);
-		pushMsgToShellQueue(infoBuf, strlen(infoBuf));
+		numberOfDroppedPackages[wlConn]++;
 		return false;
 	}
-	if(sendNonPackStartCharacter(uartNr, &pWirelessPackage->packType))
-		if(sendNonPackStartCharacter(uartNr, &pWirelessPackage->devNum))
-			if(sendNonPackStartCharacter(uartNr, &pWirelessPackage->sessionNr))
-				if(sendNonPackStartCharacter(uartNr, (uint8_t*)(&pWirelessPackage->sysTime) + 3))
-					if(sendNonPackStartCharacter(uartNr, (uint8_t*)(&pWirelessPackage->sysTime) + 2))
-						if(sendNonPackStartCharacter(uartNr, (uint8_t*)(&pWirelessPackage->sysTime) + 1))
-							if(sendNonPackStartCharacter(uartNr, (uint8_t*)(&pWirelessPackage->sysTime) + 0))
-								if(sendNonPackStartCharacter(uartNr, (uint8_t*)(&pWirelessPackage->payloadSize) + 1))
-									if(sendNonPackStartCharacter(uartNr, (uint8_t*)(&pWirelessPackage->payloadSize) + 0))
-										if(sendNonPackStartCharacter(uartNr, &pWirelessPackage->crc8Header))
+	if(sendNonPackStartCharacter(wlConn, &pWirelessPackage->packType))
+		if(sendNonPackStartCharacter(wlConn, &pWirelessPackage->devNum))
+			if(sendNonPackStartCharacter(wlConn, &pWirelessPackage->sessionNr))
+				if(sendNonPackStartCharacter(wlConn, (uint8_t*)(&pWirelessPackage->sysTime) + 3))
+					if(sendNonPackStartCharacter(wlConn, (uint8_t*)(&pWirelessPackage->sysTime) + 2))
+						if(sendNonPackStartCharacter(wlConn, (uint8_t*)(&pWirelessPackage->sysTime) + 1))
+							if(sendNonPackStartCharacter(wlConn, (uint8_t*)(&pWirelessPackage->sysTime) + 0))
+								if(sendNonPackStartCharacter(wlConn, (uint8_t*)(&pWirelessPackage->payloadSize) + 1))
+									if(sendNonPackStartCharacter(wlConn, (uint8_t*)(&pWirelessPackage->payloadSize) + 0))
+										if(sendNonPackStartCharacter(wlConn, &pWirelessPackage->crc8Header))
 										{
 											for (uint16_t cnt = 0; cnt < pWirelessPackage->payloadSize; cnt++)
 											{
-												sendNonPackStartCharacter(uartNr, &pWirelessPackage->payload[cnt]);
+												sendNonPackStartCharacter(wlConn, &pWirelessPackage->payload[cnt]);
 											}
-											if(sendNonPackStartCharacter(uartNr, (uint8_t*)(&pWirelessPackage->crc16payload) + 1))
-												if(sendNonPackStartCharacter(uartNr, (uint8_t*)(&pWirelessPackage->crc16payload) + 0))
+											if(sendNonPackStartCharacter(wlConn, (uint8_t*)(&pWirelessPackage->crc16payload) + 1))
+												if(sendNonPackStartCharacter(wlConn, (uint8_t*)(&pWirelessPackage->crc16payload) + 0))
 												{
 													/* also send two fill bytes at the end - just that we're able to make sure on the receive side that we got all replacements */
 													/* TODO this is "dirty" workaround that leads to more traffic, to be replaced with better solution (but in this case also the wireless package extractor needs to be adjusted) */
 													static uint8_t repChar = PACK_FILL;
-													if(sendNonPackStartCharacter(uartNr, &repChar))
-														if(sendNonPackStartCharacter(uartNr, &repChar))
+													if(sendNonPackStartCharacter(wlConn, &repChar))
+														if(sendNonPackStartCharacter(wlConn, &repChar))
 															return true;
 												}
 										}
@@ -177,20 +187,17 @@ static bool sendNonPackStartCharacter(tUartNr uartNr, uint8_t* pCharToSend)
 		static uint8_t repChar = PACK_REP;
 		if(pushToByteQueue(MAX_14830_WIRELESS_SIDE, uartNr, &repChar) == errQUEUE_FULL)
 		{
-			sprintf(infoBuf, "Error occurred on pushing package byte wise to wireless %u queue\r\n", uartNr);
-			pushMsgToShellQueue(infoBuf, strlen(infoBuf));
+			numberOfDroppedPackages[uartNr]++;
 			return false;
 		}
 		if(pushToByteQueue(MAX_14830_WIRELESS_SIDE, uartNr, pCharToSend) == errQUEUE_FULL)
 		{
-			sprintf(infoBuf, "Error occurred on pushing package byte wise to wireless %u queue\r\n", uartNr);
-			pushMsgToShellQueue(infoBuf, strlen(infoBuf));
+			numberOfDroppedPackages[uartNr]++;
 			return false;
 		}
 		if(pushToByteQueue(MAX_14830_WIRELESS_SIDE, uartNr, &repChar) == errQUEUE_FULL)
 		{
-			sprintf(infoBuf, "Error occurred on pushing package byte wise to wireless %u queue\r\n", uartNr);
-			pushMsgToShellQueue(infoBuf, strlen(infoBuf));
+			numberOfDroppedPackages[uartNr]++;
 			return false;
 		}
 	}
@@ -198,8 +205,7 @@ static bool sendNonPackStartCharacter(tUartNr uartNr, uint8_t* pCharToSend)
 	{
 		if(pushToByteQueue(MAX_14830_WIRELESS_SIDE, uartNr, pCharToSend) == errQUEUE_FULL)
 		{
-			sprintf(infoBuf, "Error occurred on pushing package byte wise to wireless %u queue\r\n", uartNr);
-			pushMsgToShellQueue(infoBuf, strlen(infoBuf));
+			numberOfDroppedPackages[uartNr]++;
 			return false;
 		}
 	}
@@ -213,7 +219,7 @@ static bool sendNonPackStartCharacter(tUartNr uartNr, uint8_t* pCharToSend)
 * \brief Function that reads the incoming data from the queue and generates receive acknowledges from it plus sends the valid data to the corresponding devices.
 * \param wirelessConnNr: Serial connection of wireless interface. Needs to be between 0 and NUMBER_OF_UARTS.
 */
-static void readAndExtractWirelessData(uint8_t wirelessConnNr)
+static void readAndExtractWirelessData(uint8_t wlConn)
 {
 	/* Some static variables in order to save status and data for every wireless connection */
 	static uint8_t data[NUMBER_OF_UARTS][PACKAGE_MAX_PAYLOAD_SIZE + sizeof(uint16_t)]; /* space for payload plus crc16 */
@@ -228,46 +234,48 @@ static void readAndExtractWirelessData(uint8_t wirelessConnNr)
 	static char infoBuf[128];
 
 	/* check if parameters are valid */
-	if (wirelessConnNr >= NUMBER_OF_UARTS)
+	if (wlConn >= NUMBER_OF_UARTS)
 	{
 		//showError(__FUNCTION__, "invalid parameter");
 	}
 	/* read incoming character and react based on the state of the state machine */
-	while (popFromByteQueue(MAX_14830_WIRELESS_SIDE, wirelessConnNr, &chr))
+	while (popFromByteQueue(MAX_14830_WIRELESS_SIDE, wlConn, &chr))
 	{
-		switch (currentRecHandlerState[wirelessConnNr])
+		switch (currentRecHandlerState[wlConn])
 		{
 		case STATE_START:
 			/* when the state before was the one to read a payload, there is still something in the buffer that needs to be checked */
-			while (dataCntr[wirelessConnNr] > 0)
+			while (dataCntr[wlConn] > 0)
 			{
-				dataCntr[wirelessConnNr]--;
-				if (data[wirelessConnNr][dataCntr[wirelessConnNr]] == PACK_START)
+				dataCntr[wlConn]--;
+				if (data[wlConn][dataCntr[wlConn]] == PACK_START)
 				{
-					currentRecHandlerState[wirelessConnNr] = STATE_READ_HEADER;
-					patternReplaced[wirelessConnNr] = 0;
+					currentRecHandlerState[wlConn] = STATE_READ_HEADER;
+					patternReplaced[wlConn] = 0;
 					/* check if there is still something left in the buffer to use */
-					if ((dataCntToAddAfterReadPayload[wirelessConnNr] >= 2) && (dataCntr[wirelessConnNr] == 0))
+					if ((dataCntToAddAfterReadPayload[wlConn] >= 2) && (dataCntr[wlConn] == 0))
 					{
 						/* in this case, the first char is already in the buffer => put it to the first place */
-						data[wirelessConnNr][0] = data[wirelessConnNr][1];
-						dataCntr[wirelessConnNr] = 1;
-						if (checkForPackStartReplacement(&data[wirelessConnNr][0], &dataCntr[wirelessConnNr], &patternReplaced[wirelessConnNr]))
+						data[wlConn][0] = data[wlConn][1];
+						dataCntr[wlConn] = 1;
+						if (checkForPackStartReplacement(&data[wlConn][0], &dataCntr[wlConn], &patternReplaced[wlConn]))
 						{
-							dataCntr[wirelessConnNr] = 0;
-							sprintf(infoBuf, "Restart state machine, start of package detected\r\n");
+							dataCntr[wlConn] = 0;
+							numberOfInvalidPackages[wlConn]++;
+							sprintf(infoBuf, "Info: Restart state machine, start of package detected\r\n");
 							pushMsgToShellQueue(infoBuf, strlen(infoBuf));
 						}
 					}
 					else
 					{
-						dataCntr[wirelessConnNr] = 0;
+						dataCntr[wlConn] = 0;
 					}
-					data[wirelessConnNr][dataCntr[wirelessConnNr]++] = chr;
-					if (checkForPackStartReplacement(&data[wirelessConnNr][0], &dataCntr[wirelessConnNr], &patternReplaced[wirelessConnNr]))
+					data[wlConn][dataCntr[wlConn]++] = chr;
+					if (checkForPackStartReplacement(&data[wlConn][0], &dataCntr[wlConn], &patternReplaced[wlConn]))
 					{
-						dataCntr[wirelessConnNr] = 0;
-						sprintf(infoBuf, "Restart state machine, start of package detected\r\n");
+						dataCntr[wlConn] = 0;
+						numberOfInvalidPackages[wlConn]++;
+						sprintf(infoBuf, "Info: Restart state machine, start of package detected\r\n");
 						pushMsgToShellQueue(infoBuf, strlen(infoBuf));
 					}
 					break;
@@ -275,198 +283,208 @@ static void readAndExtractWirelessData(uint8_t wirelessConnNr)
 			}
 			if (chr == PACK_START)
 			{
-				currentRecHandlerState[wirelessConnNr] = STATE_READ_HEADER;
-				dataCntr[wirelessConnNr] = 0;
-				patternReplaced[wirelessConnNr] = 0;
+				currentRecHandlerState[wlConn] = STATE_READ_HEADER;
+				dataCntr[wlConn] = 0;
+				patternReplaced[wlConn] = 0;
 				break;
 			}
 			break;
 		case STATE_READ_HEADER:
-			data[wirelessConnNr][dataCntr[wirelessConnNr]++] = chr;
-			if (checkForPackStartReplacement(&data[wirelessConnNr][0], &dataCntr[wirelessConnNr], &patternReplaced[wirelessConnNr]))
+			data[wlConn][dataCntr[wlConn]++] = chr;
+			if (checkForPackStartReplacement(&data[wlConn][0], &dataCntr[wlConn], &patternReplaced[wlConn]))
 			{
 				/* found start of package, restart reading header */
-				dataCntr[wirelessConnNr] = 0;
-				sprintf(infoBuf, "Restart state machine, start of package detected\r\n");
+				dataCntr[wlConn] = 0;
+				numberOfInvalidPackages[wlConn]++;
+				sprintf(infoBuf, "Info: Restart state machine, start of package detected\r\n");
 				pushMsgToShellQueue(infoBuf, strlen(infoBuf));
 			}
-			if (dataCntr[wirelessConnNr] >= (PACKAGE_HEADER_SIZE - 1 + 2)) /* -1: without PACK_START; +2 to read the first 2 bytes from the payload to check if the replacement pattern is there */
+			if (dataCntr[wlConn] >= (PACKAGE_HEADER_SIZE - 1 + 2)) /* -1: without PACK_START; +2 to read the first 2 bytes from the payload to check if the replacement pattern is there */
 			{
 				/* assign header structure. Due to alignement, it's hard to do this directly */
-				currentWirelessPackage[wirelessConnNr].packType = data[wirelessConnNr][0];
-				currentWirelessPackage[wirelessConnNr].devNum = data[wirelessConnNr][1];
-				currentWirelessPackage[wirelessConnNr].sessionNr = data[wirelessConnNr][2];
-				currentWirelessPackage[wirelessConnNr].sysTime = data[wirelessConnNr][6];
-				currentWirelessPackage[wirelessConnNr].sysTime |= (data[wirelessConnNr][5] << 8);
-				currentWirelessPackage[wirelessConnNr].sysTime |= (data[wirelessConnNr][4] << 16);
-				currentWirelessPackage[wirelessConnNr].sysTime |= (data[wirelessConnNr][3] << 24);
-				currentWirelessPackage[wirelessConnNr].payloadSize = data[wirelessConnNr][8];
-				currentWirelessPackage[wirelessConnNr].payloadSize |= (data[wirelessConnNr][7] << 8);
-				currentWirelessPackage[wirelessConnNr].crc8Header = data[wirelessConnNr][9];
+				currentWirelessPackage[wlConn].packType = data[wlConn][0];
+				currentWirelessPackage[wlConn].devNum = data[wlConn][1];
+				currentWirelessPackage[wlConn].sessionNr = data[wlConn][2];
+				currentWirelessPackage[wlConn].sysTime = data[wlConn][6];
+				currentWirelessPackage[wlConn].sysTime |= (data[wlConn][5] << 8);
+				currentWirelessPackage[wlConn].sysTime |= (data[wlConn][4] << 16);
+				currentWirelessPackage[wlConn].sysTime |= (data[wlConn][3] << 24);
+				currentWirelessPackage[wlConn].payloadSize = data[wlConn][8];
+				currentWirelessPackage[wlConn].payloadSize |= (data[wlConn][7] << 8);
+				currentWirelessPackage[wlConn].crc8Header = data[wlConn][9];
 				/* the first two bytes from the payload were already read, copy them to the beginning of the buffer */
-				dataCntr[wirelessConnNr] = 2;
-				data[wirelessConnNr][0] = data[wirelessConnNr][10];
-				data[wirelessConnNr][1] = data[wirelessConnNr][11];
-				patternReplaced[wirelessConnNr] = 0;
-				if (checkForPackStartReplacement(&data[wirelessConnNr][0], &dataCntr[wirelessConnNr], &patternReplaced[wirelessConnNr]) == true)
+				dataCntr[wlConn] = 2;
+				data[wlConn][0] = data[wlConn][10];
+				data[wlConn][1] = data[wlConn][11];
+				patternReplaced[wlConn] = 0;
+				if (checkForPackStartReplacement(&data[wlConn][0], &dataCntr[wlConn], &patternReplaced[wlConn]) == true)
 				{
 					/* start of package detected, restart reading header */
-					dataCntr[wirelessConnNr] = 0;
-					currentRecHandlerState[wirelessConnNr] = STATE_READ_HEADER;
-					sprintf(infoBuf, "Restart state machine, start of package detected\r\n");
+					dataCntr[wlConn] = 0;
+					currentRecHandlerState[wlConn] = STATE_READ_HEADER;
+					numberOfInvalidPackages[wlConn]++;
+					sprintf(infoBuf, "Info: Restart state machine, start of package detected\r\n");
 					pushMsgToShellQueue(infoBuf, strlen(infoBuf));
 					break;
 				}
 				/* finish reading header. Check if header is valid */
 				CRC1_ResetCRC(crcPH);
 				CRC1_GetCRC8(crcPH, PACK_START);
-				CRC1_GetCRC8(crcPH, currentWirelessPackage[wirelessConnNr].packType);
-				CRC1_GetCRC8(crcPH, currentWirelessPackage[wirelessConnNr].devNum);
-				CRC1_GetCRC8(crcPH, currentWirelessPackage[wirelessConnNr].sessionNr);
-				CRC1_GetCRC8(crcPH, *((uint8_t*)(&currentWirelessPackage[wirelessConnNr].sysTime) + 3));
-				CRC1_GetCRC8(crcPH, *((uint8_t*)(&currentWirelessPackage[wirelessConnNr].sysTime) + 2));
-				CRC1_GetCRC8(crcPH, *((uint8_t*)(&currentWirelessPackage[wirelessConnNr].sysTime) + 1));
-				CRC1_GetCRC8(crcPH, *((uint8_t*)(&currentWirelessPackage[wirelessConnNr].sysTime) + 0));
-				CRC1_GetCRC8(crcPH, *((uint8_t*)(&currentWirelessPackage[wirelessConnNr].payloadSize) + 1));
-				uint8_t crc8 = CRC1_GetCRC8(crcPH, *((uint8_t*)(&currentWirelessPackage[wirelessConnNr].payloadSize) + 0));
+				CRC1_GetCRC8(crcPH, currentWirelessPackage[wlConn].packType);
+				CRC1_GetCRC8(crcPH, currentWirelessPackage[wlConn].devNum);
+				CRC1_GetCRC8(crcPH, currentWirelessPackage[wlConn].sessionNr);
+				CRC1_GetCRC8(crcPH, *((uint8_t*)(&currentWirelessPackage[wlConn].sysTime) + 3));
+				CRC1_GetCRC8(crcPH, *((uint8_t*)(&currentWirelessPackage[wlConn].sysTime) + 2));
+				CRC1_GetCRC8(crcPH, *((uint8_t*)(&currentWirelessPackage[wlConn].sysTime) + 1));
+				CRC1_GetCRC8(crcPH, *((uint8_t*)(&currentWirelessPackage[wlConn].sysTime) + 0));
+				CRC1_GetCRC8(crcPH, *((uint8_t*)(&currentWirelessPackage[wlConn].payloadSize) + 1));
+				uint8_t crc8 = CRC1_GetCRC8(crcPH, *((uint8_t*)(&currentWirelessPackage[wlConn].payloadSize) + 0));
 
 				if (1)//ToDo: (currentWirelessPackage[wirelessConnNr].crc8Header == crc8)
 				{
 					/* CRC is valid - also check if the header parameters are within the valid range */
-					if ((currentWirelessPackage[wirelessConnNr].packType > PACK_TYPE_REC_ACKNOWLEDGE) ||
-						(currentWirelessPackage[wirelessConnNr].packType == 0) ||
-						(currentWirelessPackage[wirelessConnNr].devNum >= NUMBER_OF_UARTS) ||
-						(currentWirelessPackage[wirelessConnNr].payloadSize > PACKAGE_MAX_PAYLOAD_SIZE))
+					if ((currentWirelessPackage[wlConn].packType > PACK_TYPE_REC_ACKNOWLEDGE) ||
+						(currentWirelessPackage[wlConn].packType == 0) ||
+						(currentWirelessPackage[wlConn].devNum >= NUMBER_OF_UARTS) ||
+						(currentWirelessPackage[wlConn].payloadSize > PACKAGE_MAX_PAYLOAD_SIZE))
 					{
 						/* at least one of the parameters is out of range..reset state machine */
 						//showWarning(__FUNCTION__, "invalid header, but CRC8 was right - implementation error?");
-						currentRecHandlerState[wirelessConnNr] = STATE_START;
-						dataCntr[wirelessConnNr] = 0;
+						currentRecHandlerState[wlConn] = STATE_START;
+						dataCntr[wlConn] = 0;
 					}
 					else
 					{
 						/* valid header. Start reading payload */
-						currentRecHandlerState[wirelessConnNr] = STATE_READ_PAYLOAD;
+						currentRecHandlerState[wlConn] = STATE_READ_PAYLOAD;
 					}
 				}
 				else
 				{
 					/* invalid header, reset state machine */
-					currentRecHandlerState[wirelessConnNr] = STATE_START;
-					numOfInvalidRecWirelessPack[wirelessConnNr]++;
-					patternReplaced[wirelessConnNr] = 0;
-					dataCntr[wirelessConnNr] = 0;
-					sprintf(infoBuf, "Invalid header received, reset state machine\r\n");
+					currentRecHandlerState[wlConn] = STATE_START;
+					numOfInvalidRecWirelessPack[wlConn]++;
+					patternReplaced[wlConn] = 0;
+					dataCntr[wlConn] = 0;
+					numberOfInvalidPackages[wlConn]++;
+					sprintf(infoBuf, "Info: Invalid header received, reset state machine\r\n");
 					pushMsgToShellQueue(infoBuf, strlen(infoBuf));
 				}
 			}
 			break;
 		case STATE_READ_PAYLOAD:
-			data[wirelessConnNr][dataCntr[wirelessConnNr]++] = chr;
-			if (checkForPackStartReplacement(&data[wirelessConnNr][0], &dataCntr[wirelessConnNr], &patternReplaced[wirelessConnNr]) == true)
+			data[wlConn][dataCntr[wlConn]++] = chr;
+			if (checkForPackStartReplacement(&data[wlConn][0], &dataCntr[wlConn], &patternReplaced[wlConn]) == true)
 			{
 				/* start of package detected, restart reading header */
-				dataCntr[wirelessConnNr] = 0;
-				currentRecHandlerState[wirelessConnNr] = STATE_READ_HEADER;
-				sprintf(infoBuf, "Restart state machine, start of package detected\r\n");
+				dataCntr[wlConn] = 0;
+				currentRecHandlerState[wlConn] = STATE_READ_HEADER;
+				numberOfInvalidPackages[wlConn]++;
+				sprintf(infoBuf, "Info: Restart state machine, start of package detected\r\n");
 				pushMsgToShellQueue(infoBuf, strlen(infoBuf));
 				break;
 			}
 			/* read payload plus crc */
-			if (dataCntr[wirelessConnNr] >= (currentWirelessPackage[wirelessConnNr].payloadSize + sizeof(currentWirelessPackage[wirelessConnNr].crc16payload + 2))) /* +2 because we don't want to miss a replacement pattern at the end */
+			if (dataCntr[wlConn] >= (currentWirelessPackage[wlConn].payloadSize + sizeof(currentWirelessPackage[wlConn].crc16payload + 2))) /* +2 because we don't want to miss a replacement pattern at the end */
 			{
 				/* to read the two additional chars after reading the payload */
-				dataCntToAddAfterReadPayload[wirelessConnNr] = 2;
-				dataCntr[wirelessConnNr] -= dataCntToAddAfterReadPayload[wirelessConnNr];
+				dataCntToAddAfterReadPayload[wlConn] = 2;
+				dataCntr[wlConn] -= dataCntToAddAfterReadPayload[wlConn];
 				/* finish reading payload, check CRC */
-				currentWirelessPackage[wirelessConnNr].crc16payload = data[wirelessConnNr][dataCntr[wirelessConnNr] - 1];
-				currentWirelessPackage[wirelessConnNr].crc16payload |= (data[wirelessConnNr][dataCntr[wirelessConnNr] - 2] << 8);
+				currentWirelessPackage[wlConn].crc16payload = data[wlConn][dataCntr[wlConn] - 1];
+				currentWirelessPackage[wlConn].crc16payload |= (data[wlConn][dataCntr[wlConn] - 2] << 8);
 				CRC1_ResetCRC(crcPH);
 				CRC1_SetCRCStandard(crcPH, LDD_CRC_MODBUS_16); // ToDo: use LDD_CRC_CCITT, MODBUS only for backwards compatibility to old SW
 				uint32_t crc16;
-				CRC1_GetBlockCRC(crcPH, data[wirelessConnNr], currentWirelessPackage[wirelessConnNr].payloadSize, &crc16);
+				CRC1_GetBlockCRC(crcPH, data[wlConn], currentWirelessPackage[wlConn].payloadSize, &crc16);
 				if (1)//ToDo: (currentWirelessPackage[wirelessConnNr].crc16payload == (uint16_t) crc16)
 				{
 					/* valid data - check packet type */
-					if (currentWirelessPackage[wirelessConnNr].packType == PACK_TYPE_REC_ACKNOWLEDGE)
+					if (currentWirelessPackage[wlConn].packType == PACK_TYPE_REC_ACKNOWLEDGE)
 					{
 						/* received acknowledge - send message to queueRecAck */
-						//sprintf(infoBuf, "Received ACK package for device %u\r\n", currentWirelessPackage[wirelessConnNr].devNum);
-						//pushMsgToShellQueue(infoBuf, strlen(infoBuf));
-
-						currentWirelessPackage[wirelessConnNr].sysTime = *((uint32_t*)&data[wirelessConnNr][dataCntr[wirelessConnNr] - 6]);
-						numberOfAckReceived[wirelessConnNr]++;
-						if(xQueueSendToBack(ReceivedPackages[wirelessConnNr], &currentWirelessPackage[wirelessConnNr], ( TickType_t ) 0) != pdTRUE) /* ToDo: handle failure on pushing package to receivedPackages queue , currently it is dropped if unsuccessful */
+						currentWirelessPackage[wlConn].sysTime = *((uint32_t*)&data[wlConn][dataCntr[wlConn] - 6]);
+						numberOfAckReceived[wlConn]++;
+						if(xQueueSendToBack(ReceivedPackages[wlConn], &currentWirelessPackage[wlConn], ( TickType_t ) 0) != pdTRUE) /* ToDo: handle failure on pushing package to receivedPackages queue , currently it is dropped if unsuccessful */
 						{
-							FRTOS_vPortFree(currentWirelessPackage[wirelessConnNr].payload); /* free memory since it wont be done on popping from queue */
+							numberOfDroppedAcks[wlConn]++;
+							FRTOS_vPortFree(currentWirelessPackage[wlConn].payload); /* free memory since it wont be done on popping from queue */
 							vTaskDelay(pdMS_TO_TICKS(10)); /* queue full */
-							sprintf(infoBuf, "Received acknowledge but unable to push this message to the send handler for wireless queue %u because queue full\r\n", (unsigned int) wirelessConnNr);
+							sprintf(infoBuf, "Error: Received acknowledge but unable to push this message to the send handler for wireless queue %u because queue full\r\n", (unsigned int) wlConn);
+							LedRed_On();
 							pushMsgToShellQueue(infoBuf, strlen(infoBuf));
 						}
 					}
-					else if (currentWirelessPackage[wirelessConnNr].packType == PACK_TYPE_DATA_PACKAGE)
+					else if (currentWirelessPackage[wlConn].packType == PACK_TYPE_DATA_PACKAGE)
 					{
 						/* allocate memory for payload and save payload */
-						currentWirelessPackage[wirelessConnNr].payload = (uint8_t*) FRTOS_pvPortMalloc(currentWirelessPackage[wirelessConnNr].payloadSize*sizeof(int8_t));
-						for(int cnt=0; cnt < currentWirelessPackage[wirelessConnNr].payloadSize; cnt++)
+						currentWirelessPackage[wlConn].payload = (uint8_t*) FRTOS_pvPortMalloc(currentWirelessPackage[wlConn].payloadSize*sizeof(int8_t));
+						for(int cnt=0; cnt < currentWirelessPackage[wlConn].payloadSize; cnt++)
 						{
-							currentWirelessPackage[wirelessConnNr].payload[cnt] = data[wirelessConnNr][cnt];
+							currentWirelessPackage[wlConn].payload[cnt] = data[wlConn][cnt];
 						}
 						/* update throughput printout */
-						numberOfPacksReceived[wirelessConnNr]++;
-						numberOfPayloadBytesExtracted[wirelessConnNr] += currentWirelessPackage[wirelessConnNr].payloadSize;
+						numberOfPacksReceived[wlConn]++;
+						numberOfPayloadBytesExtracted[wlConn] += currentWirelessPackage[wlConn].payloadSize;
 						/* received data package - send data to corresponding devices plus inform package generator to prepare a receive acknowledge */
-						if(xQueueSendToBack(ReceivedPackages[wirelessConnNr], &currentWirelessPackage[wirelessConnNr], ( TickType_t ) 0) != pdTRUE) /* ToDo: handle queue full, now package is discarded */
+						if(xQueueSendToBack(ReceivedPackages[wlConn], &currentWirelessPackage[wlConn], ( TickType_t ) 0) != pdTRUE) /* ToDo: handle queue full, now package is discarded */
 						{
-							//vTaskDelay(pdMS_TO_TICKS(10)); /* queue full */
-							FRTOS_vPortFree(currentWirelessPackage[wirelessConnNr].payload); /* free memory of this package since it wont be freed when popped from queue */
-							sprintf(infoBuf, "Received data package but unable to push this message to the send handler for wireless queue %u because queue full\r\n", (unsigned int) wirelessConnNr);
+							/* queue full */
+							numberOfDroppedPackages[wlConn]++;
+							FRTOS_vPortFree(currentWirelessPackage[wlConn].payload); /* free memory of this package since it wont be freed when popped from queue */
+							sprintf(infoBuf, "Error: Received data package but unable to push this message to the send handler for wireless queue %u because queue full\r\n", (unsigned int) wlConn);
+							LedRed_On();
 							pushMsgToShellQueue(infoBuf, strlen(infoBuf));
 						}
-						//sprintf(infoBuf, "Received data package, device %u; timestamp package: %lu\r\n", currentWirelessPackage[wirelessConnNr].devNum, currentWirelessPackage[wirelessConnNr].sysTime);
+						//sprintf(infoBuf, "Received data package, device %u; timestamp package: %lu\r\n", currentWirelessPackage[wirelessConnNr].devNum, currentWirelessPackage[wlConn].sysTime);
 						//pushMsgToShellQueue(infoBuf, strlen(infoBuf));
 						/* update average size of received payload packages */
-						//updateAvPayloadSizeRecDataPack(wirelessConnNr, currentWirelessPackage[wirelessConnNr].payloadSize);
+						//updateAvPayloadSizeRecDataPack(wirelessConnNr, currentWirelessPackage[wlConn].payloadSize);
 						/* check if it's the same session number as before */
-						if (sessionNumberLastValidPackage[currentWirelessPackage[wirelessConnNr].devNum] != currentWirelessPackage[wirelessConnNr].sessionNr)
+						if (sessionNumberLastValidPackage[currentWirelessPackage[wlConn].devNum] != currentWirelessPackage[wlConn].sessionNr)
 						{
 							/* session number changed. Reset timestamp and assign new session number. */
-							sessionNumberLastValidPackage[currentWirelessPackage[wirelessConnNr].devNum] = currentWirelessPackage[wirelessConnNr].sessionNr;
-							timestampLastValidPackage[currentWirelessPackage[wirelessConnNr].devNum] = 0;
+							sessionNumberLastValidPackage[currentWirelessPackage[wlConn].devNum] = currentWirelessPackage[wlConn].sessionNr;
+							timestampLastValidPackage[currentWirelessPackage[wlConn].devNum] = 0;
 						}
 					}
 					else
 					{
 						/* something went wrong - invalid package type. Reset state machine and send out error. */
-						sprintf(infoBuf, "Invalid package type! There is probably an error in the implementation\r\n");
+						numberOfInvalidPackages[wlConn]++;
+						sprintf(infoBuf, "Error: Invalid package type! There is probably an error in the implementation\r\n");
+						LedRed_On();
 						pushMsgToShellQueue(infoBuf, strlen(infoBuf));
 					}
 				}
 				else
 				{
 					/* received invalid payload */
-					numOfInvalidRecWirelessPack[wirelessConnNr]++;
-					sprintf(infoBuf, "Received %u invalid payload, reset state machine", (unsigned int) numOfInvalidRecWirelessPack[wirelessConnNr]);
+					numOfInvalidRecWirelessPack[wlConn]++;
+					numberOfInvalidPackages[wlConn]++;
+					sprintf(infoBuf, "Info: Received %u invalid payload, reset state machine", (unsigned int) numOfInvalidRecWirelessPack[wlConn]);
 					pushMsgToShellQueue(infoBuf, strlen(infoBuf));
 				}
 				/* reset state machine */
-				currentRecHandlerState[wirelessConnNr] = STATE_START;
+				currentRecHandlerState[wlConn] = STATE_START;
 				/* copy the two already replaced bytes to the beginning if there was read more data due to check for replacement pattern */
-				if (dataCntToAddAfterReadPayload[wirelessConnNr] >= 2)
+				if (dataCntToAddAfterReadPayload[wlConn] >= 2)
 				{
-					data[wirelessConnNr][0] = data[wirelessConnNr][dataCntr[wirelessConnNr] - 2 + dataCntToAddAfterReadPayload[wirelessConnNr]];
-					data[wirelessConnNr][1] = data[wirelessConnNr][dataCntr[wirelessConnNr] - 1 + dataCntToAddAfterReadPayload[wirelessConnNr]];
+					data[wlConn][0] = data[wlConn][dataCntr[wlConn] - 2 + dataCntToAddAfterReadPayload[wlConn]];
+					data[wlConn][1] = data[wlConn][dataCntr[wlConn] - 1 + dataCntToAddAfterReadPayload[wlConn]];
 				}
-				else if (dataCntToAddAfterReadPayload[wirelessConnNr] >= 1)
+				else if (dataCntToAddAfterReadPayload[wlConn] >= 1)
 				{
-					data[wirelessConnNr][0] = data[wirelessConnNr][dataCntr[wirelessConnNr] - 1 + dataCntToAddAfterReadPayload[wirelessConnNr]];
+					data[wlConn][0] = data[wlConn][dataCntr[wlConn] - 1 + dataCntToAddAfterReadPayload[wlConn]];
 				}
-				dataCntr[wirelessConnNr] = dataCntToAddAfterReadPayload[wirelessConnNr];
-				patternReplaced[wirelessConnNr] = 0;
+				dataCntr[wlConn] = dataCntToAddAfterReadPayload[wlConn];
+				patternReplaced[wlConn] = 0;
 			}
 			break;
 		default:
-			sprintf(infoBuf, "Invalid state in state machine\r\n");
+			sprintf(infoBuf, "Error: Invalid state in state machine\r\n");
+			LedRed_On();
+			numberOfInvalidPackages[wlConn]++;
 			pushMsgToShellQueue(infoBuf, strlen(infoBuf));
 			break;
 		}
