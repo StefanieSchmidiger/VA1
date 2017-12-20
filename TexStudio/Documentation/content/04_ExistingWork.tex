@@ -174,6 +174,10 @@ There, the you can modify task interval of all tasks, enable hardware loopback a
 \end{center}
 %
 %
+\subsection{LED Status}
+There is a separate task that handles blinking of the green LED. While this LED blinks, the software is running and all threads are executed.\\
+The orange LED is turned on when a warning is printed out on the serial interface and the red LED is turned on when an error occurs.\\
+%
 \subsection{Software Concept}
 The software written by Andreas Albisser runs with ten main tasks that make up the basic functionality and several minor task that are responsible for debug output, blinking of LEDs and any other functionalities that can be enabled through the configuration header. The software concept can be seen in \autoref{Old SW concept}. \\
 \spicH{AndreasSwConcept.png}{Arduino software concept}{\label{Old SW concept}}%
@@ -331,12 +335,18 @@ Talk about payload and CRC32
 %
 %
 \section{Discussion and Problems} \label{Teensy 3.1 software problems}
-There was no documentation available on test conducted or issues discovered with Andreas Albissers work.\\
+There was no documentation available on tests conducted or issues discovered with Andreas Albissers work.\\
 All information below has been recalled by the people involved.\\
 %
-\subsection{Overall Functionality Tests}
+%
+\subsection{Tests Results}
 The software was only tested briefly and testing was not documented. \\
+The end test consisted of \todo{Testing with modem and link explained}
+%
+\subsubsection{Directly connected wireless sides}
 When connecting two serial switches directly with a cable, the functionality was as expected. Acknowledges were transmitted and packages resent in case no acknowledge was received. Packages were not acknowledged when the checksum did not match and were resent after the configured delay. \\
+%
+\subsubsection{Wireless sides with modem}
 Problems arose when working with modems instead of a direct wired connection. When connecting one modem and one device only, the data stream was still reliable. But once two modems were connected and more than one device was generating data, the connection could not be established and no data stream was output on the receiving side. \\
 Those tests were repeated when no acknowledge was configured but the result was similar: no data link could be established. \\
 One possible reason for this faulty behavior could be the lack of package numbering. The header only contains session number and system time but no variable with a monotonic counter. The system time does not provide any information about missing packages because it might jump up in case no package was generated for some amount of time. The parameter system time corresponds to the runtime of the software since start up in milliseconds.\\
@@ -375,17 +385,38 @@ else
 \end{lstlisting}
 %
 %
-\subsection{Dropping Data when Transmission Unreliable}
-Also, improvements of data handling when the queue is full should be made.\\
 %
+\subsection{Issues}
 %
-\subsection{Debugging}
-The software concept implemented by Andreas Albisser is difficult to debug because Arduino provides no hardware debugging options, only prints on a serial connection are available. \\
+\subsubsection{Dropping Data when Transmission Unreliable}
+Task intercommunication has been done with queues, as can be seen in \autoref{Old SW concept}. When data arrives, it will be pushed to the byte queue from one task to be processed and assembled to a full package by an other task. \\
+When data arrives too fast, any of the queues may be full and pushing the most recent data to the queue might fail. Currently, only the hardware interfaces (HW Device Writer and HW WirelessX Writer) deal with this scenario. When they read data from the SPI to UART converter but can not push it to the queue, they will flush the queue (which results in all unprocessed data bytes being lost) and push the new data to the now empty queue. A warning will be printed on the serial interface afterwards. \\
+A snippet from the code handling a full byte queue can be seen below.\\
+\begin{lstlisting}
+if ((*queuePtr).push(&buffer[cnt]) == false)
+{
+    /* queue is full - flush queue, send character again and set error */
+    (*queuePtr).clean();
+    (*queuePtr).push(&buffer[cnt]);
+\end{lstlisting}
+When any of the other queues are full or pushing new data to the queue is not possible, this data will be lost and no further action will be taken except for printing a warning on the serial interface.\\
+This results in packages being lost when lots of data is read on device side and packages generated. The package generator does not check if its package output queue is full before popping bytes from the received byte queue and putting them into the payload of a generated package. The generated package will be lost together with all its data when trying to push it onto a full queue. \\
+All tasks should take the state of their queues during runtime into account so that dropping of data can be carried out controlled and purposely.\\
 %
+\subsubsection{Debugging}
+Arduino does not support hardware debugging, only prints on a serial connection are available.\\
+This is fine as long as the software is relatively small and straightforward.\\
+As software complexity increases it becomes problematic, especially when multiple tasks are involved.\\
+As can be seen in \autoref{Old SW concept}, the software concept implemented by Andreas Albisser is complex and runs with many tasks. In order to expand the functionality of it even further, a real hardware debugging interface is inevitable.\\
 %
-\subsection{Software Concept}
-The software is also difficult to debug because of its many tasks. The software concept needs major refactoring and needs to be simplified.
+\subsubsection{Software Concept}
+The software concept implemented by Andreas Albisser as can be seen in \autoref{Old SW concept} and it was attempted to visualize it split into three layers similar to the ISO/OSI model.\\
+All hardware reader and writer tasks access the SPI to UART interface and represent layer 1. They deal with bytes and do not know anything about packages.\\
+Each wireless interface runs with its own task that handles the bytes to be sent out. There is one task that writes bytes to the SPI to UART converter on device side and one task that reads incoming bytes from both SPI to UART converters. These five tasks all access the same SPI interface which results in possible conflicts and the need to define critical sections. The software concept would be simpler if there was only one task that accessed the SPI interface.\\
+The package generator, package extractor and ack handler tasks are the interface between bytes and packages and represent layer 2. They assemble wireless packages popped from the output queue of layer 1 and split generated packages into bytes. They also deal with the sending of acknowledges in case a received package expects one.\\
+The package handlers have two separate queues where assembled data packages and acknowledges are stored. The wireless handler will then not process packages in the order they were received but will first iterate through the data package queue and then through the acknowledge queue.\\
+The wireless handler represents layer 3 and deals with sending and resending of packages. While it keeps track of acknowledges received, it does not handle the acknowledges sent because this is contradictory done by layer 2.\\
+Generally, the software could be kept much smaller with less tasks and less queues.\\
 %
-%
-\subsection{Data Priority}
-There is no way to prioritize data of a device over data of an other device. When data transmission becomes unreliable, the software needs to know which data is most important to be exchanged.\\
+\subsubsection{Data Priority}
+There is no way to prioritize data of one device over data of an other device connected. When data transmission becomes unreliable, the software needs to know which data is most important to be exchanged. An additional configuration parameter should be added to represent data priority.\\
