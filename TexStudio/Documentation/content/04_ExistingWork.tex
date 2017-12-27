@@ -10,7 +10,8 @@ More details about the work Andras Albisser has done can be taken from this chap
 %
 %
 \section{Hardware}
-The hardware developed by Andreas Albisser has a total of eight interfaces where peripheral devices can be connected. Four connections are for control units, sensors or any other devices that process or generate data to be transmitted. On the other side, there are four connectors for modems to allow different ways of transmission. An overview can be seen in \autoref{Hardware Overview}.\\
+\spic{BaseBoardWithTeensy31.jpg}{Base board with Teensy 3.1 designed by Andreas Albisser}{\label{picHardwareWithTeensy31}}%
+The hardware developed by Andreas Albisser ca be seen in \autoref{picHardwareWithTeensy31}. It has a total of eight interfaces where peripheral devices can be connected. Four connections are for control units, sensors or any other devices that process or generate data to be transmitted. On the other side, there are four connectors for modems to allow different ways of transmission. An overview can be seen in \autoref{Hardware Overview}.\\
 \spicH{HardwareUseCaseOverview.png}{Hardware overview}{\label{Hardware Overview}}%
 Each interface accessible to the user is bidirectional which means that both sensors and actors can be connected.\\
 From now on, the side where data generating and processing devices can be connected will be referred to as the device side and the side where modems can be connected will be referred to as the wireless side.\\
@@ -47,7 +48,7 @@ Andreas Albisser used a Teensy 3.1 as a micro controller as can be seen in \auto
 The Teensy development boards are breadboard compatible USB development boards. They are small, low-priced and yet equipped with a powerful ARM processor.\\
 The Teensy development boards all come with a pre-flashed bootloader to enable programming over USB. They use a less powerful processor as an interface to the developer to enable the use of Arduino libraries and the Arduino IDE.\\
 There is no hardware debugging interface available to the user on the Teensy development boards. Programming is only possible via USB.\\
-\spic{Teensy31.jpg}{Teensy 3.1}{\label{Teensy 3.1}}%
+\spicv{Teensy31.jpg}{Teensy 3.1}{\label{Teensy 3.1}}{80}%
 %
 \subsection{Power Supply}
 The hardware needs 5V as a power supply. This can be achieved by using any of the USB connections or via a dedicated power connector located on the board. \\
@@ -179,8 +180,8 @@ There is a separate task that handles blinking of the green LED. While this LED 
 The orange LED is turned on when a warning is printed out on the serial interface and the red LED is turned on when an error occurs.\\
 %
 \subsection{Software Concept}
-The software written by Andreas Albisser runs with ten main tasks that make up the basic functionality and several minor task that are responsible for debug output, blinking of LEDs and any other functionalities that can be enabled through the configuration header. The software concept can be seen in \autoref{Old SW concept}. \\
-\spicH{AndreasSwConcept.png}{Arduino software concept}{\label{Old SW concept}}%
+The software written by Andreas Albisser runs with ten main tasks that make up the basic functionality and several minor task that are responsible for debug output, blinking of LEDs and any other functionalities that can be enabled through the configuration header. The software concept can be seen in \autoref{picOldSwConcept}. \\
+\spicH{AndreasSwConcept.png}{Arduino software concept}{\label{picOldSwConcept}}%
 In the following sections, an overview will be given on the functionality performed by each task.
 \subsubsection{HW Buffer Reader}
 This task periodically polls the SPI to UART converters for new data. In case the converters have received data, the HW Buffer Reader will read and store the data in the corresponding queue. \\
@@ -335,21 +336,29 @@ Talk about payload and CRC32
 %
 %
 \section{Discussion and Problems} \label{Teensy 3.1 software problems}
-There was no documentation available on tests conducted or issues discovered with Andreas Albissers work.\\
+There was no documentation available on tests conducted nor on issues discovered with Andreas Albissers work.\\
 All information below has been recalled by the people involved.\\
 %
 %
 \subsection{Tests Results}
-The software was only tested briefly and testing was not documented. \\
-The end test consisted of \todo{Testing with modem and link explained}
+Aeroscout uses a Pixhawk PX4 as an autopilot on-board. This is an open-source and flexible platform for UAV projects. The PX4 can be controlled with QGroundControl, an open source software that runs off-board on a computer and provides full flight control and vehicle setup.\\
+As an end test, the PX4 and QGroundControl were connected to the Serial Switch to check if data transmission between those two components works as expected.\\
+First, the QGroundControl needs to be configured with the correct COM port and baud rate. When connecting on the COM port for the first time, QGroundControl will try to establish a link to the PX4 and gather all data available from the on-board system. Only then will the autopilot show up as a valid link on the computer.\\
+This is also a stress test for the software to check for memory leaks because QGroundControl and PX4 exchanges lots of data upon first setup (about 3000 bytes/sec from PX4 to computer and about 100 bytes/sec from computer to PX4, for about 1sec). \\ Afterwards, they will only transmit about 150 bytes/sec from PX4 to computer and 20bytes/sec from computer to PX4 during idle mode.\\
+These numbers are best case conditions, with no resending of packages and no acknowledge configured.\\
 %
 \subsubsection{Directly connected wireless sides}
-When connecting two serial switches directly with a cable, the functionality was as expected. Acknowledges were transmitted and packages resent in case no acknowledge was received. Packages were not acknowledged when the checksum did not match and were resent after the configured delay. \\
+\spic{TestSetupWithQGroundControl_CableConnection.png}{End test with hardware directly connected}{\label{picQGroundControlCableConnection}}%
+To test the software under semi real circumstances, the PX4 and QGroundControl is connected to the serial switches.\\
+The setup can be seen in \autoref{picQGroundControlCableConnection}.\\
+The PX4 was connected on device side of the on-board Serial Switch with UART. QGroundControl was running on a computer that was connected to the off-board Serial Switch on device side via USB. The two Serial Switches were directly connected on wireless side with RX and TX crossed. \\
+After setting up the correct baud rates for device side on both Serial Switches (57600 baud) and disabling acknowledges, the data link between QGroundControl and the PX4 was established successfully within about one second.\\
+The outcome was also successful when acknowledges were configured.\\
 %
 \subsubsection{Wireless sides with modem}
-Problems arose when working with modems instead of a direct wired connection. When connecting one modem and one device only, the data stream was still reliable. But once two modems were connected and more than one device was generating data, the connection could not be established and no data stream was output on the receiving side. \\
-Those tests were repeated when no acknowledge was configured but the result was similar: no data link could be established. \\
-One possible reason for this faulty behavior could be the lack of package numbering. The header only contains session number and system time but no variable with a monotonic counter. The system time does not provide any information about missing packages because it might jump up in case no package was generated for some amount of time. The parameter system time corresponds to the runtime of the software since start up in milliseconds.\\
+\spic{TestSetupWithQGroundControl_ModemConnection.png}{End test with wireless communication}{\label{picQGroundControlModemConnection}}%
+A real testcase was provided when the same configuration as above was tested but the Serial Switches were not connected directly but through a modem and antenna. The setup was as can be seen in \autoref{picQGroundControlModemConnection}
+This time, no data link could be established between PX4 and QGroundControl. One possible reason for this faulty behavior could be the lack of package numbering. The header of a package only contains session number and system time but no variable with a monotonic increasing counter. The system time does not provide any information about missing packages because it might jump up in case no package was generated for some amount of time. The parameter system time corresponds to the runtime of the software since start up in milliseconds.\\
 The following code section is copied from the software Andreas Albisser developed. It shows that packages will be discarded when their time stamp (sysTime) is older than the one of the last package.
 %
 \begin{lstlisting}
@@ -384,13 +393,14 @@ else
 }
 \end{lstlisting}
 %
+This theory has not been tested because the software Andreas Albisser has writte has not been tested or developped further in the scope of this project.\\
 %
 %
 \subsection{Issues}
 %
-\subsubsection{Dropping Data when Transmission Unreliable}
-Task intercommunication has been done with queues, as can be seen in \autoref{Old SW concept}. When data arrives, it will be pushed to the byte queue from one task to be processed and assembled to a full package by an other task. \\
-When data arrives too fast, any of the queues may be full and pushing the most recent data to the queue might fail. Currently, only the hardware interfaces (HW Device Writer and HW WirelessX Writer) deal with this scenario. When they read data from the SPI to UART converter but can not push it to the queue, they will flush the queue (which results in all unprocessed data bytes being lost) and push the new data to the now empty queue. A warning will be printed on the serial interface afterwards. \\
+\subsubsection{Dropping Data when Transmission unreliable}
+Task intercommunication has been done with queues, as can be seen in \autoref{picOldSwConcept}. When data arrives, it will be pushed to the byte queue from one task to be processed and assembled to a full package by an other task. \\
+When data arrives too fast, any of the queues may be full and pushing the most recent data to the queue might fail. Currently, only the hardware interfaces (HW Device Writer and HW WirelessX Writer) deal with this scenario. When they read data from the SPI to UART converter but can not push it to the RX byte queue, they will flush the byte queue (which results in all unprocessed data bytes being lost) and push the new data to the now empty queue. A warning will be printed on the serial interface afterwards and the orange LED will be turned on. \\
 A snippet from the code handling a full byte queue can be seen below.\\
 \begin{lstlisting}
 if ((*queuePtr).push(&buffer[cnt]) == false)
@@ -399,18 +409,18 @@ if ((*queuePtr).push(&buffer[cnt]) == false)
     (*queuePtr).clean();
     (*queuePtr).push(&buffer[cnt]);
 \end{lstlisting}
-When any of the other queues are full or pushing new data to the queue is not possible, this data will be lost and no further action will be taken except for printing a warning on the serial interface.\\
-This results in packages being lost when lots of data is read on device side and packages generated. The package generator does not check if its package output queue is full before popping bytes from the received byte queue and putting them into the payload of a generated package. The generated package will be lost together with all its data when trying to push it onto a full queue. \\
-All tasks should take the state of their queues during runtime into account so that dropping of data can be carried out controlled and purposely.\\
+When any of the other queues are full or pushing new data to a queue is not possible, this data will be lost and no further action will be taken except for printing a warning on the serial interface.\\
+This results in packages being lost when lots of data is read and packages generated on device side. The package generator does not check if its package output queue is full before popping bytes from the received byte queue and putting them into the payload of a generated package. The generated package will be lost together with all its data when trying to push it onto a full queue. \\
+All tasks should take the state of their interface queues into account during runtime so that dropping of data can be carried out controlled and purposely.\\
 %
 \subsubsection{Debugging}
 Arduino does not support hardware debugging, only prints on a serial connection are available.\\
 This is fine as long as the software is relatively small and straightforward.\\
 As software complexity increases it becomes problematic, especially when multiple tasks are involved.\\
-As can be seen in \autoref{Old SW concept}, the software concept implemented by Andreas Albisser is complex and runs with many tasks. In order to expand the functionality of it even further, a real hardware debugging interface is inevitable.\\
+As can be seen in \autoref{picOldSwConcept}, the software concept implemented by Andreas Albisser is complex and runs with many tasks. In order to expand the functionality of it even further, a real hardware debugging interface is inevitable.\\
 %
 \subsubsection{Software Concept}
-The software concept implemented by Andreas Albisser as can be seen in \autoref{Old SW concept} and it was attempted to visualize it split into three layers similar to the ISO/OSI model.\\
+The software concept implemented by Andreas Albisser as can be seen in \autoref{picOldSwConcept} and it was attempted to visualize it split into three layers similar to the ISO/OSI model.\\
 All hardware reader and writer tasks access the SPI to UART interface and represent layer 1. They deal with bytes and do not know anything about packages.\\
 Each wireless interface runs with its own task that handles the bytes to be sent out. There is one task that writes bytes to the SPI to UART converter on device side and one task that reads incoming bytes from both SPI to UART converters. These five tasks all access the same SPI interface which results in possible conflicts and the need to define critical sections. The software concept would be simpler if there was only one task that accessed the SPI interface.\\
 The package generator, package extractor and ack handler tasks are the interface between bytes and packages and represent layer 2. They assemble wireless packages popped from the output queue of layer 1 and split generated packages into bytes. They also deal with the sending of acknowledges in case a received package expects one.\\

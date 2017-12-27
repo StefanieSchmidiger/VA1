@@ -459,8 +459,9 @@
 %
 %
 \addto\captionsngerman{%
-  \renewcommand{\figurename}{Bild}                  % "Bild" statt "Abbildung"
-  \renewcommand{\contentsname}{Inhaltsverzeichnis}  % "Inhaltsverzeichnis" statt "Table of Cont.")
+  \renewcommand{\tablename}{Table}                  % "Bild" statt "Abbildung"
+  \renewcommand{\figurename}{Figure}                  % "Bild" statt "Abbildung"
+  \renewcommand{\contentsname}{Table of Content}  % "Inhaltsverzeichnis" statt "Table of Cont.")
 }%
 %
 \renewcommand{\lstlistingname}{Code}   % Dass bei Code nicht "Listing" sondenr "Code" steht
@@ -597,9 +598,9 @@
 %
 % Begriffsdefinitionen für Autoref (Deutsch):
 %
-\addto\extrasngerman{\def\figureautorefname{Bild}}%
-\addto\extrasngerman{\def\sectionautorefname{Abschnitt}}%
-\addto\extrasngerman{\def\subsectionautorefname{Abschnitt}}%
+\addto\extrasngerman{\def\figureautorefname{Figure}}%
+\addto\extrasngerman{\def\sectionautorefname{Section}}%
+\addto\extrasngerman{\def\subsectionautorefname{Section}}%
 \addto\extrasngerman{\def\lstlistingautorefname{Code}% 
 \def\lstnumberautorefname{Zeile}}%
 %
@@ -718,7 +719,7 @@ backrefpages = {Zitiert~auf~S\adddot},}%
 \newcommand{\vorwort}[4]{%
 %
     \ifstrequal{#1}{true}{       
-				\chapter*{Vorwort}  
+				\chapter*{Abstract}  
 				\pdfbookmark[1]{Vorwort}{Vorwort}
 				\thispagestyle{empty}  
 				\pagestyle{empty}  
@@ -744,7 +745,7 @@ backrefpages = {Zitiert~auf~S\adddot},}%
 %
 	\ifstrequal{#1}{truebothsamepage}{
 %
-\chapter*{Kurzfassung}
+\chapter*{Summary}
 \pdfbookmark[1]{Kurzfassung}{Kurzfassung}
 \thispagestyle{empty}
 \pagestyle{empty}
@@ -781,7 +782,7 @@ backrefpages = {Zitiert~auf~S\adddot},}%
 %
  }{\ifstrequal{#1}{truedeutsch}{
 %
-\chapter*{Kurzfassung}
+\chapter*{Summary}
 \pdfbookmark[1]{Kurzfassung}{Kurzfassung}
 \thispagestyle{empty}
 \pagestyle{empty}

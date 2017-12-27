@@ -4,18 +4,159 @@ A complete documentation of the software written by Andreas Albisser for the Tee
 Various issues found with his software can be found in \ref{Teensy 3.1 software problems}.\\
 Now there are two options on how to proceed
 \begin{itemize}
-    \item Port the existing software to C with FreeRTOS.
+    \item Transfer the existing software to C with FreeRTOS.
     \item Create a new software concept and implement it.
 \end{itemize}
-Both options are evaluated below.\\
-\subsection{Start with existing Software}
-
+Both options are evaluated below.
 %
-\section{New Software}%
 %
-Talk about new SW concept
+\section{Transfer existing Software Concept}
+The existing software concept can be seen in \autoref{Old SW concept}. As seen in section \ref{Teensy 3.1 software problems}, there are various issues that need to be solved. Because the software concept is rather complex and needs refactoring, it is easier to come up with a new software concept.
 %
-\subsubsection{To-Do List for new SW}%
+\section{New Software Concept}%
+%
+\spic{NewSwConcept.png}{New software concept}{\label{picNewSwConcept}}%
+A good approach for a software concept is to divide the responsibilities of tasks similar to ISO/OSI layers. 
+The software concept implemented in the scope of this project can be seen in \autoref{picNewSwConcept}.\\
+Queues are used as an interface between any two tasks where one task will always be pushing data onto the queue and an other task will pop data from the queue.\\
+The software runs with three main tasks while each task covers an ISO/OSI layer. The purpose of each task is explained in the following sections.
+%
+%
+\subsection{Physical Layer}
+\subsubsection{Description}
+This task is named SPI Handler and covers ISO/OSI layer 1. It is the only task that accesses the SPI interface. It reads data from the SPI to UART converters and pushes those to a byte queue and it pops bytes from an other byte queue and sends those to the SPI to UART converter.\\
+This task does not know anything about packages, it does byte handling only.
+\subsubsection{Queue Interface}
+There are two SPI to UART converters on the baseboard, one for the wireless side and one for the device side. Each SPI to UART converter allows for four UART connections and has an internal buffer of 128 bytes for both RX and TX side of each serial connection.\\
+There are two queues per serial connection, one for bytes read from the SPI to UART converter and one for bytes that need to be forwarded to the SPI to UART converter. There are a total of eight serial connections available to the user which results in 16 byte queues that all interface the SPI Handler.
+\subsubsection{Data Loss}
+As seen in chapter \ref{Teensy 3.1 software problems}, the tasks in the software developed by Andreas Albisser do not take the state of their interfacing queues into account during runtime.\\
+This issue has been solved for the new software concept. When reading bytes from the SPI to UART converter, the state of the byte queue is not taken into account. Upon unsuccessful push to the corresponding queue because it is full, the oldest ten bytes will be popped from this queue and dropped to ensure storage of the new byte.\\
+\begin{lstlisting}
+if (xQueueSendToBack(queue, &buffer[cnt], ( TickType_t ) pdMS_TO_TICKS(SPI_HANDLER_QUEUE_DELAY) ) == errQUEUE_FULL)
+{
+    /* queue is full -> delete oldest NUM_OF_BYTES_TO_DELETE_ON_QUEUE_FULL bytes */
+    for(int i = 0; i < NUM_OF_BYTES_TO_DELETE_ON_QUEUE_FULL; i++)
+    {
+        static uint8_t data;
+        xQueueReceive(RxWirelessBytes[uartNr], &data, ( TickType_t ) pdMS_TO_TICKS(SPI_HANDLER_QUEUE_DELAY) );
+    }
+    numberOfDroppedBytes[uartNr] += NUM_OF_BYTES_TO_DELETE_ON_QUEUE_FULL;
+    xQueueSendToBack(queue, &buffer[cnt], ( TickType_t ) pdMS_TO_TICKS(SPI_HANDLER_QUEUE_DELAY) );
+\end{lstlisting}
+Before pushing data to the SPI to UART converter, the state of this converter is checked and the software only transmits as many bytes as the hardware buffer can hold.
+\begin{lstlisting}
+uint8_t spaceTaken = spiSingleReadTransfer(spiSlave, uartNr, MAX_REG_TX_FIFO_LVL);
+spaceLeft = HW_FIFO_SIZE - spaceTaken;
+/* check if there is enough space to write the number of bytes that should be written */
+if (spaceLeft < numOfBytesToWrite)
+{
+    /* There isn't enough space to write the desired amount of data - just write as much as possible */
+    numOfBytesToWrite = spaceLeft;
+}
+\end{lstlisting}
+Data is dropped unintentionally on unsuccessful queue operations. There is a parameter that specifies a wait time in ticks for a queue operation to finish successfully. This parameter is set to zero for all byte queue operations within the SPI Handler task. This results in failure if a queue operation can not be executed immediately instead of trying again within the specified amount of ticks.
+\subsubsection{Data Priority and Data Routing}
+There is no data priority implemented in the SPI Handler task. All task interfacing queues are FIFO queues. The queue for UART interface zero is always processed first, followed by the UART interface one, two and then three. This is done with a for-loop, as can be seen in the code below.
+\begin{lstlisting}
+for(int uartNr = 0; uartNr < NUMBER_OF_UARTS; uartNr++)
+{
+    /* read data from device spi interface */
+    readHwBufAndWriteToQueue(MAX_14830_DEVICE_SIDE, uartNr, RxDeviceBytes[uartNr]);
+    /* write data from queue to device spi interface */
+    if(config.TestHwLoopbackOnly)
+        readQueueAndWriteToHwBuf(MAX_14830_DEVICE_SIDE, uartNr, RxDeviceBytes[uartNr], HW_FIFO_SIZE);
+    else
+        readQueueAndWriteToHwBuf(MAX_14830_DEVICE_SIDE, uartNr, TxDeviceBytes[uartNr], HW_FIFO_SIZE);
+    /* read data from wireless spi interface */
+    readHwBufAndWriteToQueue(MAX_14830_WIRELESS_SIDE, uartNr, RxWirelessBytes[uartNr]);
+    /* write data from queue to wireless spi interface */
+    if(config.TestHwLoopbackOnly)
+        readQueueAndWriteToHwBuf(MAX_14830_WIRELESS_SIDE, uartNr, RxWirelessBytes[uartNr], HW_FIFO_SIZE);
+    else
+        readQueueAndWriteToHwBuf(MAX_14830_WIRELESS_SIDE, uartNr, TxWirelessBytes[uartNr], HW_FIFO_SIZE);
+}
+\end{lstlisting}
+Data routing is done straight through, meaning that data from a queue with serial number three will be pushed to the hardware buffer for serial interface three.
+\subsubsection{Issues}
+The buffer of the SPI to UART converter is never fully taken advantage of for the bytes received. The SPI Handler always tries to read all incoming data, not looking at the state of its internal queue but rather dropping data from the internal queue if it is full just to empty the buffer of the SPI to UART converter.\\
+Instead of always reading all incoming bytes even if the byte queue is full, the SPI Handler should only drop data in case the buffer of the SPI to UART converter is full and the internal queue is full as well.
+%
+%
+\subsection{Data Link Layer}
+\subsubsection{Description}
+This task is named Package Handler and covers ISO/OSI layer 2. It pops bytes from the queue interface of the physical layer, assembles them to full data packages and pushes them to a package queue.\\
+This task also pops packages generated by an upper layer task from another package queue to sends them byte wise to the physical layers byte queue.
+\subsubsection{Queue Interface}
+This task interfaces a total of 16 queues: eight byte queues and eight package queues.\\
+It pops bytes from four wireless bytes queues to assemble them to packages and push onto to the wireless package queue for that serial connection.\\
+This task also pops internally generated packages from all four packages queues, splits them into bytes and pushes those bytes to the wireless RX byte queue of the same serial connection.\\
+The internal wireless package structure only holds the pointer to its payload data. When generating a package and storing it in a queue, memory for its payload needs to be allocated and freed later on. Generally, freeing payload is done upon pulling a package from the queue and allocating memory is done before pushing it onto the queue. The Package Handler frees allocated memory upon pulling generated packages from the Device Packages queue.
+\subsubsection{Data Loss}
+On receiving side, data is lost when a received package could not be assembled successfully, e.g. when the checksum is not correct, an element in the header is out of range, an unexpected byte appears or any other type of faulty package is received. In this case, data is lost without the upper layer task knowing about it. The state machine for assembling packages will go back to idle state and wait for the next package start sequence.\\
+A successfully assembled package is dropped unintentionally on unsuccessful queue operation. There is a parameter that specifies a wait time in ticks for a queue operation to finish successfully. This parameter is set to zero for all queue operations within the Package Handler task. This results in failure if a queue operation can not be executed immediately instead of trying again within the specified amount of ticks.\\
+On sending side, a package is lost whenever any byte wise push attempt to the Wireless Tx Byte queue is unsuccessful. Again, there is a parameter that specifies the wait time for the push to finish successfully but this parameter is set to zero for all queue operations within the Package Handler task. If unsuccessful, the Package Handler task will drop the package entirely and not push any more parts of it to the byte queue (see code snippet below, line 6). However, the already sent bytes will remain in the byte queue and be pushed out to the hardware buffer by the SPI Handler task.\\
+Before popping an internally generated package from the Device Packages queue and pushing it byte wise to the Wireless Tx Bytes queue, the Package Handler checks if enough space is available on the byte queue (see code snippet below, line 2).
+\begin{lstlisting}
+/* enough space for next package available? */
+if(freeSpace > (sizeof(tWirelessPackage) + package.payloadSize - 4))  /*subtract 4 bytes because pointer to payload in tWirelessPackage is 4 bytes*/
+{
+    if(popReadyToSendPackFromQueue(wlConn, &package) == pdTRUE) /* there is a package ready for sending */
+    {
+        if(sendPackageToWirelessQueue(wlConn, &package) != true) /* ToDo: handle resending of package */
+        {
+            /* entire package could not be pushed to queue byte wise, only fraction in queue now */
+            numberOfDroppedPackages[wlConn]++;
+            FRTOS_vPortFree(package.payload); /* free memory of package before returning from while loop */
+            break; /* exit while loop, no more packages are extracted for this uartNr */
+        }
+        else
+        FRTOS_vPortFree(package.payload); /* free memory of package once it is sent to device */
+    }
+}
+\end{lstlisting}
+\subsubsection{Data Priority and Data Routing}
+There is no data priority implemented in the Package Handler task. All task interfacing queues are FIFO queues. The queue for serial connection zero is always processed first, followed by the serial connection one, two and then three.\\
+Data routing is done straight through, which means that data packages from Device Packages queue three are routed to Wireless Tx Bytes queue three.
+\subsubsection{Issues}
+Verification of the checksum in both header and payload of incoming data package is still commented out for development reasons. All tests have been carried out with a Teensy 3.1 as counter part because only one functional Teensy adapter board was available. Because the Teensy 3.1 uses a different polynomial for checksum calculation and no further time has been invested in selecting the matching polynomial for the new Teensy 3.5 software implementation, it was easiest to just comment checksum verification out.\\
+%
+%
+\subsection{Network Layer}
+\subsubsection{Description}
+This task is named Network Handler and covers all upper layers in the ISO/OSI model. It reads data from device side of the physical layers byte queue and puts them into data packages to send out on wireless side by pushing them onto the package queue of the data link layer. It keeps track of acknowledges received and handles the resending of packages on the correct wireless connection.\\
+This task also extracts data from incoming data packages popped from the data link layer queue, generates acknowledges and pushes the payload to the byte queue of the physical layer task.
+\subsubsection{Queue Interface}
+The Network Handler interfaces a total of 16 queues, eight package queues and eight byte queues. It pops packages from the four Wireless Package queues that hold successfully assembled packages per serial connection. Those queues hold both acknowledges and data packages, in the same order as they were received.\\
+This task also generates data packages and pushes them to the correct Device Package queue for the Package Handler to push down byte wise.\\
+The payload from received packages is extracted and sent to the correct Device Tx Bytes queue.\\
+Packages are generated with payload popped from the Device Rx Bytes queue.
+\subsubsection{Data Loss}
+When a package is received, the payload is extracted and pushed to the Tx Device Byte queue. The state of the Tx Device Bytes queue is not checked before popping a package from the Wireless Packages queue and extracting the payload. In case the Device Tx Bytes queue is full, all data will be lost on unsuccessful push.\\
+As with the other tasks, there is a parameter that specifies the wait time for the push to finish successfully but this parameter is set to zero for all queue operations within the Network Handler. If unsuccessful, the Network Handler task will drop the package entirely and not push any more parts of it to the byte queue.\\
+This results in package loss for generated acknowledges and data packages on unsuccessful push to the Device Packages queue as well as in data loss on unsuccessful push of extracted payload to the Device Tx Bytes queue.\\
+\subsubsection{Data Priority and Data Routing}
+All package routing is done within this task. When generating a package and sending it out for the first time, this task checks the configuration file to find out, to which of the four Wireless Package queues it needs to be pushed. It will go through the configured priorities and attempt to send the package to the corresponding wireless serial connections until a queue push attempt is successful (see code below).
+\begin{lstlisting}
+for(int prio=1; prio <= NUMBER_OF_UARTS; prio++)
+{
+    wlConn = getWlConnectionToUse(rawDataUartNr, prio);
+    if(wlConn >= NUMBER_OF_UARTS) /* maximum priority in config file reached */
+        return false;
+    /* send generated WL package to correct package queue */
+    if(xQueueSendToBack(queuePackagesToSend[wlConn], pPackage, ( TickType_t ) pdMS_TO_TICKS(MAX_DELAY_NETW_HANDLER_MS) ) != pdTRUE)
+        continue; /* try next priority -> go though for-loop again */
+\end{lstlisting}
+If an acknowledge is configured on the wireless connection where the package was sent out, the package will be stored in an internal array of the Network Handler. Because the allocated memory for the package is freed once the Package Handler pulls the package from the queue, the package needs to be duplicated and memory needs to be allocated again for internal storage.\\
+An array with space for 100 unacknowledged packages acts as internal storage. It holds the unacknowledged package itself and information about send attempts and time stamp of the last send attempt. This information is required by the Network Handler to calculate the time of the next send attempt in case of no received acknowledge. It also keeps track of the number of send attempts per wireless connection and will cease all send attempts once the maximum retry timeout has been reached or all send attempts for all wireless connections have been carried out.
+\subsubsection{Issues}
+Currently, there is no way for the receiver of a package to know if incoming data is still in the correct order or if a package is missing. The header of a package contains a time stamp but this timestamp is not monotonically increasing but might skip over several numbers in case of a long delay between the generation of two packages.\\
+When the receiver gets a valid package, it will extract its payload immediately and push it to out on the correct device side. The time stamp is not checked for correct order. Wireless packages may therefore arrive in wrong order and device bytes will then be pushed out in wrong order.\\
+Possible solutions for this problem will be presented later in this chapter.\\
+\todo{WirelessDataStructure}
+%
+%
+\subsection{Next Steps in Software Development}%
 %
 Talk about the things that have not yet been implemented, such as:
 \begin{itemize}
@@ -23,4 +164,7 @@ Talk about the things that have not yet been implemented, such as:
     \item Limit throughput
     \item No sending out the same package over multiple connections at the same time and only taking the one that was received first.
     \item Delay until package is dismissed -> this parameter is defined by timeout and maximum number of retries per connection anyway
+    \item take state of RX byte queue into account before reading data from HW Buf. We lose 128 bytes of buffer like this. Problem: Data will be dropped in SPI to UART converter and not in SW.
+    \item data priority in case queue is full.
+    \item Throughput
 \end{itemize}
