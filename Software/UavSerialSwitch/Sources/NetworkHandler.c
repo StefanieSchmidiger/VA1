@@ -117,10 +117,10 @@ static bool sendAndStoreGeneratedWlPackage(tWirelessPackage* pPackage, tUartNr r
 	for(int prio=1; prio <= NUMBER_OF_UARTS; prio++)
 	{
 		wlConn = getWlConnectionToUse(rawDataUartNr, prio);
-		if(wlConn >= NUMBER_OF_UARTS)
+		if(wlConn >= NUMBER_OF_UARTS) /* maximum priority in config file reached */
 			return false;
 		/* send generated WL package to correct package queue */
-		if(xQueueSendToBack(queuePackagesToSend[wlConn], pPackage, ( TickType_t ) 0) != pdTRUE)
+		if(xQueueSendToBack(queuePackagesToSend[wlConn], pPackage, ( TickType_t ) pdMS_TO_TICKS(MAX_DELAY_NETW_HANDLER_MS) ) != pdTRUE)
 			continue; /* try next priority -> go though for-loop again */
 		/* update throughput printout */
 		numberOfPacksSent[wlConn]++;
@@ -136,7 +136,7 @@ static bool sendAndStoreGeneratedWlPackage(tWirelessPackage* pPackage, tUartNr r
 		}
 	}
 	/* ToDo: handle failure of storeNewPackageInUnacknowledgedPackagesArray() */
-	UTIL1_strcpy(infoBuf, sizeof(infoBuf), "Unacknowledged packages array is full\r\n");
+	UTIL1_strcpy(infoBuf, sizeof(infoBuf), "Warning: Unacknowledged packages array is full\r\n");
 	pushMsgToShellQueue(infoBuf);
 	FRTOS_vPortFree(pPackage->payload); /* free memory since it wont be freed when popped from queue */
 	numberOfDroppedPackages[wlConn]++;
@@ -165,8 +165,8 @@ static uint8_t getWlConnectionToUse(tUartNr uartNr, uint8_t desiredPrio)
 static bool processReceivedPackage(tUartNr wlConn)
 {
 	tWirelessPackage package;
-	char infoBuf[50];
-
+	char infoBuf[150];
+	// ToDo: is peeking needed? Nothing is done with the peek information here. Maybe check if enough space on device side before popping it and not being able to push it down?
 	if(peekAtReceivedPackQueue(wlConn, &package) != pdTRUE) /* peek at package to find out payload size for malloc */
 		return false;
 	if(popReceivedPackFromQueue(wlConn, &package) != pdTRUE) /* actually remove package from queue */
@@ -183,7 +183,7 @@ static bool processReceivedPackage(tUartNr wlConn)
 		{
 			if(pushToByteQueue(MAX_14830_DEVICE_SIDE, package.devNum, &package.payload[cnt]) == pdFAIL) /* ToDo: all data is lost! Implement a try-again-later method */
 			{
-				XF1_xsprintf(infoBuf, "Device byte array for UART %u is full", package.devNum);
+				XF1_xsprintf(infoBuf, "Warning: Device byte array for UART %u is full", package.devNum);
 				pushMsgToShellQueue(infoBuf);
 				numberOfDroppedBytes[package.devNum]++;
 			}
@@ -194,15 +194,17 @@ static bool processReceivedPackage(tUartNr wlConn)
 			tWirelessPackage ackPackage;
 			if(generateAckPackage(&package, &ackPackage) == false) /* allocates payload memory block for ackPackage, ToDo: handle malloc fault */
 			{
-				UTIL1_strcpy(infoBuf, sizeof(infoBuf), "Could not allocate payload memory for acknowledge");
+				UTIL1_strcpy(infoBuf, sizeof(infoBuf), "Warning: Could not allocate payload memory for acknowledge");
 				pushMsgToShellQueue(infoBuf);
 				numberOfDroppedAcks[wlConn]++;
 			}
 			if(xQueueSendToBack(queuePackagesToSend[wlConn], &ackPackage, ( TickType_t ) pdMS_TO_TICKS(MAX_DELAY_NETW_HANDLER_MS) ) != pdTRUE) // ToDo: try sending ACK package out on wireless connection configured (just like data package, iterate through priorities) */
 			{
+				XF1_xsprintf(infoBuf, "Warning: ACK for wireless number %u could not be pushed to queue", wlConn);
+				pushMsgToShellQueue(infoBuf);
 				numberOfDroppedPackages[wlConn]++;
 				FRTOS_vPortFree(ackPackage.payload); /* free memory since it wont be done on popping from queue */
-				UTIL1_strcpy(infoBuf, sizeof(infoBuf), "Acknowledge cannot be sent because package queue full");
+				UTIL1_strcpy(infoBuf, sizeof(infoBuf), "Warning: Acknowledge cannot be sent because package queue full");
 				pushMsgToShellQueue(infoBuf);
 			}
 			/* memory of ackPackage is freed after package in PackageHandler task, extracted and byte wise pushed to byte queue */
@@ -234,6 +236,8 @@ static bool processReceivedPackage(tUartNr wlConn)
 				}
 			}
 		}
+		XF1_xsprintf(infoBuf, "Warning: Got ACK on wireless connection %u but no saved package found -> check ACK configuration on both sides %u\r\n", wlConn);
+		pushMsgToShellQueue(infoBuf);
 		return false; /* found no matching data package for this acknowledge */
 	}
 	FRTOS_vPortFree(package.payload); /* free memory for package popped from queue */
@@ -291,7 +295,7 @@ static bool generateDataPackage(tUartNr deviceNr, tWirelessPackage* pPackage, ui
 		{
 			if(popFromByteQueue(MAX_14830_DEVICE_SIDE, deviceNr, &pPackage->payload[cnt]) != pdTRUE) /* ToDo: handle queue failure */
 			{
-				UTIL1_strcpy(infoBuf, sizeof(infoBuf), "Pop from UART ");
+				UTIL1_strcpy(infoBuf, sizeof(infoBuf), "Warning: Pop from UART ");
 				UTIL1_strcatNum8u(infoBuf, sizeof(infoBuf), pPackage->devNum);
 				UTIL1_strcat(infoBuf, sizeof(infoBuf), " not successful");
 				pushMsgToShellQueue(infoBuf);
@@ -426,8 +430,8 @@ static void handleResendingOfUnacknowledgedPackages(void)
 				if((wlConn >= NUMBER_OF_UARTS) ||
 						(unacknowledgedPackages[index].timestampFirstSendAttempt + pdMS_TO_TICKS(config.DelayDismissOldPackagePerDev[unacknowledgedPackages[index].devNum]) < xTaskGetTickCount()) )
 				{
-					//sprintf(infoBuf, "Max number of retries reached and no ACK received -> discard package for device %u\r\n", unacknowledgedPackages[index].devNum);
-					//pushMsgToShellQueue(infoBuf, strlen(infoBuf));
+					XF1_xsprintf(infoBuf, "Warning: Max number of retries reached and no ACK received -> discard package for device %u\r\n", unacknowledgedPackages[index].devNum);
+					pushMsgToShellQueue(infoBuf);
 					FRTOS_vPortFree(unacknowledgedPackages[index].payload); /* free allocated memory when package dropped*/
 					unacknowledgedPackagesOccupiedAtIndex[index] = 0;
 					numberOfUnacknowledgedPackages--;

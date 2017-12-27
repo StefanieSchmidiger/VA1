@@ -86,6 +86,14 @@ void throughputPrintout_TaskEntry(void* p)
 				numberOfDroppedBytes[0], numberOfDroppedBytes[1], numberOfDroppedBytes[2], numberOfDroppedBytes[3]);
 		pushMsgToShellQueue(buf);
 
+		XF1_xsprintf(buf, "Wireless: Total number of sent bytes per connection: %lu,%lu,%lu,%lu\r\n",
+				numberOfPayloadBytesSent[0], numberOfPayloadBytesSent[1], numberOfPayloadBytesSent[2], numberOfPayloadBytesSent[3]);
+		pushMsgToShellQueue(buf);
+
+		XF1_xsprintf(buf, "Wireless: Total number of received bytes per connection: %lu,%lu,%lu,%lu\r\n",
+				numberOfPayloadBytesExtracted[0], numberOfPayloadBytesExtracted[1], numberOfPayloadBytesExtracted[2], numberOfPayloadBytesExtracted[3]);
+		pushMsgToShellQueue(buf);
+
 		/* reset measurement */
 		for(int cnt = 0; cnt < NUMBER_OF_UARTS; cnt++)
 		{

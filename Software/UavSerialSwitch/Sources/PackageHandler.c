@@ -71,6 +71,7 @@ void packageHandler_TaskEntry(void* p)
 					{
 						if(sendPackageToWirelessQueue(wlConn, &package) != true) /* ToDo: handle resending of package */
 						{
+							/* entire package could not be pushed to queue byte wise, only fraction in queue now */
 							numberOfDroppedPackages[wlConn]++;
 							FRTOS_vPortFree(package.payload); /* free memory of package before returning from while loop */
 							break; /* exit while loop, no more packages are extracted for this uartNr */

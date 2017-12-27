@@ -34,7 +34,7 @@ static const CLS1_ParseCommandCallback CmdParserTable[] =
 {
   CLS1_ParseCommand,
 #if FRTOS1_PARSE_COMMAND_ENABLED
-  FRTOS1_ParseCommand,
+  FRTOS_ParseCommand,
 #endif
 #if LED_TEENSY_PARSE_COMMAND_ENABLED
   LedTeensy_ParseCommand,

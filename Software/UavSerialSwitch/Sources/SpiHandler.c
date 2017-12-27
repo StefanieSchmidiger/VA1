@@ -416,16 +416,16 @@ static uint16_t readHwBufAndWriteToQueue(tSpiSlaves spiSlave, tUartNr uartNr, xQ
 		/* cnt starts at 1 because buffer[0] is left empty for commando, therefore it needs to count up to dataToRead+1 */
 		for (unsigned int cnt = 1; cnt < dataToRead+1; cnt++)
 		{
-			if (xQueueSendToBack(queue, &buffer[cnt], ( TickType_t ) 0 ) == errQUEUE_FULL)
+			if (xQueueSendToBack(queue, &buffer[cnt], ( TickType_t ) pdMS_TO_TICKS(SPI_HANDLER_QUEUE_DELAY) ) == errQUEUE_FULL)
 			{
 				/* queue is full -> delete oldest NUM_OF_BYTES_TO_DELETE_ON_QUEUE_FULL bytes */
 				for(int i = 0; i < NUM_OF_BYTES_TO_DELETE_ON_QUEUE_FULL; i++)
 				{
 					static uint8_t data;
-					xQueueReceive(RxWirelessBytes[uartNr], &data, ( TickType_t ) 0 );
+					xQueueReceive(RxWirelessBytes[uartNr], &data, ( TickType_t ) pdMS_TO_TICKS(SPI_HANDLER_QUEUE_DELAY) );
 				}
 				numberOfDroppedBytes[uartNr] += NUM_OF_BYTES_TO_DELETE_ON_QUEUE_FULL;
-				xQueueSendToBack(queue, &buffer[cnt], ( TickType_t ) 0 );
+				xQueueSendToBack(queue, &buffer[cnt], ( TickType_t ) pdMS_TO_TICKS(SPI_HANDLER_QUEUE_DELAY) );
 				if (spiSlave == MAX_14830_WIRELESS_SIDE)
 				{
 					char warnBuf[128];
@@ -470,7 +470,7 @@ static uint16_t readQueueAndWriteToHwBuf(tSpiSlaves spiSlave, tUartNr uartNr, xQ
 	/* check if there is enough space to write the number of bytes that should be written */
 	if (spaceLeft < numOfBytesToWrite)
 	{
-		/* There isn't enough space to write the desired amount of data - just write that much that is possible */
+		/* There isn't enough space to write the desired amount of data - just write as much as possible */
 		numOfBytesToWrite = spaceLeft;
 	}
 	/* write those bytes.. */
@@ -484,7 +484,7 @@ static uint16_t readQueueAndWriteToHwBuf(tSpiSlaves spiSlave, tUartNr uartNr, xQ
 		/* pop bytes from queue and store them in buffer array. cnt starts at 1 because buffer[0] needs to be empty for commando byte */
 		for (cnt = 1; cnt < numOfBytesToWrite+1; cnt++)
 		{
-			if (xQueueReceive(queue, &buffer[cnt], ( TickType_t ) 0 ) == errQUEUE_EMPTY)
+			if (xQueueReceive(queue, &buffer[cnt], ( TickType_t ) pdMS_TO_TICKS(SPI_HANDLER_QUEUE_DELAY) ) == errQUEUE_EMPTY)
 			{
 				/* queue is empty, no data to read - leave for-loop without incrementing cnt */
 				break;
@@ -554,14 +554,14 @@ BaseType_t popFromByteQueue(tSpiSlaves spiSlave, tUartNr uartNr, uint8_t *pData)
 	{
 		if(uartNr < NUMBER_OF_UARTS)
 		{
-			return xQueueReceive(RxWirelessBytes[uartNr], pData, ( TickType_t ) 0 );
+			return xQueueReceive(RxWirelessBytes[uartNr], pData, ( TickType_t ) pdMS_TO_TICKS(SPI_HANDLER_QUEUE_DELAY) );
 		}
 	}
 	else
 	{
 		if(uartNr < NUMBER_OF_UARTS)
 		{
-			return xQueueReceive(RxDeviceBytes[uartNr], pData, ( TickType_t ) 0 );
+			return xQueueReceive(RxDeviceBytes[uartNr], pData, ( TickType_t ) pdMS_TO_TICKS(SPI_HANDLER_QUEUE_DELAY) );
 		}
 	}
 	return pdFAIL; /* if uartNr was not in range */
@@ -582,14 +582,14 @@ BaseType_t pushToByteQueue(tSpiSlaves spiSlave, tUartNr uartNr, uint8_t* pData)
 	{
 		if(uartNr < NUMBER_OF_UARTS)
 		{
-			return xQueueSendToBack(TxWirelessBytes[uartNr], pData, ( TickType_t ) 0 );
+			return xQueueSendToBack(TxWirelessBytes[uartNr], pData, ( TickType_t ) pdMS_TO_TICKS(SPI_HANDLER_QUEUE_DELAY) );
 		}
 	}
 	else
 	{
 		if(uartNr < NUMBER_OF_UARTS)
 		{
-			return xQueueSendToBack(TxDeviceBytes[uartNr], pData, ( TickType_t ) 0 );
+			return xQueueSendToBack(TxDeviceBytes[uartNr], pData, ( TickType_t ) pdMS_TO_TICKS(SPI_HANDLER_QUEUE_DELAY) );
 		}
 	}
 	return pdFAIL; /* if uartNr was not in range */
