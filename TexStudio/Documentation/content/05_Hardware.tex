@@ -156,7 +156,7 @@ Flux gel was applied around the boot loader before heating the soldering pads up
 %
 %
 %
-\section{Teensy Adapter Board}
+\section{Teensy Adapter Board} \label{sec:txtTeensyAdapterBoard}
 The design of the adapter board from the footprint of the Teensy 3.1 to the footprint of the Teensy 3.5 was straight forward because of backwards compatibility of the pinout.\\
 The Teensy 3.5 is slightly longer than the Teensy 3.1 so the extra pins of the newer version will not be routed down to the main board. The backwards compatible pins can be used like before.\\
 Additional components for the adapter board include:
@@ -172,7 +172,7 @@ Issues encountered during development of the adapter board were the pin numberin
 \subsubsection{Pin numbering}
 In a first version of the Teensy adapter board, the pin numbering of the SWD debugging connector was done wrong and had to be adjusted in the footprint for a next PCB version.\\
 \spic{DebuggingWithWrongFootprint.jpg}{Hardware debugging with faulty SWD footprint}{\label{picDebugSetupWrongAdapterBoard}}
-But instead of waiting for the next PCB version to be produced, all debugging signals were routed manually from the faulty SWD pinout to the debugger. This way, development of the software could be started without delay. A picture of the signal routing can be seen in autoref{picDebugSetupWrongAdapterBoard}.
+But instead of waiting for the next PCB version to be produced, all debugging signals were routed manually from the faulty SWD pinout to the debugger. This way, development of the software could be started without delay. A picture of the signal routing can be seen in \autoref{fig:picDebugSetupWrongAdapterBoard}.
 \subsubsection{Interlayer connections}
 The next PCB ordered for internal production at HSLU had poor interlayer connections, most vias did not connect through.\\
 To verify the changes on the SWD pinout, the relevant debugging pins were routed manually with small wires and they seem to be correct.\\
