@@ -1,4 +1,4 @@
-\documentclass[a4paper,fleqn,german]{book}
+\documentclass[a4paper,fleqn,english]{book}
 %
 %---------------------------------------------------------------
 %  LaTeX - Template, Grundlagen, Tipps, Vorlagen (Version 09)
@@ -64,12 +64,12 @@ pdfpagelayout=TwoPageRight                %%% Voreingestellte Ansicht im PDF-Edi
 }
 {Vertiefungsmodul I}                         	       %%% Art der Arbeit
 {Stefanie Schmidiger}          	      		 			%%% Autor
-{Erich Styger}                          	       		%%% Advisor
-{Der Experte}                                   		%%% Experte
+{Prof. Erich Styger}                          	       		%%% Advisor
+{Dr. Christian Vetterli}                                   		%%% Experte
 {Horw}                                          		 	%%% Ort
 {2018}                                         		 		%%% Jahr XXXX
 {10.01.}                                       		 		%%% Tag und Monat der Selbstständigkeitserklärung XX.XX.
-{Version 0 & Vorabzug & 10.01.18 & Stefanie Schmidiger}    	%%% Änderungsverzeichnis, für neue linie \\
+{Version 0 & Initial Document & 10.01.18 & Stefanie Schmidiger}    	%%% Änderungsverzeichnis, für neue linie \\
 
 
 
@@ -90,9 +90,8 @@ pdfpagelayout=TwoPageRight                %%% Voreingestellte Ansicht im PDF-Edi
 
 \zusammenfassung%
 {truedeutsch} % Ist Abstract vorhanden?(truebothsamepage, truebothseparatepages, truedeutsch, false)
-{\input{content/02_Introduction}} % Text der Kurzfassung in Deutsch
+{\input{content/02_Summary}} % Text der Kurzfassung in Deutsch
 {} % Text der Kurzfassung in Englisch
-
 
 %--------------------------------------------------------------------------------------------------------------------
 % INHALTSVERZEICHNIS (automatisch generiert)
@@ -111,8 +110,9 @@ pdfpagelayout=TwoPageRight                %%% Voreingestellte Ansicht im PDF-Edi
 \mainmatter%         	% Nicht editieren!
 \pagestyle{fancy}%	% Nicht editieren!
 %- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-
-
+\chapter{Introduction}
+\input{content/03_Introduction}
+%
 \chapter{Task Description}%
 \input{content/03_StartingSituation}%
 %
@@ -128,38 +128,24 @@ pdfpagelayout=TwoPageRight                %%% Voreingestellte Ansicht im PDF-Edi
 \chapter{Testing}%
 \input{content/07_Testing}%
 %
-%
-%
-%
-%
-%
-%
-%
-%
-%
-%
-%
-%
-%
-%
-%
-%
-%
-%
-%
-%
-%
-%
-%
-%
-%
-%
-%
-\chapter{Hyperref} \label{refHyperref}%
-\input{content/100_Hyperref}%
-%
-\chapter{Literaturverweise}%
-\input{content/101_Literaturverweise}%
+\chapter{Conclusion} \label{sec:txtConclusion}%
+\input{content/08_Conclusion}%
+
+%--------------------------------------------------------------------------------------------------------------------
+% LITERATURVERZEICHNIS
+%--------------------------------------------------------------------------------------------------------------------
+
+\literaturverzeichnis%
+{true} % LIteraturverzeichnis anzeigen? (true=ja, false=nein)
+
+
+%--------------------------------------------------------------------------------------------------------------------
+% BEZEICHNUNGEN
+%--------------------------------------------------------------------------------------------------------------------
+
+\bezeichnungenChapter%
+{true} % Bezeichnungen anzeigen? (true=ja, false=nein)
+{\input{content/103_Bezeichnungen}}
 
 
 
@@ -180,23 +166,6 @@ pdfpagelayout=TwoPageRight                %%% Voreingestellte Ansicht im PDF-Edi
 %- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 \input{corefiles/outsource_endAppendix} % Nicht editieren!
 %- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-
-
-%--------------------------------------------------------------------------------------------------------------------
-% LITERATURVERZEICHNIS
-%--------------------------------------------------------------------------------------------------------------------
-
-\literaturverzeichnis%
-{true} % LIteraturverzeichnis anzeigen? (true=ja, false=nein)
-
-
-%--------------------------------------------------------------------------------------------------------------------
-% BEZEICHNUNGEN
-%--------------------------------------------------------------------------------------------------------------------
-
-\bezeichnungenChapter%
-{true} % Bezeichnungen anzeigen? (true=ja, false=nein)
-{\input{content/103_Bezeichnungen}}
 
 
 %--------------------------------------------------------------------------------------------------------------------

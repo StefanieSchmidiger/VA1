@@ -1,6 +1,6 @@
 % Hardware
 %
-The task description for this project as seen in \todo{Aufgabenstellung} requires the following hardware changes:
+The task description for this project as seen in appendix \autoref{app:Aufgabenstellung} requires the following hardware changes:
 %
 \begin{itemize}%
     \item Optimization of size and weight %
@@ -59,8 +59,8 @@ This solution has been chosen in the scope of this work to ensure that the end r
 \section{Component Evaluation}
 Before starting with the design of an adapter board, a replacement for the Teensy 3.1 development board has to be chosen. \\
 %
-\subsection{Development Board Selection}
-The easiest option is to select a more powerful Teensy development board that meets the requirements listed in \todo{Link zu Aufgabenstellung}. \\
+\subsection{Development Board Selection} \label{subsec:txtTeensySelection}
+The easiest option is to select a more powerful Teensy development board that meets the requirements listed in appenedix \autoref{app:Aufgabenstellung}.\\
 Fortunately, both the Teensy 3.5 and Teensy 3.6 meet the requirements and have an on-board SD card slot. A comparison between the Teensies can be found in \autoref{tableTeensyComparison}
 %
 \begin{table}[h]
@@ -171,7 +171,7 @@ Schematic and PCB of the Teensy adapter board can be found in the appendix \todo
 Issues encountered during development of the adapter board were the pin numbering and interlayer connections.
 \subsubsection{Pin numbering}
 In a first version of the Teensy adapter board, the pin numbering of the SWD debugging connector was done wrong and had to be adjusted in the footprint for a next PCB version.\\
-\spic{DebuggingWithWrongFootprint.jpg}{Hardware debugging with faulty SWD footprint}{\label{picDebugSetupWrongAdapterBoard}}
+\spic{DebuggingWithWrongFootprint.jpg}{Hardware debugging with faulty SWD footprint}{\label{fig:picDebugSetupWrongAdapterBoard}}
 But instead of waiting for the next PCB version to be produced, all debugging signals were routed manually from the faulty SWD pinout to the debugger. This way, development of the software could be started without delay. A picture of the signal routing can be seen in \autoref{fig:picDebugSetupWrongAdapterBoard}.
 \subsubsection{Interlayer connections}
 The next PCB ordered for internal production at HSLU had poor interlayer connections, most vias did not connect through.\\

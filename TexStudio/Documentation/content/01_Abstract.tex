@@ -1,6 +1,5 @@
 % Vorwort
 %
-This work is being done for Aeroscout GmbH, a company that specialized in development of drones. \\
 With unmanned vehicles, there are always on-board and off-board components. Data transmission between those components is of vital importance. Depending on the distance between on-board and off-board components, different data transmission technologies have to be used. \\
 In this project, a hardware has been designed where multiple data inputs and outputs and multiple transmitters can be connected to a serial switch. The designed hardware features an SD card with a configuration file where data routing can be configured. \\
 Data from connected devices will be collected and put into a data package with header, checksum, time stamp and other information. The package is then sent out via the configured transmitter. The corresponding second serial switch hardware receives this package, extracts and checks the payload, sends it out to the corresponding device and sends an acknowledge back to the package sender. \\

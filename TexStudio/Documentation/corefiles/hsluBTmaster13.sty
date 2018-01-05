@@ -334,6 +334,7 @@
 \usepackage{pdfpages}				% Um PDF Seiten einzufügen
 \usepackage{accsupp}			   % Zur Erstellung von nicht selektierbarem Text (für lstlisting Codeselektion)
 \usepackage[colorinlistoftodos,obeyFinal]{todonotes} % TODO Notes
+\usepackage{tikz}
 %-----------------------------------------------------
 \usepackage{hyperref}            %%% Doppelseiten Layout beim öffnen  ALS LETZTES ZU LADEN
 %
@@ -378,6 +379,7 @@
 % ---------------------------------------------------------------------------------------------------------
 %
 \renewcommand\labelitemi{--}%
+\def\checkmark{\tikz\fill[scale=0.4](0,.35) -- (.25,0) -- (1,.7) -- (.25,.15) -- cycle;} 
 %
 % Anpassen Bibliography, dass name= "Muster H." und nicht "H. Muster"
 % ---------------------------------------------------------------------------------------------------------
@@ -598,6 +600,7 @@
 %
 % Begriffsdefinitionen für Autoref (Deutsch):
 %
+\addto\extrasngerman{\def\tableautorefname{Table}}%
 \addto\extrasngerman{\def\figureautorefname{Figure}}%
 \addto\extrasngerman{\def\sectionautorefname{Section}}%
 \addto\extrasngerman{\def\subsectionautorefname{Section}}%
@@ -700,8 +703,8 @@ backrefpages = {Zitiert~auf~S\adddot},}%
 \ifstrequal{#1}{true}{
 %- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 \clearpage
-\chapter*{Literaturverzeichnis} 
-\addcontentsline{toc}{chapter}{Literaturverzeichnis}%
+\chapter*{References} 
+\addcontentsline{toc}{chapter}{References}%
 \vspace{-12.8mm}
 \renewcommand{\bibname}{}
 \printbibliography%[heading=bibintoc]
@@ -799,6 +802,68 @@ backrefpages = {Zitiert~auf~S\adddot},}%
 %
 %
 %- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+% "\einleitung" -  Einleitung 
+%- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+%(D/E oder nur D, auf gleicher oder separater Page)
+%
+\newcommand{\einleitung}[3]{%
+%
+	\ifstrequal{#1}{truebothsamepage}{
+%
+\chapter*{Introduction}
+\pdfbookmark[1]{Introduction}{Introduction}
+\thispagestyle{empty}
+\pagestyle{empty}
+\vspace{-9mm}
+%
+#2 \\ \\ \\ \\ \\   %%% Durch die Kurzfassung ersetzen.
+%
+{\fontsize{16pt}{16pt}\selectfont \textbf{Abstract}}\\
+\thispagestyle{empty}
+\pagestyle{empty}
+\vspace{7.2mm}  
+\\ #3	  %%% Durch das Abstract ersetzen.
+\thispagestyle{empty}%
+\pagestyle{empty}%
+%
+}{\ifstrequal{#1}{truebothseparatepages}{
+%
+		\thispagestyle{empty}
+		\pagestyle{empty}
+		\chapter*{Kurzfassung}
+		\pdfbookmark[1]{Kurzfassung}{Kurzfassung}
+		\thispagestyle{empty}
+		\pagestyle{empty}
+		\vspace{-9mm}
+%
+#2  %%% Durch die Kurzfassung ersetzen.
+%
+\newpage
+{\fontsize{16pt}{16pt}\selectfont \textbf{Abstract}}\\
+\thispagestyle{empty}
+\pagestyle{empty}
+\vspace{7.2mm}  
+\\ #3	  %%% Durch das Abstract ersetzen.
+%
+ }{\ifstrequal{#1}{truedeutsch}{
+%
+\chapter*{Introduction}
+\pdfbookmark[1]{Introduction}{Introduction}
+\thispagestyle{empty}
+\pagestyle{empty}
+\vspace{-9mm}
+%
+#2  %%% Durch die Kurzfassung ersetzen.
+%
+\thispagestyle{empty}		
+%
+}{\ifstrequal{#1}{false}{}{\PackageError{zusammenfassung}{Undefined option to zusammenfassung command 1}{}}}}}%
+}%
+%
+%
+%
+%
+%- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 % "\anhangstuff" - Generieren eines optionalen Anhangs 
 %- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
  %
@@ -810,6 +875,7 @@ backrefpages = {Zitiert~auf~S\adddot},}%
 %
 \renewcommand\thesection{\Alph{chapter}.\arabic{section}}
 \renewcommand\thesubsection{\Alph{chapter}.\arabic{section}.\arabic{subsection}}
+\renewcommand*{\appendixname}{Appendix}
 %
 #2
 %
