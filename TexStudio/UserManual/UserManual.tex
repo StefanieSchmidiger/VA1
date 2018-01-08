@@ -111,14 +111,19 @@ pdfpagelayout=TwoPageRight                %%% Voreingestellte Ansicht im PDF-Edi
 \pagestyle{fancy}%	% Nicht editieren!
 %- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 \chapter{Introduction}
-\input{content/03_Introduction}
+\input{content/01_Introduction}
 %
+\chapter{Hardware Configuration}
+\input{content/02_HwConfiguration}
+%
+\chapter{Software Configuration}
+\input{content/03_SwConfiguration}
 %--------------------------------------------------------------------------------------------------------------------
 % LITERATURVERZEICHNIS
 %-------------------------	-------------------------------------------------------------------------------------------
 
 \literaturverzeichnis%
-{true} % LIteraturverzeichnis anzeigen? (true=ja, false=nein)
+{false} % LIteraturverzeichnis anzeigen? (true=ja, false=nein)
 
 
 %--------------------------------------------------------------------------------------------------------------------
@@ -140,7 +145,7 @@ pdfpagelayout=TwoPageRight                %%% Voreingestellte Ansicht im PDF-Edi
 %- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 \anhangstuff % Generiert den Anhang-Titel und ändert Spezifikationen
-{true} % ist Anhang vorhanden? (true=ja, false=nein)
+{false} % ist Anhang vorhanden? (true=ja, false=nein)
 {
 \input{content/102_Anhang}%
 }
@@ -153,7 +158,7 @@ pdfpagelayout=TwoPageRight                %%% Voreingestellte Ansicht im PDF-Edi
 % TODO's (nur für Vorabzüge)
 %--------------------------------------------------------------------------------------------------------------------
 
-\listoftodos%     % Bei der definitiven Ausgabe des Dokuments auskommentieren
+%\listoftodos%     % Bei der definitiven Ausgabe des Dokuments auskommentieren
 
 %- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
 \end{document} % Nicht editieren!

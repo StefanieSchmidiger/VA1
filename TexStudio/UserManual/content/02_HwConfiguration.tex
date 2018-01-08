@@ -1,0 +1,48 @@
+% 02_HwConfiguration
+%
+\label{sec:txtHwConfig}
+\spicv{BaseBoardAssembled.png}{UAV Serial Switch}{\label{fig:picBaseBoard}}{100}%
+\spicv{BareBaseBoard.png}{Base board}{\label{fig:picBareBaseBoard}}{100}%
+\spicv{Teensy35.png}{Teensy 3.5 development board}{\label{fig:picTeensy35}}{100}%
+\spicv{AdapterBoard.png}{Teensy adapter board}{\label{fig:picBareAdapterBoard}}{100}%
+The UAV Serial Switch can be seen in \autoref{fig:picBaseBoard} and aims to provide the user with maximum flexibility.\\
+It consists of a base board (see \autoref{fig:picBareBaseBoard}), a Teensy adapter board (see \autoref{fig:picBareAdapterBoard}) and a Teensy 3.5 (see \autoref{fig:picTeensy35}).\\
+The base board was designed for a Teensy 3.2 but is now used with a Teensy 3.5, hence the adapter board.\\
+Read this chapter to learn more about the connectors and possible hardware configurations accessible to the user.
+%
+%
+%
+%
+%
+%
+%
+\section{User Interfaces}
+\spicv{DeviceSideWirelessSide.png}{Device side and wireless side}{\label{fig:picDeviceSideWirelessSide}}{80}%
+From now on, the side where data generating and data processing devices can be connected will be referred to as the device side and the side where modems can be connected will be referred to as the wireless side. See \autoref{fig:picDeviceSideWirelessSide} for the location of the connectors.
+%
+%
+\subsection{RS232 Interface}
+\spicv{Rs232Signals.png}{Pinout of RS232 user interfaces}{\label{fig:picRs232Pinout}}{100}%
+There are four RS232 interfaces available for both device and wireless side. The sigals available are kept to a bare minimum with only RX, TX and ground lines. See \autoref{fig:picRs232Pinout} for details on pinout of the RS232 interfaces. All RS232 connectors on device side have the same pinout and all RS232 connectors on wireless side have the same pinout.\\
+Connector numbering is also visible in \autoref{fig:picRs232Pinout}.
+%
+%
+\subsection{USB Serial Port}
+\spicv{UsbSignals.png}{USB user interfaces}{\label{fig:picUsbInterface}}{100}%
+Instead of connecting devices on the RS232 interfaces, you can configure the Serial Switch for USB connected devices.\\
+There are two USB connectors available on the base board. They act as dual USB to serial bridges, so each USB interface can replace two RS232 interfaces (see \autoref{fig:picUsbInterface}). When connecting one USB interface of the base board to a computer, two COM ports will appear to simulate two serial interfaces.\\
+In order to use an USB interface instead of the RS232 connector for a device, the jumpers have to be set accordingly on the base board. See \autoref{fig:picUsbInterface} to find out which jumper corresponds to which serial interface. \\
+Set the jumpers of the Tx and Rx signals to the left to select the RS232 signal and set it to the right to select the USB interface.\\
+%
+%
+\section{Power Supply}
+\spicv{PowerSupply.png}{Power supply options}{\label{fig:picPowerSupply}}{100}%
+The base board and the adapter board share one power supply. The setup can either be powered by USB from any of the USB connectors or with an external 5V power supply (see \autoref{fig:picPowerSupply}). To select either one of those options, simply set the jumper to the correct position (External or USB, as indicated in  \autoref{fig:picPowerSupply}).
+%
+%
+\section{UART Flow Control}
+\spicv{UartFlowControl.png}{Hardware flow control signal}{\label{fig:picHwFlowControl}}{100}%
+Because the RS232 connectors only route the RX and TX signals to the hardware buffer, a workaround has been done to use the CTS flow control signal as well for device connection 0 and 1.\\
+To enable hardware flow control, connect the CTS signals of the RS232 interface to the indicated pin (see \autoref{fig:picHwFlowControl}). Careful: the CTS pin is not RS232 level compatible, you need a level shifter because the CTS pin only allows 0V to 5V!
+%
+%
