@@ -85,7 +85,7 @@
       <file>DocumentationVa1_StefanieSchmidiger-blx.bib</file>
     </requires>
     <requires type="editable">
-      <file>corefiles/literatur.bib</file>
+      <file>corefiles/literaturDocumentation.bib</file>
     </requires>
     <requires type="static">
       <file>biblatex.bst</file>

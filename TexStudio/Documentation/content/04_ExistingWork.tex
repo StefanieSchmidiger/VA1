@@ -4,52 +4,54 @@
 It was not necessary to start from scratch for this project. \\
 In the beginning of 2017, Andreas Albisser has already started with an implementation and provided a first solution. \\
 He developed a hardware that was used as the interface between input/output data and modem for wireless transmission. He chose the Teensy 3.2 development board as a micro controller and worked with the Arduino IDE and Arduino libraries. \\
-There are various problems still with his work which lead to this follow up project to improve the overall functionality.\\
+There are still various problems with his work which lead to this follow up project to improve the overall functionality.\\
 More details about the work Andras Albisser has done can be taken from this chapter. \\
 %
 %
 %
 \section{Hardware}
 \spic{BaseBoardWithTeensy31.jpg}{Base board with Teensy 3.2 designed by Andreas Albisser}{\label{fig:picHardwareWithTeensy32}}%
-The hardware developed by Andreas Albisser ca be seen in \autoref{fig:picHardwareWithTeensy32}. It has a total of eight RS232 interfaces where peripheral devices can be connected. Four connections are for control units, sensors or any other devices that process or generate data to be transmitted. On the other side, there are four connectors for modems to allow different ways of transmission. An overview can be seen in \autoref{fig:picHardwareOverview}.\\
+\spic{BaseBoardWithTeensy32.png}{Base board with Teensy 3.2}{\label{fig:picHardwareWithTeensy32Labeled}}%
+The hardware developed by Andreas Albisser ca be seen in \autoref{fig:picHardwareWithTeensy32}. It has a total of eight RS-232 interfaces where peripheral devices can be connected. Four connections are for control units, sensors or any other devices that process or generate data to be transmitted. On the other side, there are four connectors for modems to allow different ways of transmission. An overview can be seen in \autoref{fig:picHardwareOverview}.\\
 \spicH{HardwareUseCaseOverview.png}{Hardware overview}{\label{fig:picHardwareOverview}}%
 Each interface accessible to the user is bidirectional which means that both sensors and actors can be connected.\\
-From now on, the side where data generating and processing devices can be connected will be referred to as the device side and the side where modems can be connected will be referred to as the wireless side.\\
-On both device side and wireless side, periphery can be connected to the four RS232 serial interfaces. On device side, the user can chose between a RS232 interface and a USB mini interface individually for each interface with jumpers. When selecting the USB mini interface, one USB hub acts as a dual COM interface, allowing two serial COM ports to open up to simulate two serial interfaces. \\
-The serial interfaces are not connected to the Teensy 3.1 development board directly. There is a SPI to UART converter that acts as a hardware buffer between serial input/output and micro controller.
-All serial connections work on RS232 level which is +-12V. Because the SPI to UART converter is not RS232 level compatible, a voltage regulator is used between the serial interface accessible to the user and the SPI to UART converter.\\
+From now on, the side where data generating and processing devices can be connected will be referred to as the device side and the side where modems can be connected will be referred to as the wireless side. See their location in \autoref{fig:picHardwareWithTeensy32Labeled}\\
+On both device side and wireless side, periphery can be connected to the four RS-232 serial interfaces. On device side, the user can chose between a RS-232 interface and a USB mini interface individually for each interface with jumpers. When selecting the USB mini interface, one USB hub acts as a dual COM interface, allowing two serial COM ports to open up to simulate two serial interfaces. \\
+The serial interfaces are not connected to the Teensy 3.2 development board directly. There is a SPI to UART converter that acts as a hardware buffer between serial input/output and micro controller.
+All serial connections work on RS-232 level which is +-12V. Because the SPI to UART converter is not RS-232 level compatible, a voltage regulator is used between the serial interface accessible to the user and the SPI to UART converter.\\
 Details about the components used on this hardware can be taken from the following section.
 A block diagram of the on-board hardware components can be taken from \autoref{fig:picHardwareDetails}.\\
+For further details about the location of the components on the base board and possible hardware configurations, please read the user manual.
 \spicH{HardwareDetails.png}{Hardware details}{\label{fig:picHardwareDetails}}%
 %
 \subsection{User Interface}
-There are a total of eight RS232 serial connections accessible to the user, four on device side and four on wireless side.\\
+There are a total of eight RS-232 serial connections accessible to the user, four on device side and four on wireless side.\\
 The baud rate for each serial connection can be configured individually. \\
-RS232 is based on the UART protocol but with different voltage level.\\
-UART is an asynchronous serial interface which means that there is no shared clock line between the two components. Both sides need to be configured with the same baud rate so they can communicate correctly.\\
-A UART interface requires three wires: two unidirectional data lines (RX and TX) and a ground connection. Those three wires are accessible to the user on the Serial Switch base board, but with RS232 level, which is +-12V.
+RS-232 is based on the UART protocol but with different voltage level.\\
+UART is an asynchronous serial interface which means that there is no shared clock line between the two components communicating. Both sides need to be configured with the same baud rate so they can communicate successfully.\\
+A UART interface requires three wires: two unidirectional data lines (RX and TX) and a ground connection. Those three wires are accessible to the user on the Serial Switch base board, but with RS-232 level, which is +-12V.
 %
-\subsection{RS232 to UART Converter}
-The serial interfaces accessible to the user work on RS232 level. Just behind the serial interface, there is a level shifter that converts the RS232 level to TTL (5V). \\
-This level shifter is bypassed on the device side in case the USB serial connection is used instead of the RS232 serial interface.
+\subsection{RS-232 to UART Converter}
+The serial interfaces accessible to the user work on RS-232 level. Just behind the serial interface, there is a level shifter that converts the RS-232 level to TTL (5V). \\
+This level shifter is bypassed on the device side in case the USB serial connection is used instead of the RS-232 serial interface.
 %
 \subsection{USB to UART Converter} \label{subsec:UsbToUartConverter}
-On device side, the user can chose whether data is provided via USB or via RS232 serial connection.\\
-A jumper is used to switch between RS232 input and USB input. \\
+On device side, the user can chose whether data is provided via USB or via RS-232 serial connection.\\
+A jumper is used to switch between RS-232 input and USB input. \\
 In case when the USB input is selected, each USB hub acts as a dual serial COM port which means that when connecting the hardware to a computer, there will be two COM ports available per USB connection. \\
 The on board USB to UART converter acts as an interface between USB hub and SPI to UART converter.
 %
 \subsection{SPI to UART Converter}
 UART is an asynchronous serial interface which requires three connections: ground and two unidirectional data lines. If the Teensy was to communicate with each serial port directly, it would require eight of those UART interfaces (which would add up to 16 data lines). To facilitate communication with the serial interfaces, a SPI to UART converter was selected as an intermediate interface.\\
 There are two SPI to UART converters on board, one for the four device serial connections and one for the four wireless serial connections. SPI is a synchronous master-slave communication interface where the unidirectional data lines are shared amongst all participants. The only individual line between master and slave is the Slave Select line that determines, which slave is allowed to communicate to the master at a time. \\
-Those converters are used as hardware buffers and can store up to 128 bytes per serial interface and data direction.
+The SPI to UART converters are used as hardware buffers and can store up to 128 bytes per serial interface and data direction.
 %
-\subsection{Teensy 32 Development Board}
-Andreas Albisser used a Teensy 3.2 as a micro controller as can be seen in \autoref{fig:picTeensy3.2}.\\
+\subsection{Teensy 3.2 Development Board}
+Andreas Albisser used a Teensy 3.2 as a micro controller (an example can be seen in \autoref{fig:picTeensy3.2}).\\
 The Teensy development boards are breadboard compatible USB development boards. They are small, low-priced and yet equipped with a powerful ARM processor.\\
-The Teensy development boards all come with a pre-flashed bootloader to enable programming over USB. They use a less powerful processor as an interface to the developer to enable the use of Arduino libraries and the Arduino IDE.\\
-There is no hardware debugging interface available to the user on the Teensy development boards. Programming is only possible via USB.\\
-\spicv{Teensy31.jpg}{Teensy 3.1}{\label{fig:picTeensy3.2}}{80}%
+The Teensy development boards all come with a pre-flashed boot loader to enable programming over USB. They use a less powerful processor as an interface to the developer to enable the use of Arduino libraries and the Arduino IDE.\\
+There is no hardware debugging interface available to the user on the Teensy development boards. Programming is only possible via USB. The on-board boot loader communicates to the MCU and controls the hardware debugging signals.\\
+\spicv{Teensy31.jpg}{Teensy 3.2}{\label{fig:picTeensy3.2}}{80}%
 %
 \subsection{Power Supply}
 The hardware needs 5V as a power supply. This can be achieved by using any of the USB connections or via a dedicated power connector located on the board. \\
@@ -64,30 +66,30 @@ The hardware needs 5V as a power supply. This can be achieved by using any of th
 %
 %
 The following section gives you an overview of the Arduino software written by Andreas Albisser. \\
-There was only a brief documentation of the software available but fortunately, the comments in the code were helpful to get an understanding.\\
+There was only a brief documentation of the software available (see appendix \autoref{app:DocumentationAndreasAlbisser}) but the comments in the code were helpful to get an understanding.\\
 Any information provided below has been reverse engineered.\\
 %
 \subsection{Software Development Tools}
 The software was written in C++ in Visual Studio. To compile the software, install the Visual Studio Enterprise 2015 version 14, the Arduino IDE extension for Visual Studio and the libraries "Queue by SMFSW" and "TaskScheduler by Anatoli Arkhipenko". Additionally, the old Arduino IDE version 1.8.1 has to be installed as well, together with the software add-on for Teensy support (Teensyduino).\\
-A detailed installation manual for all packages and environments needed can be found in the appendix. \todo{Link zur Installationsanleitung im Appendix}.
+A detailed installation manual for all packages and environments needed can be found in the appendix \autoref{app:DocumentationAndreasAlbisser}.
 %
 \subsection{Basic Functionality}
 The software written by Andreas Albisser provided a good basis and reference for the software developed in the scope of this project.\\
-The basic functionality provided by his software was the transmission of data packages and acknowledges on wireless side. Generally it can be said that only packages are exchanged over wireless side and bytes are transmitted or received over device side. \\
-The Teensy would frequently poll its SPI to UART hardware buffers for received data. In case the SPI to UART converter had data in its device buffer, the Teensy would read the data in a second SPI command. The read data is then wrapped in a package with header which contained CRC, timestamp and other information and sent out on the wireless side.\\
-The corresponding second hardware would receive this package on its wireless side, extract the payload from it and send the extracted payload out on its device side. \\
+The basic functionality provided by his software was the transmission of data packages and acknowledges on wireless side. Generally it can be said that only packages are exchanged on wireless side and bytes are exchanged on device side. \\
+The Teensy frequently polls its SPI to UART hardware buffers for received data. In case the SPI to UART converter had data in its buffer, the Teensy reads the data in a second SPI command. The read data is then wrapped in a package with header which containes CRC, timestamp and other information. The package is then sent out on the wireless side.\\
+The corresponding second hardware receives this package on its wireless side, extracts the payload from it and sends the extracted payload out on its device side. \\
 To ensure successful transmission of packages, the concept of acknowledges is applied in the software where the receiver replies with an acknowledge to a successful package reception. A sequence diagram of a successful package transmission can be found in \autoref{fig:picSuccessfulPackageTransmission}.\\
-Both Serial Switches continuously do both tasks: poll on device side to generate data packages for sending and poll on wireless side to receive wireless packages and send that payload back out on its device side.\\ 
+Both Serial Switches continuously do both tasks: poll on device side to generate data packages for sending and poll on wireless side to receive wireless packages and send that payload back out on its device side. Communication is therefore always bidirectional.\\ 
 \spicH{SuccessfulPackageTransmission.png}{Successful package transmission}{\label{fig:picSuccessfulPackageTransmission}}%
 The maximum number of payload bytes per package can be configured in the software, just like the maximum amount of time the application should wait for a package to fill up until it will be sent anyway.\\
-In case the package transmission was unsuccessful, either if the package got lost or corrupted, the receiving hardware will not send an acknowledge back. The application that sent the package will wait for a configurable amount of time before trying to send the same package again. Details can be found in \autoref{fig:UnsuccessfulPpackageTransmission}.\\
+In case the package transmission was unsuccessful, either if the package got lost or corrupted, the receiving hardware will not send an acknowledge back. The application that sent the package will wait for a configurable amount of time before trying to send the same package again. Details can be found in \autoref{fig:picUnsuccessfulPackageTransmission}.\\
 The maximum time to wait for an acknowledge before resending the same package can be configured in the software. The maximum number of resends per package can be configured for each wireless connection. \\
 \spicH{UnsuccessfulPackageTransmission.png}{Unsuccessful package transmission}{\label{fig:picUnsuccessfulPackageTransmission}}%
 %
 \subsection{Configuration}
-All basic configuration parameters of the Arduino software are in the file serialSwitch\_General.h\\
-For changes to be executed, the software has to be recompiled and uploaded. In order to do so, the necessary environment and all packages used by the software have to be installed on the computer as described in the user manual \todo{Link zum user manual FW installation von Andreas}. 
-All configuration possibilities of Andreas Albissers software can be taken from the \autoref{tab:tabConfigArduinoSw}:
+All basic configuration parameters of the Arduino software are in the file serialSwitch\_Config.h\\
+For changes to be executed, the software has to be recompiled and uploaded. In order to do so, the necessary environment and all packages used by the software have to be installed on the computer as described in the installation guide provided by Andreas Albisser (see appendix \autoref{app:DocumentationAndreasAlbisser}). 
+All configuration possibilities of Andreas Albisser's software can be taken from the \autoref{tab:tabConfigArduinoSw}:
 %
 \begin{center}
     \begin{longtable}{p{6cm}p{1cm}p{7cm}}
@@ -116,7 +118,7 @@ All configuration possibilities of Andreas Albissers software can be taken from 
             \hline
             % --------------------------------------------------------
             MAX\_THROUGHPUT\_WIRELESS\_ CONN
-             &  0...4294967295 & 
+             &  0...$2^{32}-1$ & 
             Limit of the maximum data throughput in bytes/s per wireless connection. If two devices use the same wireless connection with the same priority but the maximum throughput is reached, data of the lower priority device will be redirected to its wireless connection with the next lower priority or discarded (in case this was the  wireless connection with lowest priority already). Example: {0, 10000, 10000, 10000} means that wireless connection 0 will not be used.\\
             \hline
             % --------------------------------------------------------
@@ -184,7 +186,6 @@ The orange LED is turned on when a warning is printed out on the serial interfac
 The software written by Andreas Albisser runs with ten main tasks that make up the basic functionality and several minor task that are responsible for debug output, blinking of LEDs and any other functionalities that can be enabled through the configuration header. The software concept can be seen in \autoref{fig:picOldSwConcept}. \\
 \spicH{AndreasSwConcept.png}{Arduino software concept}{\label{fig:picOldSwConcept}}%
 In the following sections, an overview will be given on the functionality performed by each task.
-\todo{SPI Interface not in figure of SW concept}
 \subsubsection{HW Buffer Reader}
 This task periodically polls the SPI to UART converters for new data. In case the converters have received data, the HW Buffer Reader will read and store the data in the corresponding queue. \\
 The HW Buffer Reader does not know anything about packages or any data structure. It simply reads bytes and stores them in a queue.\\
@@ -221,20 +222,21 @@ for (unsigned int cnt = 0; cnt < dataToRead; cnt++)
 \subsubsection{HW Device Writer}
 This task transmits data to the SPI to UART converter on device side. It takes bytes from its queues and passes them to the SPI to UART converter.\\
 Communication to other tasks has been realized through four byte queues, one for each device interface accessible to the user. \\
-This task does not know anything about data packages or other data structures, it only takes bytes from the queues and writes them to the SPI to UART converter on device side.
+This task does not know anything about data packages or other data structures, it only takes bytes from the queues and writes them to the SPI to UART converter on device side.\\
+Data is only taken from the queue and written to the hardware buffer if there is space available on the hardware buffer.
 \subsubsection{HW WirelessX Writer}
 There are four tasks responsible for writing data to the SPI to UART converter on wireless side. Each task has its byte queue where data will be taken from and transmitted to the corresponding wireless user interface. \\
 These tasks do not know anything about data packages or other data structures, they only take bytes from the queues and write them to the SPI to UART converter on wireless side. \\
-Data is only taken from the queue and written to the hardware buffer if there is space available on the hardware buffer.\\
+Data is only taken from the queue and written to the hardware buffer if there is space available on the hardware buffer.
 \subsubsection{Package Extractor}
 This task reads the wireless bytes from the output queue of the HW Buffer Reader and assembles them to wireless packages.\\
 There are two types of wireless packages, acknowledges and data packages. The Package Extractor detects of which type an assembled package is and puts it on the corresponding queue.\\
 This task also verifies the checksums of both header and payload of a package and discards the package in case of incorrect checksum. \\
-In case of full output queues, new packages will be dropped and not stored in the corresponding queue.\\
+In case of full output queues, new packages will be dropped and not stored in the corresponding queue. The state of the output queue is not checked before popping data from the input queue to assemble it to a package.
 \subsubsection{Package Generator}
 This task reads the incoming device bytes from the output queue of the HW Buffer Reader and generates data packages with this device data as payload. The generated packages are then stored in the corresponding queue for further processing.\\
 The Package Generator also generates acknowledge packages when being told so by the output queue of the Package Extractor. The generated acknowledge are then put into the correct queue for a wireless connection.\\
-If the queue is full, the package is dropped, no matter if acknowledge package or data package.\\
+If the queue is full, the package is dropped, no matter if acknowledge package or data package. See the code snippet below for implementation details:\\
 %
 \begin{lstlisting}
 /* check if there are some receive acknowledge packages that needs to be created */
@@ -265,7 +267,7 @@ if (generateDataPackage(3, &queueDeviceReceiveUart[3], &wirelessPackage))
 }
 \end{lstlisting}
 %
-The queue function call for push() returns false if unsuccessful there is no handling of an unsuccessful push in this code.\\
+The queue function call for push() returns false if unsuccessful but there is no handling of an unsuccessful push in this code.
 %
 \subsubsection{Ack Handler}
 This task takes the acknowledge package generated by the Package Generator, splits it into bytes and puts those bytes into the corresponding wireless queue for the HW WirelessX Writer to send out.
@@ -310,7 +312,7 @@ The structure of a header can be found in \autoref{tab:tabHeaderStructure}. \\
     \end{longtable}
 \end{center}
 When the software receives a package, it checks the system time to decide if it should be discarded. If the system time of a received package is lower than the last one received, it will be discarded.\\
-In case of a hardware reset, the system time starts over with 0 which means that all packages would be discarded on receiving side. This is the reason for the session number. When the session number changes, the receiver knows to start over with the system time and not to discard all received packages because of a lower system time.\\
+In case of a hardware reset, the system time starts over with 0 which means that all packages would be discarded on receiving side. This is the reason for the session number. When the session number changes, the receiver knows to start over with the system time counter and not to discard all received packages because of a lower system time.
 %
 \subsubsection{Payload}
 Talk about payload and CRC32
@@ -337,15 +339,15 @@ Talk about payload and CRC32
 %
 %
 %
-\section{Discussion and Problems} \label{sec:txtTeensy3.1SoftwareProblems}
-There was no documentation available on tests conducted nor on issues discovered with Andreas Albissers work.\\
-All information below has been recalled by the people involved.\\
+\section{Discussion and Problems} \label{sec:txtTeensy3.2SoftwareProblems}
+There was no documentation available on tests conducted nor on issues discovered with Andreas Albisser's work.\\
+All information below has been recalled by the people involved.
 %
 %
 \subsection{Tests Results} \label{subsec:txtTestResults}
-Aeroscout uses a Pixhawk PX4 as an autopilot on-board. This is an open-source and flexible platform for UAV projects. The PX4 can be controlled with QGroundControl, an open source software that runs off-board on a computer and provides full flight control and vehicle setup.\\
+Aeroscout uses a Pixhawk PX4 as an autopilot on-board. This is an open-source and flexible platform for UAV projects. The PX4 can be controlled with QGroundControl, an open source software that runs off-board on a computer and provides vehicle setup and full flight control.\\
 As an end test, the PX4 and QGroundControl were connected to the Serial Switch to check if data transmission between those two components works as expected.\\
-First, the QGroundControl needs to be configured with the correct COM port and baud rate. When connecting on the COM port for the first time, QGroundControl will try to establish a link to the PX4 and gather all data available from the on-board system. Only then will the autopilot show up as a valid link on the computer.\\
+First, the QGroundControl needs to be configured with the correct COM port and baud rate. When connecting on the COM port for the first time, QGroundControl will try to establish a link to the PX4 and gather all data available from the on-board system. Only then will the autopilot show up as linked on the QGroundControl.\\
 This is also a stress test for the software to check for memory leaks because QGroundControl and PX4 exchanges lots of data upon first setup (about 3000 bytes/sec from PX4 to computer and about 100 bytes/sec from computer to PX4, for about 1sec). \\ 
 Afterwards, they will only transmit about 150 bytes/sec from PX4 to computer and 20bytes/sec from computer to PX4 during idle mode.\\
 These numbers are best case conditions, with no resending of packages and no acknowledge configured.\\
@@ -355,9 +357,9 @@ Source and verification of this throughput rate can be found in \autoref{subsec:
 \spic{TestSetupWithQGroundControl_CableConnection.png}{End test with hardware directly connected}{\label{fig:picQGroundControlCableConnection}}%
 To test the software under semi real circumstances, the PX4 and QGroundControl is connected to the serial switches.\\
 The setup can be seen in \autoref{fig:picQGroundControlCableConnection}.\\
-The PX4 was connected on device side of the on-board Serial Switch with UART. QGroundControl was running on a computer that was connected to the off-board Serial Switch on device side via USB. The two Serial Switches were directly connected on wireless side with RX and TX crossed. \\
+The PX4 was connected on device side of the on-board Serial Switch. QGroundControl was running on a computer that was connected to the off-board Serial Switch on device side via USB. The two Serial Switches were directly connected on wireless side with RX and TX lines crossed. \\
 After setting up the correct baud rates for device side on both Serial Switches (57600 baud) and disabling acknowledges, the data link between QGroundControl and the PX4 was established successfully within about one second.\\
-The outcome was also successful when acknowledges were configured.\\
+The outcome was also successful when acknowledges were configured.
 %
 \subsubsection{Wireless sides with modem}
 \spic{TestSetupWithQGroundControl_ModemConnection.png}{End test with wireless communication}{\label{fig:picQGroundControlModemConnection}}%
@@ -415,25 +417,25 @@ if ((*queuePtr).push(&buffer[cnt]) == false)
 \end{lstlisting}
 When any of the other queues are full or pushing new data to a queue is not possible, this data will be lost and no further action will be taken except for printing a warning on the serial interface.\\
 This results in packages being lost when lots of data is read and packages generated on device side. The package generator does not check if its package output queue is full before popping bytes from the received byte queue and putting them into the payload of a generated package. The generated package will be lost together with all its data when trying to push it onto a full queue. \\
-All tasks should take the state of their interface queues into account during runtime so that dropping of data can be carried out controlled and purposely.\\
+All tasks should take the state of their interfacing queues into account during runtime so that dropping of data can be carried out controlled and purposely.
 %
 \subsubsection{Debugging}
 Arduino does not support hardware debugging, only prints on a serial connection are available.\\
 This is fine as long as the software is relatively small and straightforward.\\
 As software complexity increases it becomes problematic, especially when multiple tasks are involved.\\
-As can be seen in \autoref{fig:picOldSwConcept}, the software concept implemented by Andreas Albisser is complex and runs with many tasks. In order to expand the functionality of it even further, a real hardware debugging interface is inevitable.\\
+As can be seen in \autoref{fig:picOldSwConcept}, the software concept implemented by Andreas Albisser is complex and runs with many tasks. In order to expand the functionality of it even further, a real hardware debugging interface is inevitable.
 %
 \subsubsection{Software Concept}
 The software concept implemented by Andreas Albisser as can be seen in \autoref{fig:picOldSwConcept} and it was attempted to visualize it split into three layers similar to the ISO/OSI model.\\
-All hardware reader and writer tasks access the SPI to UART interface and represent layer 1. They deal with bytes and do not know anything about packages.\\
+All Hardware Reader and Writer tasks access the SPI to UART interface and represent layer 1. They deal with bytes and do not know anything about packages.\\
 Each wireless interface runs with its own task that handles the bytes to be sent out. There is one task that writes bytes to the SPI to UART converter on device side and one task that reads incoming bytes from both SPI to UART converters. These five tasks all access the same SPI interface which results in possible conflicts and the need to define critical sections. The software concept would be simpler if there was only one task that accessed the SPI interface.\\
-The package generator, package extractor and ack handler tasks are the interface between bytes and packages and represent layer 2. They assemble wireless packages popped from the output queue of layer 1 and split generated packages into bytes. They also deal with the sending of acknowledges in case a received package expects one.\\
-The package handlers have two separate queues where assembled data packages and acknowledges are stored. The wireless handler will then not process packages in the order they were received but will first iterate through the data package queue and then through the acknowledge queue.\\
-The wireless handler represents layer 3 and deals with sending and resending of packages. While it keeps track of acknowledges received, it does not handle the acknowledges sent because this is contradictory done by layer 2.\\
-Generally, the software could be kept much smaller with less tasks and less queues.\\
+The Package Generator, Package Extractor and Ack Handler tasks are the interface between bytes and packages and represent layer 2. They assemble wireless packages popped from the output queue of layer 1 and split generated packages into bytes. They also deal with the sending of acknowledges in case a received package expects one.\\
+The Package Handlers have two separate queues where assembled data packages and acknowledges are stored. The Wireless Handler will then not process packages in the order they were received but will first iterate through the data package queue and then through the acknowledge queue.\\
+The Wireless Handler represents layer 3 and deals with sending and resending of packages. While it keeps track of acknowledges received, it does not handle the acknowledges sent because this is contradictory done by layer 2.\\
+Generally, the software could be kept much smaller with less tasks and less queues.
 %
 \subsubsection{Data Priority}
-There is no way to prioritize data of one device over data of an other device connected. When data transmission becomes unreliable, the software needs to know which data is most important to be exchanged. An additional configuration parameter should be added to represent data priority.\\
+There is no way to prioritize data of one device over data of an other device connected. When data transmission becomes unreliable, the software needs to know which data is most important to be exchanged. An additional configuration parameter should be added to represent data priority.
 %
 \subsubsection{Reassembling Device Data from Received Packages}
 The receiver will check the system time of the package header to decide if it will extract the payload to send it out on device side or discard the package. If the system time of the package received is lower than the system time of the last package received, it will discard the package completely.\\

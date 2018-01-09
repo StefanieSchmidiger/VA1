@@ -23,12 +23,12 @@ During the entire project phase, only the first version of the adapter board was
 %
 %
 \section{Software Tests}
-All software was tested against the Teensy 3.1 with the software implementation Andreas Albisser provided. The reason for this being that only one Teensy adapter board has been assembled and the next version that would have been of use was received too late.\\
+All software was tested against the Teensy 3.2 with the software implementation Andreas Albisser provided. The reason for this being that only one Teensy adapter board has been assembled and the next version that would have been of use was received too late.\\
 During and after software development, the functionalities had to be tested. The tests conducted were carried out in the following order:
 \begin{itemize}
     \item Echo / loopback
-    \item Connecting two UAV Switches directly on wireless side, two serial terminal with USB used on device side
-    \item Connecting two UAV Switches with modems on wireless side, two serial terminal with USB used on device side
+    \item Connecting two UAV Switches directly on wireless side, two serial terminals with USB used on device side
+    \item Connecting two UAV Switches with modems on wireless side, two serial terminals with USB used on device side
     \item Connecting two UAV Switches directly on wireless side, autopilot on device side
     \item Connecting two UAV Switches with modems on wireless side, autopilot on device side
 \end{itemize}
@@ -77,18 +77,18 @@ This can be tested easily by connecting the base board with the following config
 \begin{itemize}
     \item TEST\_HW\_LOOPBACK\_ONLY = 1 in configuration file
     \item Set jumper on device side of base board to USB
-    \item Connect computer with base board with an USB cable
-    \item Open a serial terminal (e.g. Tera Term or PuTTy), select one of the two COM ports that appeared (reminder: the base board has two dual USB to UART converter, see section \autoref{subsec:UsbToUartConverter})
-    \item Select the baud rate that was set in the configuration file with the parameter BAUD\_RATES\_DEVICE\_CONN
+    \item Connect computer with base board by using an USB cable
+    \item Open a serial terminal (e.g. Tera Term or PuTTy), select one of the two COM ports that appear (reminder: the base board has two dual USB to UART converter, see \autoref{subsec:UsbToUartConverter})
+    \item On the terminal, select the baud rate that was set in the configuration file with the parameter BAUD\_RATES\_DEVICE\_CONN
     \item Turn off local echo on the serial terminal
 \end{itemize}
-When running the software in Loopback configuration, connecting the device side as an USB COM port, it will look like an echo on the serial terminal in case the local echo is turned off. If local echo is turned on, each character sent will appear twice on the terminal.
+When running the software in Loopback configuration, connecting the device side as an USB COM port, it will look like an echo on the serial terminal in case the local echo is turned off. If local echo on the serial terminal is still turned on, each character sent will appear twice on the terminal.
 %
 %
 \subsection{Direct Connection of Switches, Tera Term on Device Side} \label{subsec:txtTestDirectConnTeraTerm}
 \spic{TestSetupWithTerminal_CableConnection.png}{Setup with direct connection on wireless side, Tera Term on device side}{\label{fig:picCableConnectionAndTeraTerm}}%
 Successful package transmission and reception was tested by connecting two UAV Serial Switches directly.\\
-Because only one Teensy adapter board was assembled and tested (see \autoref{sec:txtHardwareTests}), the second base board was used with the Teensy 3.1 running with the software developed by Andreas Albisser.\\
+Because only one Teensy adapter board was assembled and tested (see \autoref{sec:txtHardwareTests}), the second base board was used with the Teensy 3.2 running with the software developed by Andreas Albisser.\\
 The software configuration was as follows:
 \begin{itemize}
     \item Set BAUD\_RATES\_WIRELESS\_CONN to the same value on both UAV Serial Switches for the serial interface used
@@ -112,9 +112,9 @@ The software worked as expected. When typing a character on the serial terminal 
 \subsection{Modem Connection of Switches, Tera Term on Device Side} 
 \spic{TestSetupWithTerminal_ModemConnection.png}{Setup with modem connection on wireless side, Tera Term on device side}{\label{fig:picModemConnectionAndTeraTerm}}%
 Package handling was also tested by connecting two UAV Serial Switches with modems. The setup was as can be seen in \autoref{fig:picModemConnectionAndTeraTerm}.\\
-Because only one Teensy adapter board was assembled and tested (see \autoref{sec:txtHardwareTests}), the second base board was used with the Teensy 3.1 running with the software developed by Andreas Albisser.\\
+Because only one Teensy adapter board was assembled and tested (see \autoref{sec:txtHardwareTests}), the second base board was used with the Teensy 3.2 running with the software developed by Andreas Albisser.\\
 Device configurations were the same as in \autoref{subsec:txtTestDirectConnTeraTerm}, except for the baud rate on wireless side. The parameter BAUD\_RATES\_WIRELESS\_CONN cannot be chosen freely but has to be set to a value supported by the modem used.\\
-The setup was tested with two different modems, one with RS232 interface and the other (RFD900) with a TTL interface where a level converter had to be used to connect modem and wireless side.\\
+The setup was tested with two different modems, one with RS-232 interface and the other (RFD900) with a TTL interface where a level converter had to be used to connect modem and wireless side.\\
 All modems and hardware used was provided by Aeroscout GmbH. There seemed to be issues with the level converters as they were over heating regularly. This problem  requires further investigation which is outside the scope of this project.
 %
 \subsubsection{No Acknowledge}
@@ -129,12 +129,12 @@ The software worked as expected. When typing a character on the serial terminal 
 \subsection{Direct Connection of Switches, Autopilot on Device Side} \label{subsec:txtTestDirectConnQGroundControl}
 To test the system under stress, more data needs to be exchanged between the on-board and the off-board Serial Switch. This is the case when using the system with an autopilot. The hardware used for this test case (QGroundControl and PX4) has been introduced in \autoref{subsec:txtTestResults}.\\
 The setup is the same as in \autoref{fig:picQGroundControlCableConnection} but this time with the new software implementation and on the Teensy3.5.\\
-Because of a lack of Teensy Adapter Boards, two new software implementation could not be tested against each other. The off-board side always consisted of the base board with a Teensy 3.1.\\
+Because of a lack of Teensy Adapter Boards, two new software implementation could not be tested against each other. The off-board side always consisted of the base board with a Teensy 3.2.\\
 The Serial Switches were configured as follows:
 \begin{itemize}
-    \item Set jumpers on device side of both base boards to USB
-    \item Connect computer with one base board by USB cable and open QGroundControl
-    \item Select the baud rate for both Serial Switches that was set in the configuration file with the parameter BAUD\_RATES\_DEVICE\_CONN as configured on pixhawk and QGroundControl (57600 in this case)
+    \item Set jumpers on device side of off-board Serial Switch to USB and of on-board Serial Switch to RS-232
+    \item Connect computer with off-board Serial Switch by USB cable and open QGroundControl
+    \item Select the baud rate for device side for both Serial Switchesby using the parameter BAUD\_RATES\_DEVICE\_CONN as configured. It was seto to 57600 in this case, for both pixhawk and QGroundControl
     \item Set BAUD\_RATES\_WIRELESS\_CONN to the same value on both UAV Serial Switches for the serial interface used
     \item Set USUAL\_PACKET\_SIZE\_DEVICE\_CONN = 25, 0, 0, 0 and set PACKAGE\_GEN\_MAX\_TIMEOUT to a low value (e.g. 2ms)
     \item Set GENERATE\_DEBUG\_OUTPUT = 1 to enable debug output and the printing interval of the shell to one second by setting THROUGHPUT\_PRINTOUT\_TASK\_INTERVAL = 1
@@ -143,8 +143,8 @@ The Serial Switches were configured as follows:
 \subsubsection{No Acknowledge}
 \spic{SerialMonitor_Idle_NoAck_QGroundControlConnected.JPG}{QGroundControl in idle mode, no acknowledge configured}{\label{fig:picDebugOutputNoAckIdleMode}}%
 The software was tested without an acknowledge configured by setting SEND\_ACK\_PER\_WIRELESS\_CONN = 0, 0, 0, 0\\
-First, the PX4 will extablish a connection with QGroundControl. Once the devices have been linked successfully, they will stay in idle mode and less data is exchanged periodically.\\
-The connection was established successfully within about 1 second. The amount of data exchanged during connection establishment and during idle mode could be estimated by looking at the debug output on the serial temrinal. The output on the serial terminal during idle mode was as can be seen in \autoref{fig:picDebugOutputNoAckIdleMode}. \\
+First, the PX4 will establish a connection with QGroundControl. Once the devices have been linked successfully, they will stay in idle mode and less data is exchanged periodically.\\
+The connection was established successfully within about 1 second. The amount of data exchanged during connection establishment and during idle mode could be estimated by looking at the debug output on the serial terminal. The output on the serial terminal during idle mode was as can be seen in \autoref{fig:picDebugOutputNoAckIdleMode}. \\
 During idle mode, about 150 bytes/second will be transmitted from PX4 to QGroundControl and about 20 bytes/second will be transmitted from QGroundControl to PX4.\\
 From the debug output on the serial terminal during connection establishment, it can be seen that the PX4 transmits around 2500 bytes/second to QGroundControl and receives around 100 bytes/second from QGroundControl.
 %
@@ -158,11 +158,11 @@ The software worked as expected. Again, a connection was established successfull
 \subsection{Modem Connection of Switches, Autopilot on Device Side} \label{subsec:txtTestModemtConnQGroundControl}
 The system was tested under stress conditions as in \autoref{subsec:txtTestDirectConnQGroundControl} but this time a modem connection instead of directly connected UAV Serial Switches. The setup can be seen in \autoref{fig:picQGroundControlModemConnection}.\\
 Software configurations were the same as in \autoref{subsec:txtTestDirectConnQGroundControl}, except for the baud rate on wireless side. The parameter BAUD\_RATES\_WIRELESS\_CONN cannot be chosen freely but has to be set to a value supported by the modem used.\\
-The setup was tested with the RS232 modem provided by Aeroscout GmbH.\\
-Because of a lack of Teensy Adapter Boards, two new software implementation could not be tested against each other. The off-board side always consisted of the base board with a Teensy 3.1.\\
+The setup was tested with the RS-232 modem provided by Aeroscout GmbH.\\
+Because of a lack of Teensy adapter boards, two new software implementation could not be tested against each other. The off-board side always consisted of the base board with a Teensy 3.2.\\
 Tests were conducted with and without acknowledges configured by modifying the configuration parameter SEND\_ACK\_PER\_WIRELESS\_CONN.\\
 Due to a lack of time, this test has only been conducted briefly and further time needs to be invested.\\
-This test was successful when using the RS232 modem with and without acknowledge configured.\\
+This test was successful when using the RS-232 modem with and without acknowledge configured.\\
 The tests were repeated using the RFD900 modem. When no acknowledge was configured, the link establishment successful and took about 2 seconds. When acknowledges were configured, a link could not always be established.\\
 %
 %
@@ -173,9 +173,9 @@ The tests were repeated using the RFD900 modem. When no acknowledge was configur
 %
 %
 \subsection{System Analysis}
-System View is a free tool for system analysis provided by Segger. It reveals runtime behaviour of an application that cannot easily be seen by using a debugger. It provides insight into multi-threading, queues and resource conflicts.\\
-There is a processor expert component for System View in Erich Stygers library that makes the usage of this tool very easy. When including this component, it will take care of the communication between the System View software and the developed user application.\\
-System View records all queue operations and will display them as events. Because each task performs multiple queue events when called, the processor expert component produces lots of data traffic between System View software and user application when the System View software is active and analyzing. This will result in performance loss of the user application.\\
+System View is a free tool for system analysis provided by Segger. It reveals runtime behavior of an application that cannot easily be seen by using a debugger. It provides insight into multi-threading, queues and resource conflicts.\\
+There is a processor expert component for System View in Erich Styger's processor expert library that makes the usage of this tool very easy. When including this component, it will take care of the communication between the System View software and the developed user application.\\
+System View records all queue operations and will display them as events. Because each task performs multiple queue events when called, the processor expert component produces lots of data traffic between System View software and user application when the System View software is active and analyzing. This will result in performance loss of the entire application.\\
 System View is also limited to capturing one million events for one recording. Because there are many queue operations (which are listed as events), this limit is reached rather quickly.\\
 First, the system analysis was done with the processor expert component in its initial state. The software was configured as follows:
 \begin{itemize}
@@ -183,7 +183,7 @@ First, the system analysis was done with the processor expert component in its i
     \item Acknowledges were configured
     \item Autopilot running in idle mode, link has already been established
     \item No debug output configured
-    \item Shell task interval to a very high and debug output deactivated
+    \item Shell task interval to a very high period
 \end{itemize}
 \spic{SystemView_queueActivated_qGroundControlRunning.JPG}{System View output when queue events captured}{\label{fig:picQueueEventsCaptured}}%
 \spic{SystemView_queueDeactivated_qGroundControlRunning_bestCaseSpiHandler.JPG}{System View output when queue events not captured, best case}{\label{fig:picQueueEventsNotCapturedBestCase}}%
@@ -211,7 +211,7 @@ But the system performance is affected by the events logged by the System View p
 Remember that these lines need to be commented out again every time code is generated by the processor expert component.\\
 Also, the processor expert component in the library is compatible with the System View version 2.42 while the System View version used is 2.52a. For this reason, some of the events logged inside the System Viewer do not match with the name of the actual event that took place. This does not affect the overall outcome of the system analysis though.\\
 Without logging of queue operations, the System View component will generate less traffic. The overall application performance is much better because the tasks take up less CPU time.\\
-When the application is running, the CPU time of the SPI Handler fluctuates depending on the amount of data it needs to read from or transmit to the hardware buffer. This can be seen from the System Viewer output. A best case scenario where only little to no data is exchanged between the application and the hardware buffer can be seen in \autoref{fig:picQueueEventsNotCapturedBestCase}. The longest CPU time found during one runtime example can be found in \autoref{fig:picQueueEventsNotCapturedWorstCase}.\\
+When the application is running, the CPU time of the SPI Handler fluctuates depending on the amount of data it needs to read from or transmit to the hardware buffer. This can be seen from the System View output. A best case scenario where only little to no data is exchanged between the application and the hardware buffer can be seen in \autoref{fig:picQueueEventsNotCapturedBestCase}. The longest CPU time found during one runtime example can be found in \autoref{fig:picQueueEventsNotCapturedWorstCase}.\\
 In best case conditions during idle mode of the autopilot, the SPI Handler task runs for 0.6 milliseconds, the Package Handler and Network Handler tasks both run for 0.05 milliseconds.	\\
 In worst case conditions during idle mode of the autopilot, the SPI Handler task runs for 1.9 milliseconds, the Package Handler runs for 0.1 milliseconds and the Network Handler task runs for 0.5 milliseconds.
 %
@@ -224,7 +224,7 @@ In worst case conditions during idle mode of the autopilot, the SPI Handler task
 \subsection{Memory Leak}
 There are tools to analyze dynamic memory usage such as the Percepio Tracealyzer. Tracelyzer is a real-time visualization tool for RTOS software. There is even a free licence for students in case of non-commercial use.\\
 For time reasons, the Tracealyzer has not been used yet but memory management has been verified by looking at the free heap available during runtime. The shell offers a command interface for the Free RTOS. There is a command that will display the free heap available to the RTOS. During runtime, this command was run frequently and the heap usage did not change over time, even during stress tests as mentioned in \autoref{subsec:txtTestModemtConnQGroundControl} and \autoref{subsec:txtTestDirectConnQGroundControl}.\\
-Many memory leaks have been found at first as there were numerous cases how the software can allocate memory for data but not free it later on. For example memory can be allocated for a package but never freed in case the package cannot be pushed onto the queue successfully.
+Many memory leaks have been found at first as there were numerous cases how the software could allocate memory for data but not free it later on. For example memory can be allocated for a package but never freed in case the package cannot be pushed onto the queue successfully.
 %
 %
 %

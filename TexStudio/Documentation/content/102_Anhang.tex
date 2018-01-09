@@ -1,5 +1,14 @@
 % Anhang content
 %
+\chapter{Project Plan for Complete Hardware Redesign}\label{app:ProjectPlanHwRedesign}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textheight, angle=90, origin=c]
+    {ProjectPlan_CompleteHwRedesign.pdf}
+    \caption{Possible project plan of a complete hardware redesign}
+    \label{Project plan complete HW redesign}
+\end{figure}
+%
 \chapter{Configuration File} \label{app:txtConfigFile}%
 %
 A sample configuration file saved on the SD card looks as can be seen below
@@ -83,7 +92,7 @@ SEND_ACK_PER_WIRELESS_CONN	= 0, 1, 0, 0
 ;
 ; USE_CTS_PER_WIRELESS_CONN
 ; To be able to configure on which wireless connections CTS for hardware flow control 
-; should be used. Set to 0 if it shouldn't be used, 1 if yes.
+; should be used. Set to 0 if it should not be used, 1 if yes.
 ; If enabled, data transmission is stopped CTS input is high and continued if low.
 USE_CTS_PER_WIRELESS_CONN	= 0, 0, 0, 0
 ;
@@ -131,18 +140,25 @@ THROUGHPUT_PRINTOUT_TASK_INTERVAL = 5
 SHELL_TASK_INTERVAL		= 10
 \end{lstlisting}
 %
-\section{Unterkapitel im Anhang} \label{refSectionAnhang}%
-%
-\blindtext%
-%
-\subsection{Tieferes Kapitel}%
-%
-\subsubsection{Noch tieferes Kapitel}%
-%
-\blindtext%
 %
 %
 %
 \chapter{Task Description} \label{app:Aufgabenstellung}
 The full task description for this project can be found below.
 \includepdf[pages=-]{Aufgabenstellung_Vertiefungsmodul_1_Stefanie_Schmidiger.pdf}
+%
+%
+%
+%
+\chapter{Schematics} \label{app:Schematics}
+The schematics of both the base board designed by Andreas Albisser and the Teensy adapter board can be found in this section.
+\includepdf[pages=-,angle=90]{BaseBoardSchematic.pdf}
+\includepdf[pages=-,angle=90]{TeensyAdapterBoardSchematic.pdf}
+%
+%
+%
+%
+\chapter{Provided Documentation} \label{app:DocumentationAndreasAlbisser}
+All documentation provided by Andreas Albisser can be found in this section. There are two documents, an installation guide for all software needed and the documentation of his work.
+\includepdf[pages=-]{AufsetzenEntwicklungsumgebung.pdf}
+\includepdf[pages=-]{DocumentationAndreasAlbisser.pdf}
