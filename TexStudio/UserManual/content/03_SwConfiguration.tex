@@ -3,7 +3,8 @@
 \label{sec:txtSwConfig}
 The Teensy 3.5 development board acts as the main micro controller. It collects data from the serial connections on device side, puts them into data packages with header and checksum and sends them out on the configured wireless side. When acknowledges are configured, the software will possibly resend the package if no acknowledge is received. The corresponding second hardware receives packages on its wireless side, extracts the payload and sends it out on its device side.\\
 All communication is bidirectional, so data can be sent and received from all serial interfaces.\\
-The Teensy has an on-board SD card slot with a configuration file on the micro SD card. All software configurations are read from that file upon power up of the Teensy. Possible configuration parameters can be seen in \autoref{tab:tabSwConfigParameters}:
+The Teensy has an on-board SD card slot with a configuration file on the micro SD card. All software configurations are read from that file upon power up of the Teensy. When modifying the config file, the Teensy has to be reset for the changes to take effect.\\
+Possible configuration parameters can be seen in \autoref{tab:tabSwConfigParameters}:
 %
 \begin{center}
     \begin{longtable}{p{6cm}p{1cm}p{7cm}}
@@ -201,3 +202,10 @@ THROUGHPUT_PRINTOUT_TASK_INTERVAL = 5
 SHELL_TASK_INTERVAL		= 10
 \end{lstlisting}
 %
+%
+%
+%
+%
+\section{Shell / Command Interface}
+All debug information will be printed on a shell interface.\\
+To view it, connect the debugger and either open the RTT Viewer or the RTT Client. Those applications can be found in the same folder as the Segger files have been installed, e.g. C:\textbackslash \textbackslash Program\textbackslash Segger\textbackslash
