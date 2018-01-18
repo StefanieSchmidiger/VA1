@@ -1,0 +1,113 @@
+\documentclass{standalone}
+\usepackage{color}
+\usepackage{tikz}
+\usepackage{pgfgantt}
+
+%Some awesome new ganttchart elements:
+\newganttchartelement{orangebar}{
+    orangebar/.style={
+        inner sep=0pt,
+        draw=red!66!black,
+        very thick,
+        top color=white,
+        bottom color=orange!80
+    },
+    orangebar label font=\slshape,
+    orangebar left shift=.1,
+    orangebar right shift=-.1
+}
+
+\newganttchartelement{bluebar}{
+    bluebar/.style={
+        inner sep=0pt,
+        draw=purple!44!black,
+        very thick,
+        top color=white,
+        bottom color=blue!80
+    },
+    bluebar label font=\slshape,
+    bluebar left shift=.1,
+    bluebar right shift=-.1
+}
+
+\newganttchartelement{graybar}{
+    graybar/.style={
+        inner sep=0pt,
+        draw=gray!44!black,
+        very thick,
+        top color=white,
+        bottom color=gray!80
+    },
+    graybar label font=\slshape,
+    graybar left shift=.1,
+    graybar right shift=-.1
+}
+
+\newganttchartelement{greenbar}{
+    greenbar/.style={
+        inner sep=0pt,
+        draw=green!50!black,
+        very thick,
+        top color=white,
+        bottom color=green!80
+    },
+    greenbar label font=\slshape,
+    greenbar left shift=.1,
+    greenbar right shift=-.1
+}
+
+\newganttchartelement{milest}{
+milest/.style={
+  shape=isosceles triangle,
+  inner sep=0pt,
+  draw=cyan,
+  top color=white,
+  bottom color=cyan!50
+  }
+}
+
+% The GANTT chart itself:
+\begin{document}
+\begin{ganttchart}[
+    hgrid style/.style={black, dotted},
+    vgrid={*5{black,dotted}, *1{white, dotted}, *1{black, dashed}},
+    x unit=3mm,
+    y unit chart=9mm,
+    y unit title=12mm,
+    time slot format=isodate,
+    group label font=\bfseries \Large,
+    link/.style={->, thick}
+    ]{2017-09-18}{2018-01-31}
+    \gantttitlecalendar{year, month=name, week}\\
+
+
+
+	% BLUE element
+    \ganttgroup[
+        group/.append style={fill=blue}
+    ]{Hardware V1}{2017-09-18}{2017-11-05}\\ [grid] % \\ [grid] = neue linie
+    \ganttbluebar{PCB Design}{2017-09-18}{2017-10-08}\\ [grid]
+    \ganttbluebar{Assembly}{2017-10-16}{2017-10-22}\\ [grid]
+    \ganttbluebar{Testing}{2017-10-23}{2017-11-05}\ganttnewline[thick, black]
+
+
+	% GRAY element
+    \ganttgroup[
+        group/.append style={fill=gray}
+    ]{Hardware V2}{2017-12-04}{2017-12-31}\\ [grid] % \\ [grid] = neue linie
+    \ganttgraybar{PCB Design}{2017-12-04}{2017-12-10}\\ [grid]
+    \ganttgraybar{Assembly}{2018-12-18}{2017-10-24}\\ [grid]
+    \ganttgraybar{Testing}{2017-12-18}{2017-12-31}\ganttnewline[thick, black]
+    
+    % GREEN element
+    \ganttgroup[
+        group/.append style={fill=green}
+    ]{Software}{2017-10-23}{2017-12-31}\\ [grid]
+    \ganttgreenbar{Hardware blink}{2017-10-23}{2017-10-30}\\ [grid]
+	\ganttgreenbar{Free RTOS setup}{2017-10-30}{2017-11-6}\\ [grid]
+	\ganttgreenbar{Software}{2017-11-6}{2017-12-31}\\\ganttnewline[thick, black]
+	
+
+   
+\end{ganttchart}
+\end{document}

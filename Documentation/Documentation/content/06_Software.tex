@@ -1,0 +1,363 @@
+% Software
+%
+A complete documentation of the software written by Andreas Albisser for the Teensy 3.2 can be found in chapter \autoref{sec:txtArduinoSoftwareAnalysis}.\\
+Various issues found with his software can be found in \autoref{subsec:txtTestResults}.\\
+Now there are two options on how to proceed
+\begin{itemize}
+    \item Transfer the existing software to C with FreeRTOS.
+    \item Create a new software concept and implement it.
+\end{itemize}
+Both options are evaluated below.
+%
+%
+\section{Transfer existing Software Concept}
+The existing software concept can be seen in \autoref{fig:picOldSwConcept}. As seen in \autoref{subsec:txtTestResults}, there are various issues that need to be solved. Because the software concept is rather complex and needs refactoring, it is easier to come up with a new software concept.
+%
+\section{New Software Concept}%
+%
+\spic{NewSwConcept.png}{New software concept}{\label{fig:picNewSwConcept}}%
+A good approach for a software concept is to divide the responsibilities of tasks similar to ISO/OSI layers. 
+The software concept implemented in the scope of this project can be seen in \autoref{fig:picNewSwConcept}.\\
+Queues are used as an interface between any two tasks where one task will always be pushing data onto the queue and an other task will pop data from the queue.\\
+The software runs with three main tasks while each task covers an ISO/OSI layer. The purpose of each task is explained in this section.
+%
+%
+\subsection{Physical Layer}
+\subsubsection{Description}
+This task is named SPI Handler and covers ISO/OSI layer 1. It is the only task that accesses the SPI interface. It reads data from the SPI to UART converters and pushes those to a byte queue and it pops bytes from an other byte queue and sends those to the SPI to UART converter.\\
+This task does not know anything about packages, it does byte handling only.
+\subsubsection{Queue Interface}
+There are two SPI to UART converters on the baseboard, one for the wireless side and one for the device side. Each SPI to UART converter allows for four serial connections and has an internal buffer of 128 bytes for both RX and TX side of each serial connection.\\
+There are two software queues implemented per serial connection, one for bytes read from the SPI to UART converter and one for bytes that need to be forwarded to the SPI to UART converter. There are a total of eight serial connections available to the user which results in 16 byte queues that all interface the SPI Handler.
+\subsubsection{Dynamic Memory Management}
+No memory management is needed within this task because it does not allocate or free memory. Data bytes are stored directly in the queue and not via pointers.
+\subsubsection{Data Loss}
+As seen in \autoref{subsec:txtTestResults}, the SPI Handler task of Andreas Albisser's software flushes the entire byte queue when new data is read but the queue is full.\\
+This behaviour has been improved for the new software concept. Upon unsuccessful push to the corresponding byte queue because it is full, the oldest ten bytes will be popped from this queue and dropped to ensure storage of the new byte.\\
+\begin{lstlisting}
+if (xQueueSendToBack(queue, &buffer[cnt], ( TickType_t ) pdMS_TO_TICKS(SPI_HANDLER_QUEUE_DELAY) ) == errQUEUE_FULL)
+{
+    /* queue is full -> delete oldest NUM_OF_BYTES_TO_DELETE_ON_QUEUE_FULL bytes */
+    for(int i = 0; i < NUM_OF_BYTES_TO_DELETE_ON_QUEUE_FULL; i++)
+    {
+        static uint8_t data;
+        xQueueReceive(RxWirelessBytes[uartNr], &data, ( TickType_t ) pdMS_TO_TICKS(SPI_HANDLER_QUEUE_DELAY) );
+    }
+    numberOfDroppedBytes[uartNr] += NUM_OF_BYTES_TO_DELETE_ON_QUEUE_FULL;
+    xQueueSendToBack(queue, &buffer[cnt], ( TickType_t ) pdMS_TO_TICKS(SPI_HANDLER_QUEUE_DELAY) );
+\end{lstlisting}
+Before pushing data to the SPI to UART converter, the state of this converter is checked and the software only transmits as many bytes as the hardware buffer can hold.
+\begin{lstlisting}
+uint8_t spaceTaken = spiSingleReadTransfer(spiSlave, uartNr, MAX_REG_TX_FIFO_LVL);
+spaceLeft = HW_FIFO_SIZE - spaceTaken;
+/* check if there is enough space to write the number of bytes that should be written */
+if (spaceLeft < numOfBytesToWrite)
+{
+    /* There isn't enough space to write the desired amount of data - just write as much as possible */
+    numOfBytesToWrite = spaceLeft;
+}
+\end{lstlisting}
+Data is dropped unintentionally on unsuccessful queue operations. There is a parameter that specifies a wait time in ticks for a queue operation to finish successfully. This parameter is set to zero for all byte queue operations within the SPI Handler task. This results in failure if a queue operation can not be executed immediately instead of trying again within the specified amount of ticks.
+\subsubsection{Data Priority and Data Routing}
+There is no data priority implemented in the SPI Handler task. All task interfacing queues are FIFO queues. The queue for UART interface zero is always processed first, followed by the UART interface one, two and then three. This is done with a for-loop, as can be seen in the code below.
+\begin{lstlisting}
+for(int uartNr = 0; uartNr < NUMBER_OF_UARTS; uartNr++)
+{
+    /* read data from device spi interface */
+    readHwBufAndWriteToQueue(MAX_14830_DEVICE_SIDE, uartNr, RxDeviceBytes[uartNr]);
+    /* write data from queue to device spi interface */
+    if(config.TestHwLoopbackOnly)
+        readQueueAndWriteToHwBuf(MAX_14830_DEVICE_SIDE, uartNr, RxDeviceBytes[uartNr], HW_FIFO_SIZE);
+    else
+        readQueueAndWriteToHwBuf(MAX_14830_DEVICE_SIDE, uartNr, TxDeviceBytes[uartNr], HW_FIFO_SIZE);
+    /* read data from wireless spi interface */
+    readHwBufAndWriteToQueue(MAX_14830_WIRELESS_SIDE, uartNr, RxWirelessBytes[uartNr]);
+    /* write data from queue to wireless spi interface */
+    if(config.TestHwLoopbackOnly)
+        readQueueAndWriteToHwBuf(MAX_14830_WIRELESS_SIDE, uartNr, RxWirelessBytes[uartNr], HW_FIFO_SIZE);
+    else
+        readQueueAndWriteToHwBuf(MAX_14830_WIRELESS_SIDE, uartNr, TxWirelessBytes[uartNr], HW_FIFO_SIZE);
+}
+\end{lstlisting}
+Data routing is done straight through, meaning that data from a queue with serial number three will be pushed to the hardware buffer for serial interface three.
+\subsubsection{Issues}
+The buffer of the SPI to UART converter is never fully taken advantage of for the bytes received. The SPI Handler always tries to read all incoming data, not looking at the state of its internal queue but rather dropping data from the internal queue if it is full just to empty the buffer of the SPI to UART converter.\\
+Instead of always reading all incoming bytes even if the byte queue is full, the SPI Handler should only drop data in case the buffer of the SPI to UART converter is full and the internal queue is full as well.
+%
+%
+\subsection{Data Link Layer}
+\subsubsection{Description}
+This task is named Package Handler and covers ISO/OSI layer 2. It pops bytes from the queue interface of the physical layer, assembles them to full data packages and pushes them to a package queue.\\
+This task also pops packages generated by an upper layer task from another package queue to sends them byte wise to the physical layer's byte queue.
+\subsubsection{Queue Interface}
+This task interfaces a total of 16 queues: eight byte queues and eight package queues.\\
+It pops bytes from four wireless bytes queues to assemble them to packages and push onto to the wireless package queue for that serial connection.\\
+This task also pops internally generated packages from all four packages queues, splits them into bytes and pushes those bytes to the wireless RX byte queue of the same serial connection.\\
+The internal wireless package structure only holds the pointer to its payload data. When generating a package and storing it in a queue, memory for its payload needs to be allocated and freed later on. Generally, freeing payload is done upon pulling a package from the queue and allocating memory is done before pushing it onto the queue.
+\subsubsection{Dynamic Memory Management}
+The package structure used internally can be found in \autoref{subsec:txtPackageStructure}.\\
+The Package Handler allocates memory for saving payload when assembling an incoming package from single bytes. The assembled package is then pushed onto the Wireless Packages queue and the allocated memory will be freed by the Network Handler later.\\
+The Package Handler frees allocated memory upon pulling generated packages from the Device Packages queue.\\
+To prevent memory leaks, memory also needs to be freed when a package is dropped but memory for its payload has already been allocated, e.g. on unsuccessful queue push operations.
+\subsubsection{Data Loss}
+On receiving side, data is lost when a received package could not be assembled successfully, e.g. when the checksum is not correct, an element in the header is out of range, an unexpected byte appears or any other type of faulty package is received. In this case, data is lost without the upper layer task knowing about it (only a warning will be printed onto the shell and the lost packages counter will increment). The state machine for assembling packages will go back to idle state and wait for the next package start sequence.\\
+A successfully assembled package is dropped unintentionally on unsuccessful queue operation. There is a parameter that specifies a wait time in ticks for a queue operation to finish successfully. This parameter is set to zero for all queue operations within the Package Handler task. This results in failure if a queue operation can not be executed immediately instead of trying again within the specified amount of ticks.\\
+On sending side, a package is lost whenever any byte wise push attempt to the Wireless Tx Byte queue is unsuccessful. Again, there is a parameter that specifies the wait time for the push to finish successfully but this parameter is set to zero for all queue operations within the Package Handler task. If unsuccessful, the Package Handler task will drop the package entirely and not push any more parts of it to the byte queue (see code snippet below, line 6). However, the already sent bytes will remain in the byte queue and be pushed out to the hardware buffer by the SPI Handler task.\\
+Before popping an internally generated package from the Device Packages queue and pushing it byte wise to the Wireless Tx Bytes queue, the Package Handler checks if enough space is available on the byte queue (see code snippet below, line 2).
+\begin{lstlisting}
+/* enough space for next package available? */
+if(freeSpace > (sizeof(tWirelessPackage) + package.payloadSize - 4))  /*subtract 4 bytes because pointer to payload in tWirelessPackage is 4 bytes*/
+{
+    if(popReadyToSendPackFromQueue(wlConn, &package) == pdTRUE) /* there is a package ready for sending */
+    {
+        if(sendPackageToWirelessQueue(wlConn, &package) != true) /* ToDo: handle resending of package */
+        {
+            /* entire package could not be pushed to queue byte wise, only fraction in queue now */
+            numberOfDroppedPackages[wlConn]++;
+            FRTOS_vPortFree(package.payload); /* free memory of package before returning from while loop */
+            break; /* exit while loop, no more packages are extracted for this uartNr */
+        }
+        else
+        FRTOS_vPortFree(package.payload); /* free memory of package once it is sent to device */
+    }
+}
+\end{lstlisting}
+\subsubsection{Data Priority and Data Routing}
+There is no data priority implemented in the Package Handler task. All task interfacing queues are FIFO queues. The queue for serial connection zero is always processed first, followed by the serial connection one, two and then three.\\
+Data routing is done straight through, which means that data packages from Device Packages queue three are routed to Wireless Tx Bytes queue three.
+\subsubsection{Issues}
+Verification of the checksum in both header and payload of incoming data package is still commented out for development reasons. All tests have been carried out with a Teensy 3.2 as counter part because only one functional Teensy adapter board was available. Because the Teensy 3.2 uses a different polynomial for checksum calculation and no further time has been invested in selecting the matching polynomial for the new Teensy 3.5 software implementation, it was easiest to just comment checksum verification out.\\
+%
+%
+\subsection{Network Layer}
+\subsubsection{Description}
+This task is named Network Handler and covers all upper layers in the ISO/OSI model. It reads data from device side of the physical layers byte queue and puts them into data packages to send out on wireless side by pushing them onto the package queue of the data link layer. It keeps track of acknowledges received and handles the resending of packages on the correct wireless connection.\\
+This task also extracts data from incoming data packages popped from the data link layer queue, generates acknowledges and pushes the payload to the byte queue of the physical layer task.
+\subsubsection{Queue Interface}
+The Network Handler interfaces a total of 16 queues, eight package queues and eight byte queues. It pops packages from the four Wireless Package queues that hold successfully assembled packages per serial connection. Those queues hold both acknowledges and data packages, in the same order as they were received.\\
+This task also generates data packages and pushes them to the correct Device Package queue for the Package Handler to push down byte wise.\\
+The payload from received packages is extracted and sent to the correct Device Tx Bytes queue.\\
+Packages are generated with payload popped from the Device Rx Bytes queue.
+\subsubsection{Dynamic Memory Management}
+The package structure used internally can be found in chapter \autoref{txtPackageStructure}.\\
+The Network Handler allocates memory when generating an new package from device bytes. The assembled package is then pushed onto the Device Packages queue and the allocated memory will be freed by the Package Handler later on.\\
+In case an acknowledge is expected on a serial connection, the package also needs to be stored internally to allow for resend attempts. The Package Handler will always free memory when popping a package from the Device Packages queue. The Network Handler therefore has to allocate memory for saving a copy of the package internally in case of a pending acknowledge. The allocated memory is only freed upon reception of an acknowledge or when no acknowledge has been received after the last send attempt.\\
+The Network Handler frees allocated memory upon pulling assembled packages from the Wireless Packages queue.\\
+To prevent memory leaks, memory also needs to be freed when a package is dropped but memory for its payload has already been allocated, e.g. on unsuccessful queue push operations.
+\subsubsection{Data Loss}
+When a package is received, the payload is extracted and pushed to the Tx Device Byte queue. The state of the Tx Device Bytes queue is checked before popping a package from the Wireless Packages queue and extracting the payload. In case of an unsuccessful push operation on the Device Tx Bytes queue, all data will be lost.
+\begin{lstlisting}
+/* send data out at correct device side */
+for(uint16_t cnt=0; cnt<package.payloadSize; cnt++)
+{
+    if(pushToByteQueue(MAX_14830_DEVICE_SIDE, package.devNum, &package.payload[cnt]) == pdFAIL)
+    {
+        XF1_xsprintf(infoBuf, "Warning: Push to device byte array for UART %u failed", package.devNum);
+        pushMsgToShellQueue(infoBuf);
+        numberOfDroppedBytes[package.devNum]++;
+    }
+}
+\end{lstlisting}
+The state of the acknowledge queue is not checked before popping a package from the Wireless Packages queue. It is therefore possible for an acknowledge to be generated but not pushed down successfully because of a full queue.\\
+As with the other tasks, there is a parameter that specifies the wait time for the push to finish successfully but this parameter is set to zero for all queue operations within the Network Handler. If unsuccessful, the Network Handler task will drop the package entirely and not push any more parts of it to the byte queue.\\
+This results in package loss for generated acknowledges and data packages on unsuccessful push to the Device Packages queue as well as in data loss on unsuccessful push of extracted payload to the Device Tx Bytes queue.\\
+\subsubsection{Data Priority and Data Routing}
+All package routing is done within this task. When generating a package and sending it out for the first time, this task checks the configuration file to find out, to which of the four Wireless Package queues it needs to be pushed. It will go through the configured priorities and attempt to send the package to the corresponding wireless serial connections until a queue push attempt is successful (see code below).
+\begin{lstlisting}
+for(int prio=1; prio <= NUMBER_OF_UARTS; prio++)
+{
+    wlConn = getWlConnectionToUse(rawDataUartNr, prio);
+    if(wlConn >= NUMBER_OF_UARTS) /* maximum priority in config file reached */
+        return false;
+    /* send generated WL package to correct package queue */
+    if(xQueueSendToBack(queuePackagesToSend[wlConn], pPackage, ( TickType_t ) pdMS_TO_TICKS(MAX_DELAY_NETW_HANDLER_MS) ) != pdTRUE)
+        continue; /* try next priority -> go though for-loop again */
+\end{lstlisting}
+If an acknowledge is configured on the wireless connection where the package was sent out, the package will be stored in an internal array of the Network Handler. Because the allocated memory for the package is freed once the Package Handler pulls the package from the queue, the package needs to be duplicated and memory needs to be allocated again for internal storage.\\
+An array with space for 100 unacknowledged packages acts as internal storage. It holds the all unacknowledged packages and information about send attempts and time stamp of the last send attempt (see the storage structure in \autoref{subsec:txtPackageStructure}). This information is required by the Network Handler to calculate the time of the next send attempt in case of no received acknowledge. This task also keeps track of the number of send attempts per wireless connection and will cease all send attempts once the maximum retry timeout has been reached or all send attempts for all wireless connections have been carried out.
+\subsubsection{Issues}
+Currently, there is no way for the receiver of a package to know if incoming data is still in the correct order or if a package is missing. The header of a package contains a time stamp but this time stamp is not monotonically increasing but might skip over several numbers in case of a long delay between the generation of two packages.\\
+When the receiver gets a valid package, it will extract its payload immediately and push it to out on the correct device side. The time stamp is not checked for correct order. Wireless packages may therefore arrive in wrong order and device bytes will then be pushed out in wrong order.\\
+Possible solutions for this problem will be presented later in this chapter.\\
+%
+%
+\subsection{Package Structure} \label{subsec:txtPackageStructure}
+Internally, packages are always saved with the same structure. Apart from header, payload and CRC, the structure also holds information about resend attempts and time stamp of first and last resend. The later information is only needed by the Network Handler but for simplicity reasons, all packages pushed to and popped from queues are of this structure.
+\begin{lstlisting}
+/*! \enum ePackType
+*  \brief There are two types of packages: data packages and acknowledges.
+*/
+typedef enum ePackType
+{
+    PACK_TYPE_DATA_PACKAGE 		= 0x01,
+    PACK_TYPE_REC_ACKNOWLEDGE 	= 0x02
+} tPackType;
+
+
+
+
+/*! \struct sWirelessPackage
+*  \brief Structure that holds all the required information of a wireless package.
+*  Acknowledge has the same sysTime & devNum in header as the package it is sent for.
+*  The individual sysTime for ACK package is in payload.
+*/
+typedef struct sWirelessPackage
+{
+    /* --- payload of package --- */
+    /* header */
+    tPackType packType;
+    uint8_t devNum;
+    uint8_t sessionNr;
+    uint32_t sysTime;
+    uint16_t payloadSize;
+    uint8_t crc8Header;
+    /* data */
+    uint8_t* payload; /* pointer to payload, memory needs to be allocated */
+    uint16_t crc16payload;
+    
+    /* --- internal information, needed for (re)sending package --- */
+    uint8_t currentPrioConnection;
+    uint8_t sendAttemptsLeftPerWirelessConnection[NUMBER_OF_UARTS];
+    uint32_t timestampFirstSendAttempt;
+    uint32_t timestampLastSendAttempt[NUMBER_OF_UARTS];	/* holds the timestamp when the packet was sent the last time for every wireless connection */
+    uint16_t totalNumberOfSendAttemptsPerWirelessConnection[NUMBER_OF_UARTS];	/* to save the total number of send attempts that were needed for this package */
+    
+} tWirelessPackage;
+\end{lstlisting}
+%
+%
+%
+\subsection{Other Software Items}
+Upon startup, all components are initialized and the scheduler is started with a single task. Within that single task, the configuration file is read from the SD card and saved in a global variable. Only then will all other tasks be started and the init task that read the SD card kills itself.\\
+The three main tasks are the Network Handler, the Package Handler and the SPI Handler. While they make up the main function of this software, there are other tasks responsible for logging, shell, printing of debug information and LED blinking. These tasks are not specified in \autoref{fig:picNewSwConcept} but will be listed below.\\
+%
+\subsubsection{Configuration File}
+The Teensy 3.5 has an on-board SD card slot for a micro SD card.\\
+The software configuration is stored in a ini file on the SD card and is read once upon startup of the software.\\
+The file serialSwitch\_Config.ini has the same parameters as the software developed by Andreas Albisser. Those parameters can be found in \autoref{tab:tabConfigArduinoSw}. Additional software parameters can be found in \autoref{tab:tabConfigNewSw} :\\
+\begin{center}
+    \begin{longtable}{p{6cm}p{1cm}p{7cm}}
+        \hline
+        \textbf{Configuration parameter} & \textbf{Possible values} & \textbf{Description} \\
+        \hline
+        % --------------------------------------------------------
+        TEST\_HW\_LOOPBACK\_ONLY & 0, 1 & 
+        This parameter enables local echo. Any data received over any serial connection will be returned over the same connection immediately.\\
+        \hline
+        % --------------------------------------------------------
+        GENERATE\_DEBUG\_OUTPUT &  0, 1 & 
+        Information about the data throughput and other warnings will be printed out on the serial terminal.\\
+        \hline
+        % --------------------------------------------------------
+        X\_TASK\_INTERVAL &  1 ... 65535 & 
+        Task interval in milliseconds for each task. Replace X with the name of the task. Use a number greater than 0 to ensure that other tasks will get called as well. \\
+        \hline
+        % --------------------------------------------------------
+        \caption{Configuration parameters of new software}
+        \label{tab:tabConfigNewSw}    
+    \end{longtable}
+\end{center}
+A sample configuration file can be found in appendix \autoref{app:txtConfigFile}.\\
+The ini file is read with the miniINI tool (part of the processor expert library provided by Erich Styger) and then parsed. It is read once, on start up of the software. When modifying the configuration file, the device has to be restarted for the changes to take effect.\\
+The miniINI tool supports sections and will find the desired variable and return its value as an array of chars. A parser to save the return values as an array of integers, booleans or any other type had to be implemented manually.
+%
+\subsubsection{Shell Task}
+\spic{NewSwConcept.png}{New software concept}{\label{fig:picNewSwConcept}}%
+All debug information is printed in an RTT shell provided by the Segger debugging tool.\\
+In order to start the shell, the RTT client or the RTT viewer have to be started during an ongoing debugging session.\\
+The shell runs with its own task. It also has a queue as an interface where other tasks can push strings to for the shell to display.\\
+Both RTT Client and RTT Viewer can be found in the folder where the Segger has been installed (e.g. C:\textbackslash \textbackslash Program\textbackslash Segger\textbackslash).\\
+The output of the shell looks as in \autoref{fig:picDebugOutputNoAckIdleMode}. All periodic information printed is due to the Throughput Printout task. The shell also provides an command line interface for RTOS operations and RTOS status information, SD card operations and others that can be enabled in software. Type "help" to get an overview of the enabled shell commands.
+%
+\subsubsection{Throughput Printout Task}
+This task is responsible for calculating average throughputs and will periodically push all this information onto the shell queue for printing.\\
+The output of the printout task looks as in \autoref{fig:picDebugOutputNoAckIdleMode}.
+%
+\subsubsection{Logging Task}
+File logging is part of the task description as can be seen in appendix \autoref{app:Aufgabenstellung}. Due to lack of time, it has not been implemented yet.\\
+Debug information about throughput and other warnings are printed on the shell in the interval configured by the parameter THROUGHPUT\_PRINTOUT\_TASK\_INTERVAL in the configuration file on the SD card.
+%
+%
+\subsection{Next Steps in Software Development}%
+%
+There various issues encountered with the three main tasks can be seen in their relative section above. Possible solutions are given below.
+%
+\subsubsection{Package Numbering}
+All packages should be numbered consecutively instead of a time stamp so the receiver knows if a package is missing and can hold off from sending the received payload out on device side.\\
+The Network Handler could have a buffer that can hold a number of packages to wait for a missing package in the middle. A maximum delay would specify for how long the Network Handler would wait until the received payload is pushed out on device side anyway even though a package in the middle is still missing.\\
+This would require careful thought about reassembling shuffled packages.\\
+An other approach would be to only send out the next package if the previous package has been acknowledged. This would guarantee correct order of the packages received.
+%
+\subsubsection{Limit Throughput}
+The parameter MAX\_THROUGHPUT\_PER\_CONNECTION does not have any effect within the new software. The SPI Handler should limit the throughput for each serial connection to as many bytes per second as specified in the configuration file.\\
+%
+\subsubsection{Redundant Package Sending}
+In Andreas Albissers software, it was possible to configure multiple wireless connections with the same priority. This resulted in the same package being sent out over multiple wireless connections. On receiving side, the software would only take the package that arrived first and discard the second one. This increased reliability of data transmission.\\
+A similar concept should be implemented in this software. It is currently not possible, partly also because the timestamp of a package is always ignored which results in the software not realizing that the same package was received twice over different wireless connections.
+%
+\subsubsection{Use Hardware Buffer for received Bytes}
+The SPI Handler always tries to read all received bytes from the hardware buffer, no matter the state of its internal byte queues. When its internal byte queue is full but data is read from the SPI to UART converter anyway, the task will pop the ten oldest bytes from the queue to be able to push new bytes onto the queue. \\
+This should be handled better in a future version of this software.\\
+A possible solution is to only pull data from the hardware buffer after a certain timeout with no free queue space and then dismiss old bytes in the queue.
+%
+\subsubsection{Data Priority}
+The user should be able to specify which data is most important when transmission becomes unreliable. When working with QGroundControl, an open source autopilot software, some data exchanged is more important such as exact location of the drone. Other information such as battery level is not of vital importance and can be sent when a stable connection is reestablished. There are two approaches on how solve this problem:
+\begin{itemize}
+    \item Implement the communication protocol of QGroundControl inside this software so the Teensy can filter out any information that is not absolutely required when data transmission becomes unreliable.
+    \item Prioritizing one serial device connection over an other so when data transmission becomes unreliable, only packages of the priority device connection are sent out and no others.
+\end{itemize}
+Currently, the serial switch does not have any information about the data transmitted and can be used as a flexible platform. If it should stay that way, the second solution is to be preferred.
+%
+\subsubsection{Unintentional Data Loss}
+As can be seen in \autoref{subsec:txtPackageStructure}, the internal data structure for packages only holds the pointer to its payload. Every time a package is generated, memory has to be allocated, which could possibly fail.\\
+In order to minimize the risk of data loss because memory allocation failed, the program should only pop data from a queue after memory for the payload has been allocated. Or more generally: all possibly unsuccessful queue or memory operations should be done before popping data from the queue to prevent unintentional data loss.
+%
+\subsubsection{Session Number and Time Stamp Management}
+If either the on-board or off-board Serial Switch software is reset, the session number for packages will change to an other random number and the time stamp will start over.\\
+This scenario has not been tested or considered for the software implementation.\\
+%
+\subsubsection{Logging}
+All logging information should be saved in a file on the SD card. Because a write access to the SD card can take several hundreds of milliseconds, it should be done in a separate task.
+%
+\subsubsection{ALOHA}
+Resending of a package should not be done periodically because the last package might have gotten lost because of a periodical noise. To decrease the possibility of a package always being sent out during the noise occurrence, resend attempts should be done after a random time interval within a certain time slot. This is called the ALOHA principle.
+%
+%\subsubsection{Interleaving}
+%Instead of filling the payload of data packages with data bytes in the same order as they arrived, the interleaving concept could be applied. This would result in possible recovery of the data lost in case
+%
+\subsubsection{Data Encryption}
+Data Encryption is part of the task description as seen in appendix \autoref{app:Aufgabenstellung}.\\
+For time reasons, it has not been implemented yet. The Teensy 3.6 would support hardware encryption, but the Teensy 3.5 has been chosen for reasons mentioned in \autoref{subsec:txtTeensySelection}. More details about encryption and how to implement it in this project can be found in \autoref{subsec:txtEncryptionTheory}
+%
+%
+%
+%
+\subsection{Encryption} \label{subsec:txtEncryptionTheory}
+To provide security against data manipulation and eavesdropping, data encryption should be implemented on wireless side of the Serial Switch.\\
+There are three parts to data encryption:
+\begin{itemize}
+    \item Integrity: The same data is received as was transmitted, it cannot be modified without detection.
+    \item Confidentiality: Data can only be read by the intended receiver
+    \item Availability: All systems are functioning correctly and information is available when it is needed.
+\end{itemize}
+%
+\subsubsection{Integrity}
+Integrity of data can be assured with a hash function. A hash is a string or number generated from a string of text. The resulting string or number is a fixed length, and will vary widely with small variations in input.\\
+The only way to recreate the input data from an ideal cryptographic hash function's output is to attempt a brute-force search of possible inputs to see if they produce a match, or use a rainbow table of matched hashes.\\
+A CRC is an example of a simple hash function and is used to check if the message received matches the message transmitted.\\
+Integrity only does not provide security against tempering with the message itself. If someone knows the hash algorithm used, a message can be modified and its hash value recalculated without the receiver knowing about it.
+%
+\subsubsection{Confidentiality}
+Encryption ensures that only authorized individuals can decipher data. Encryption turns data into a series of unreadable characters, that are not of a fixed length.\\
+There are two primary types of encryption: symmetric key encryption and public key encryption.\\
+In symmetric key encryption, the key to both encrypt and decrypt is exactly the same. There are numerous standards for symmetric encryption, the popular being AES with a 256 bit key.\\
+Public key encryption has two different keys, one used to encrypt data (the public key) and one used to decrypt it (the private key). The public key is is made available for anyone to use to encrypt messages, however only the intended recipient has access to the private key, and therefore the ability to decrypt messages.\\
+Symmetric encryption provides improved performance, and is simpler to use, however the key needs to be known by both the systems, the one encrypting and the one decrypting data.\\
+%source: https://www.securityinnovationeurope.com/blog/page/whats-the-difference-between-hashing-and-encrypting
+\subsubsection{Availability}
+Availability of information refers to ensuring that authorized parties are able to access the information when needed.\\
+Information only has value if the right people can access it at the right times. 
+%
+\subsubsection{Encryption for Serial Switch}
+Integrity is assured with the 8 bit CRC in a package header and a 32 bit CRC for the package payload.\\
+Confidentiality is not yet assured. Because symmetric encryption requires the least CPU power and is easier to implement, this method would preferably be chosen. Two identical keys could be generated before software startup and saved on the SD card.
