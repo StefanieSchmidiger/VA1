@@ -166,11 +166,18 @@ static bool processReceivedPackage(tUartNr wlConn)
 {
 	tWirelessPackage package;
 	char infoBuf[150];
-	// ToDo: is peeking needed? Nothing is done with the peek information here. Maybe check if enough space on device side before popping it and not being able to push it down?
-	if(peekAtReceivedPackQueue(wlConn, &package) != pdTRUE) /* peek at package to find out payload size for malloc */
-		return false;
+
+	/* if it is a data package -> check if there is enough space on byte queue of device side */
+	if(peekAtReceivedPackQueue(wlConn, &package) != pdTRUE) /* peek at package to find out payload size for space on Device Tx Bytes queue */
+		return false; /* peek not successful */
+	/* ToDo: check timestamp>lastTimestamp as well or implement package numbering */
+	if((package.packType == PACK_TYPE_DATA_PACKAGE) &&
+			freeSpaceInTxByteQueue(MAX_14830_DEVICE_SIDE, package.devNum) < package.payloadSize) /* enough space to push device bytes down? */
+		return false; /* not enough space */
+	/* ToDo: check if ack queue full in case ack will be generated and needs to be pushed down */
+	/* pop package from queue to send it out */
 	if(popReceivedPackFromQueue(wlConn, &package) != pdTRUE) /* actually remove package from queue */
-		return false;
+		return false; /* coun't be removed */
 	if(package.packType == PACK_TYPE_DATA_PACKAGE) /* data package received */
 	{
 		/* check if data is valid */
@@ -181,9 +188,9 @@ static bool processReceivedPackage(tUartNr wlConn)
 		/* send data out at correct device side */
 		for(uint16_t cnt=0; cnt<package.payloadSize; cnt++)
 		{
-			if(pushToByteQueue(MAX_14830_DEVICE_SIDE, package.devNum, &package.payload[cnt]) == pdFAIL) /* ToDo: all data is lost! Implement a try-again-later method */
+			if(pushToByteQueue(MAX_14830_DEVICE_SIDE, package.devNum, &package.payload[cnt]) == pdFAIL)
 			{
-				XF1_xsprintf(infoBuf, "Warning: Device byte array for UART %u is full", package.devNum);
+				XF1_xsprintf(infoBuf, "Warning: Push to device byte array for UART %u failed", package.devNum);
 				pushMsgToShellQueue(infoBuf);
 				numberOfDroppedBytes[package.devNum]++;
 			}
@@ -300,6 +307,7 @@ static bool generateDataPackage(tUartNr deviceNr, tWirelessPackage* pPackage, ui
 				UTIL1_strcat(infoBuf, sizeof(infoBuf), " not successful");
 				pushMsgToShellQueue(infoBuf);
 				numberOfDroppedBytes[deviceNr] += cnt;
+				FRTOS_vPortFree(pPackage.payload);
 				return false;
 
 			}

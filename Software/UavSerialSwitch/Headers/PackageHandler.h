@@ -48,7 +48,9 @@
 */
 #define MAX_DELAY_PACK_HANDLER_MS					(0)
 
-
+/*! \enum ePackType
+*  \brief There are two types of packages: data packages and acknowledges.
+*/
 typedef enum ePackType
 {
 	PACK_TYPE_DATA_PACKAGE = 0x01,

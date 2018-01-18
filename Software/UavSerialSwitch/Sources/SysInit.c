@@ -20,12 +20,13 @@ void SysInit_TaskEntry(void* param)
   bool cardMounted = false;
   static FAT1_FATFS fileSystemObject;
 
+  /* mount SD card so config file can be read */
   if(FAT1_Init() != 0)
     {for(;;){}} /* SD Card could not be mounted */
   FAT1_CheckCardPresence(&cardMounted, (unsigned char*)"0" /*volume*/, &fileSystemObject, CLS1_GetStdio());
-  readConfig();
-  createAllTasks();
-  vTaskDelete(NULL); // task deletes itself
+  readConfig(); /* global config variable is needed for all other tasks -> read it before starting other tasks */
+  createAllTasks(); /* start all other tasks */
+  vTaskDelete(NULL); /* task deletes itself */
 }
 
 /*!

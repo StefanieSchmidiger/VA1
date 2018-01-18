@@ -36,6 +36,11 @@
 */
 #define NUM_OF_BYTES_TO_DELETE_ON_QUEUE_FULL		10
 
+/*! \def SPI_HANDLER_QUEUE_DELAY
+*  \brief Number of ticks to wait on byte queue operations within this task
+*/
+#define SPI_HANDLER_QUEUE_DELAY				0
+
 
 
 /*! \enum eMax14830Reg
@@ -156,7 +161,30 @@ BaseType_t pushToByteQueue(tSpiSlaves spiSlave, tUartNr uartNr, uint8_t* pData);
 */
 BaseType_t popFromByteQueue(tSpiSlaves spiSlave, tUartNr uartNr, uint8_t *pData);
 
+/*!
+* \fn uint16_t numberOfBytesInRxByteQueue(tSpiSlaves spiSlave, tUartNr uartNr)
+* \brief Returns the number of bytes stored in the queue that are ready to be received/processed by this program
+* \param uartNr: UART number the bytes should be read from.
+* \param spiSlave: spiSlave byte should be read from.
+* \return Number of packages waiting to be processed/received
+*/
 uint16_t numberOfBytesInRxByteQueue(tSpiSlaves spiSlave, tUartNr uartNr);
+
+/*!
+* \fn uint16_t numberOfBytesInTxByteQueue(tSpiSlaves spiSlave, tUartNr uartNr)
+* \brief Returns the number of bytes stored in the queue that are ready to be sent to the corresponding MAX14830.
+* \param uartNr: UART number the bytes should be transmitted to.
+* \param spiSlave: spiSlave byte should be sent to.
+* \return Number of bytes waiting to be sent out
+*/
 uint16_t numberOfBytesInTxByteQueue(tSpiSlaves spiSlave, tUartNr uartNr);
+/*!
+* \fn uint16_t freeSpaceInTxByteQueue(tSpiSlaves spiSlave, tUartNr uartNr)
+* \brief Returns the number of bytes that can still be stored in a queue that will be sent out to the corresponding MAX14830.
+* \param uartNr: UART number the bytes should be transmitted to.
+* \param spiSlave: spiSlave byte should be sent to.
+* \return Free space in the queue in number of bytes
+*/
+uint16_t freeSpaceInTxByteQueue(tSpiSlaves spiSlave, tUartNr uartNr);
 
 #endif

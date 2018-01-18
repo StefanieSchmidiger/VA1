@@ -611,14 +611,28 @@ uint16_t numberOfBytesInRxByteQueue(tSpiSlaves spiSlave, tUartNr uartNr)
 
 /*!
 * \fn uint16_t numberOfBytesInTxByteQueue(tSpiSlaves spiSlave, tUartNr uartNr)
-* \brief Returns the number of bytes stored in the queue that are ready to be sent to the corresponding MAX14830
+* \brief Returns the number of bytes stored in the queue that are ready to be sent to the corresponding MAX14830.
 * \param uartNr: UART number the bytes should be transmitted to.
 * \param spiSlave: spiSlave byte should be sent to.
-* \return Number of packages waiting to be sent out
+* \return Number of bytes waiting to be sent out
 */
 uint16_t numberOfBytesInTxByteQueue(tSpiSlaves spiSlave, tUartNr uartNr)
 {
 	if(uartNr < NUMBER_OF_UARTS)
 		return (spiSlave == MAX_14830_WIRELESS_SIDE)? (uint16_t) uxQueueMessagesWaiting(TxWirelessBytes[uartNr]) :  (uint16_t) uxQueueMessagesWaiting(TxDeviceBytes[uartNr]);
+	return 0; /* if uartNr was not in range */
+}
+
+/*!
+* \fn uint16_t freeSpaceInTxByteQueue(tSpiSlaves spiSlave, tUartNr uartNr)
+* \brief Returns the number of bytes that can still be stored in a queue that will be sent out to the corresponding MAX14830.
+* \param uartNr: UART number the bytes should be transmitted to.
+* \param spiSlave: spiSlave byte should be sent to.
+* \return Free space in the queue in number of bytes
+*/
+uint16_t freeSpaceInTxByteQueue(tSpiSlaves spiSlave, tUartNr uartNr)
+{
+	if(uartNr < NUMBER_OF_UARTS)
+		return (spiSlave == MAX_14830_WIRELESS_SIDE)? (QUEUE_NUM_OF_CHARS_WL_TX_QUEUE - ((uint16_t) uxQueueMessagesWaiting(TxWirelessBytes[uartNr]))) :  (QUEUE_NUM_OF_CHARS_DEV_TX_QUEUE - ((uint16_t) uxQueueMessagesWaiting(TxDeviceBytes[uartNr])));
 	return 0; /* if uartNr was not in range */
 }

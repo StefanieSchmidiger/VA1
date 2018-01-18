@@ -155,5 +155,5 @@ BaseType_t pushMsgToShellQueue(char* pMsg)
 			return pdFAIL;
 		}
 	}
-	return pdTRUE; /* return success if debug output not enabled */
+	return pdTRUE; /* also return success if debug output not enabled */
 }
