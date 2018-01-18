@@ -38,9 +38,9 @@ void testSpiDeviceSide(void);
 
 
 /*!
-* \fn void hwBufIfDataReader_TaskEntry(void)
+* \fn void spiHandler_TaskEntry(void)
 * \brief Task initializes SPI, used queues and MAX14830.
-* Periodically reads data from hardware buffers of all interfaces on wireless and device side and writes it to corresponding queues.
+* Periodically reads and writes bytes to and from byte queue.
 */
 void spiHandler_TaskEntry(void* p)
 {
@@ -203,7 +203,7 @@ uint8_t spiSingleReadTransfer(tSpiSlaves spiSlave, tUartNr uartNr, tMax14830Reg 
 {
 	static uint8_t readData[2]; /* spi transfer needs one extra byte for commando */
 	spiTransfer(spiSlave, uartNr, reg, READ_TRANSFER, readData, SINGLE_BYTE);
-	return readData[1];
+	return readData[1]; /* readData[0] holds answer to commando byte and no data for user */
 }
 
 
@@ -250,7 +250,7 @@ void spiWriteToAllUartInterfaces(tMax14830Reg reg, uint8_t data)
 * \param uartNr: The number of the UART of the MAX14830 chip.
 * \param reg: The register the data should be written to.
 * \param write: Set to true to write to the SPI slave, false to read.
-* \param pData: Pointer to data that should be written in the write case or where the answer is saved in read case. Needs to be of numOfTransfers size.
+* \param pData: This array holds read/write data. Important: needs to be 1 byte bigger than numOfTransfers! Leave Byte0 empty! Commando will be stored in that byte!
 * \param numOfTransfers: Number of transfers. If bigger than 1, an SPI burst access will be performed. x * 16 Bit! Not in bytes!
 * \return true if the data could be written/read, false otherwise.
 */
@@ -310,8 +310,8 @@ bool spiTransfer(tSpiSlaves spiSlave, tUartNr uartNr, tMax14830Reg reg, bool wri
 	if (write)
 	{
 		/* write transfer */
-		xSemaphoreTake(spiTxMutex, maxDelay / portTICK_PERIOD_MS); // wait for last write to complete
-		SPI_SendBlock(spiDevice, pData, numOfTransfers+1); // wait for SPI to get ready for sending
+		xSemaphoreTake(spiTxMutex, maxDelay / portTICK_PERIOD_MS); /* wait for last write to complete */
+		SPI_SendBlock(spiDevice, pData, numOfTransfers+1); /* wait for SPI to get ready for sending, add 1 byte for command */
 	}
 	else
 	{
@@ -420,7 +420,7 @@ static uint16_t readHwBufAndWriteToQueue(tSpiSlaves spiSlave, tUartNr uartNr, xQ
 
 
 		/* send the read data to the corresponding queue */
-		/* const char* buf = (const char*) &buffer[0]; */
+		/* cnt starts at 1 because buffer[0] is left empty for commando, therefore it needs to count up to dataToRead+1 */
 		for (unsigned int cnt = 1; cnt < dataToRead+1; cnt++)
 		{
 			if (xQueueSendToBack(queue, &buffer[cnt], ( TickType_t ) 0 ) == errQUEUE_FULL)
@@ -481,11 +481,12 @@ static uint16_t readQueueAndWriteToHwBuf(tSpiSlaves spiSlave, tUartNr uartNr, xQ
 		{
 			numOfBytesToWrite = HW_FIFO_SIZE;
 		}
+		/* pop bytes from queue and store them in buffer array. cnt starts at 1 because buffer[0] needs to be empty for commando byte */
 		for (cnt = 1; cnt < numOfBytesToWrite; cnt++)
 		{
 			if (xQueueReceive(queue, &buffer[cnt], ( TickType_t ) 0 ) == errQUEUE_EMPTY)
 			{
-				/* queue is empty, no data to read - leave loop */
+				/* queue is empty, no data to read - leave for-loop without incrementing cnt */
 				break;
 			}
 		}
@@ -514,6 +515,7 @@ static uint16_t readQueueAndWriteToHwBuf(tSpiSlaves spiSlave, tUartNr uartNr, xQ
 				spiSingleWriteTransfer(spiSlave, uartNr, MAX_REG_MODE1, 0x02);
 			}
 		}
+		/* transfer data popped from queue. cnt=numberOfTransfers-1 */
 		spiTransfer(spiSlave, uartNr, MAX_REG_RHR_THR, true, buffer, cnt-1);
 		/* reenable transmission */
 		if (spiSlave != MAX_14830_WIRELESS_SIDE)

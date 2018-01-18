@@ -451,7 +451,7 @@ static uint16_t readQueueAndWriteToHwBuf(tSpiSlaves spiSlave, tUartNr uartNr, xQ
 			numOfBytesToWrite = HW_FIFO_SIZE;
 		}
 		/* pop bytes from queue and store them in buffer array. cnt starts at 1 because buffer[0] needs to be empty for commando byte */
-		for (cnt = 1; cnt < numOfBytesToWrite; cnt++)
+		for (cnt = 1; cnt < numOfBytesToWrite+1; cnt++)
 		{
 			if (xQueueReceive(queue, &buffer[cnt], ( TickType_t ) 0 ) == errQUEUE_EMPTY)
 			{
