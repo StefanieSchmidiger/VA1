@@ -14,6 +14,7 @@
 #include <Shell.h> // to print out debugInfo
 #include <task.h>
 #include <ThroughputPrintout.h>
+#include "Logger.h"
 
 
 /* global variables, only used in this file */
@@ -23,6 +24,8 @@ static LDD_TDeviceData* crcNH;
 static tWirelessPackage unacknowledgedPackages[MAX_NUMBER_OF_UNACK_PACKS_STORED];
 static bool unacknowledgedPackagesOccupiedAtIndex[MAX_NUMBER_OF_UNACK_PACKS_STORED];
 static int numberOfUnacknowledgedPackages;
+static uint32_t sentPackNumTracker[NUMBER_OF_UARTS];
+static uint32_t recPackNumTracker[NUMBER_OF_UARTS];
 
 /* prototypes of local functions */
 static bool generateDataPackage(tUartNr wlConn, tWirelessPackage* pPackage, uint8_t sessionNr);
@@ -34,6 +37,7 @@ static char* queueName[] = {"queuePackagesToSend0", "queuePackagesToSend1", "que
 static uint8_t getWlConnectionToUse(tUartNr uartNr, uint8_t desiredPrio);
 static bool generateAckPackage(tWirelessPackage* pReceivedDataPack, tWirelessPackage* pAckPack);
 static void handleResendingOfUnacknowledgedPackages(void);
+BaseType_t pushToSentPackagesQueue(tUartNr wlConn, tWirelessPackage package);
 
 /*!
 * \fn void networkHandler_TaskEntry(void)
@@ -118,9 +122,14 @@ static bool sendAndStoreGeneratedWlPackage(tWirelessPackage* pPackage, tUartNr r
 	{
 		wlConn = getWlConnectionToUse(rawDataUartNr, prio);
 		if(wlConn >= NUMBER_OF_UARTS) /* maximum priority in config file reached */
+		{
+			numberOfDroppedPackages[UTIL1_constrain(getWlConnectionToUse(rawDataUartNr, UTIL1_constrain(prio-1, 1, NUMBER_OF_UARTS-1)), 1, NUMBER_OF_UARTS-1)]; /* make sure the prio for function call is within range */
+			XF1_xsprintf(infoBuf, "Warning: Couldn't push newly generated package from device %u to package queue\r\n", rawDataUartNr);
+			pushMsgToShellQueue(infoBuf);
 			return false;
+		}
 		/* send generated WL package to correct package queue */
-		if(xQueueSendToBack(queuePackagesToSend[wlConn], pPackage, ( TickType_t ) pdMS_TO_TICKS(MAX_DELAY_NETW_HANDLER_MS) ) != pdTRUE)
+		if(pushToSentPackagesQueue(wlConn,*pPackage) != pdTRUE)
 			continue; /* try next priority -> go though for-loop again */
 		/* update throughput printout */
 		numberOfPacksSent[wlConn]++;
@@ -134,9 +143,13 @@ static bool sendAndStoreGeneratedWlPackage(tWirelessPackage* pPackage, tUartNr r
 			if(storeNewPackageInUnacknowledgedPackagesArray(pPackage) == true)
 				return true; /* success */
 		}
+		else /* no ack expected */
+		{
+			return true; /* success */
+		}
 	}
 	/* ToDo: handle failure of storeNewPackageInUnacknowledgedPackagesArray() */
-	UTIL1_strcpy(infoBuf, sizeof(infoBuf), "Warning: Unacknowledged packages array is full\r\n");
+	XF1_xsprintf(infoBuf, "Warning: Unacknowledged packages array is full\r\n");
 	pushMsgToShellQueue(infoBuf);
 	FRTOS_vPortFree(pPackage->payload); /* free memory since it wont be freed when popped from queue */
 	numberOfDroppedPackages[wlConn]++;
@@ -185,16 +198,20 @@ static bool processReceivedPackage(tUartNr wlConn)
 			package.payloadSize = PACKAGE_MAX_PAYLOAD_SIZE;
 		if(package.devNum > NUMBER_OF_UARTS)
 			package.devNum = NUMBER_OF_UARTS-1;
-		/* send data out at correct device side */
-		for(uint16_t cnt=0; cnt<package.payloadSize; cnt++)
+		/* send data out at correct device side if packages received in order*/
+		if(recPackNumTracker[package.devNum] < package.sysTime)
 		{
-			if(pushToByteQueue(MAX_14830_DEVICE_SIDE, package.devNum, &package.payload[cnt]) == pdFAIL)
+			for(uint16_t cnt=0; cnt<package.payloadSize; cnt++)
 			{
-				XF1_xsprintf(infoBuf, "Warning: Push to device byte array for UART %u failed", package.devNum);
-				pushMsgToShellQueue(infoBuf);
-				numberOfDroppedBytes[package.devNum]++;
+				if(pushToByteQueue(MAX_14830_DEVICE_SIDE, package.devNum, &package.payload[cnt]) == pdFAIL)
+				{
+					XF1_xsprintf(infoBuf, "Warning: Push to device byte array for UART %u failed", package.devNum);
+					pushMsgToShellQueue(infoBuf);
+					numberOfDroppedBytes[package.devNum]++;
+				}
 			}
 		}
+		recPackNumTracker[package.devNum] = package.sysTime;
 		/* generate ACK if it is configured and send it to package queue */
 		if(config.SendAckPerWirelessConn[wlConn])
 		{
@@ -205,7 +222,7 @@ static bool processReceivedPackage(tUartNr wlConn)
 				pushMsgToShellQueue(infoBuf);
 				numberOfDroppedAcks[wlConn]++;
 			}
-			if(xQueueSendToBack(queuePackagesToSend[wlConn], &ackPackage, ( TickType_t ) pdMS_TO_TICKS(MAX_DELAY_NETW_HANDLER_MS) ) != pdTRUE) // ToDo: try sending ACK package out on wireless connection configured (just like data package, iterate through priorities) */
+			if(pushToSentPackagesQueue(wlConn, ackPackage) != pdTRUE) // ToDo: try sending ACK package out on wireless connection configured (just like data package, iterate through priorities) */
 			{
 				XF1_xsprintf(infoBuf, "Warning: ACK for wireless number %u could not be pushed to queue", wlConn);
 				pushMsgToShellQueue(infoBuf);
@@ -307,9 +324,8 @@ static bool generateDataPackage(tUartNr deviceNr, tWirelessPackage* pPackage, ui
 				UTIL1_strcat(infoBuf, sizeof(infoBuf), " not successful");
 				pushMsgToShellQueue(infoBuf);
 				numberOfDroppedBytes[deviceNr] += cnt;
-				FRTOS_vPortFree(pPackage.payload);
+				FRTOS_vPortFree(pPackage->payload);
 				return false;
-
 			}
 		}
 		/* calculate CRC */
@@ -322,7 +338,7 @@ static bool generateDataPackage(tUartNr deviceNr, tWirelessPackage* pPackage, ui
 		pPackage->packType = PACK_TYPE_DATA_PACKAGE;
 		pPackage->devNum = deviceNr;
 		pPackage->sessionNr = sessionNr;
-		pPackage->sysTime = (uint32_t) xTaskGetTickCount();
+		pPackage->sysTime = ++sentPackNumTracker[deviceNr];
 		/* calculate crc */
 		CRC1_ResetCRC(crcNH);
 		CRC1_GetCRC8(crcNH, PACK_START);
@@ -453,7 +469,7 @@ static void handleResendingOfUnacknowledgedPackages(void)
 					{
 						/* create new package for queue because memory is freed once package is pulled from queue */
 						package = unacknowledgedPackages[index];
-						package.payload = (uint8_t*) FRTOS_pvPortMalloc(package.payloadSize*sizeof(int8_t));
+						package.payload = (uint8_t*) FRTOS_pvPortMalloc(package.payloadSize*sizeof(int8_t)); // ToDo: check queue state before allocating memory for package
 						if(package.payload == NULL)
 						{
 							return; /* leave this entire function if malloc fails! */
@@ -464,7 +480,7 @@ static void handleResendingOfUnacknowledgedPackages(void)
 							package.payload[cnt] = unacknowledgedPackages[index].payload[cnt];
 						}
 						/* send package */
-						if(xQueueSendToBack(queuePackagesToSend[wlConn], &package, ( TickType_t ) pdMS_TO_TICKS(MAX_DELAY_NETW_HANDLER_MS) ) == pdTRUE)
+						if(pushToSentPackagesQueue(wlConn, package) == pdTRUE)
 						{
 							unacknowledgedPackages[index].sendAttemptsLeftPerWirelessConnection[wlConn]--;
 							unacknowledgedPackages[index].timestampLastSendAttempt[wlConn] = xTaskGetTickCount();
@@ -569,4 +585,40 @@ uint16_t numberOfPackagesReadyToSend(tUartNr uartNr)
 		return uxQueueMessagesWaiting(queuePackagesToSend[uartNr]);
 	}
 	return 0; /* if uartNr was not in range */
+}
+
+/*!
+* \fn ByseType_t pushToSentPackagesQueue(tUartNr wlConn, tWirelessPackage package)
+* \brief Stores the sent package in correct queue.
+* \param wlConn: UART number where package was received.
+* \param package: The package that was sent
+* \return Status if xQueueSendToBack has been successful, pdFAIL if push unsuccessful
+*/
+BaseType_t pushToSentPackagesQueue(tUartNr wlConn, tWirelessPackage package)
+{
+	if(xQueueSendToBack(queuePackagesToSend[wlConn], &package, ( TickType_t ) pdMS_TO_TICKS(MAX_DELAY_NETW_HANDLER_MS) ) == pdTRUE)
+	{
+		if(config.LoggingEnabled)
+		{
+			/* generate new package because payload is freed upon queue pull */
+			tWirelessPackage tmpPackage = package;
+			tmpPackage.payload = (uint8_t*) FRTOS_pvPortMalloc(tmpPackage.payloadSize*sizeof(int8_t));
+			if(tmpPackage.payload == NULL) /* malloc failed */
+			{
+				return pdTRUE; /* because package handling was successful, only logging failure */
+			}
+			/* copy payload into new package */
+			for(int cnt=0; cnt < tmpPackage.payloadSize; cnt++)
+			{
+				tmpPackage.payload[cnt] = package.payload[cnt];
+			}
+			if(pushPackageToLoggerQueue(tmpPackage, SENT_PACKAGE, wlConn) != pdTRUE)
+			{
+				/* free memory here because it wont be done when popping from queue */
+				FRTOS_vPortFree(tmpPackage.payload);
+			}
+		}
+		return pdTRUE;
+	}
+	return pdFAIL;
 }

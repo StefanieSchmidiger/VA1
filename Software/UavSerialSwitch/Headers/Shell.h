@@ -44,4 +44,10 @@ BaseType_t pushMsgToShellQueue(char* pMsg);
 #define MAX_NUMBER_OF_CHARS_PER_MESSAGE		200
 
 
+/*! \def MAX_DELAY_SHELL_MS
+*  \brief Maximal delay on queue operations inside Shell task.
+*/
+#define MAX_DELAY_SHELL_MS					(5)
+
+
 #endif /* SHELL_H_ */

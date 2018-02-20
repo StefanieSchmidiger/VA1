@@ -2,6 +2,7 @@
 #include "Config.h"
 #include <stdlib.h> //atoi()
 #include <stdbool.h>
+#include "Platform.h"
 
 #define TEMP_CSV_SIZE 50
 #define DEFAULT_CSV_STRING "0, 0, 0, 0"
@@ -12,6 +13,7 @@
 /* prototypes */
 void csvToInt(char inputString[], int outputArray[]);
 void csvToBool(char inputString[], bool outputArray[]);
+void setDefaultConfigValues(void);
 
 /* global variables */
 Configuration config;
@@ -109,6 +111,7 @@ bool readConfig(void)
 	char copiedCsv[TEMP_CSV_SIZE];
   	char fileName[] = "serialSwitch_Config.ini";
 
+#if PL_HAS_SD_CARD
   	/* -------- BaudRateConfiguration -------- */
   	/* BAUD_RATES_WIRELESS_CONN */
   	numberOfCharsCopied = MINI_ini_gets("BaudRateConfiguration", "BAUD_RATES_WIRELESS_CONN",  DEFAULT_CSV_STRING, copiedCsv, TEMP_CSV_SIZE, "serialSwitch_Config.ini");
@@ -201,6 +204,9 @@ bool readConfig(void)
   	/* GENERATE_DEBUG_OUTPUT */
   	config.GenerateDebugOutput = MINI_ini_getbool("SoftwareConfiguration", "GENERATE_DEBUG_OUTPUT",  DEFAULT_BOOL, "serialSwitch_Config.ini");
 
+  	/* LOGGING_ENABLED */
+  	config.LoggingEnabled = MINI_ini_getl("SoftwareConfiguration", "LOGGING_ENABLED",  DEFAULT_INT, "serialSwitch_Config.ini");
+
   	/* SPI_HANDLER_TASK_INTERVAL */
   	config.SpiHandlerTaskInterval = MINI_ini_getl("SoftwareConfiguration", "SPI_HANDLER_TASK_INTERVAL",  DEFAULT_INT, "serialSwitch_Config.ini");
 
@@ -219,5 +225,175 @@ bool readConfig(void)
 	/* SHELL_TASK_INTERVAL */
 	config.ShellTaskInterval = MINI_ini_getl("SoftwareConfiguration", "SHELL_TASK_INTERVAL",  DEFAULT_INT, "serialSwitch_Config.ini");
 
+	/* LOGGER_TASK_INTERVAL */
+	config.LoggerTaskInterval = MINI_ini_getl("SoftwareConfiguration", "LOGGER_TASK_INTERVAL",  DEFAULT_INT, "serialSwitch_Config.ini");
+
   	return true;
+#else
+  	setDefaultConfigValues();
+  	return true;
+#endif
+}
+
+
+void setDefaultConfigValues(void)
+{
+
+  	/* -------- BaudRateConfiguration -------- */
+  	/* BAUD_RATES_WIRELESS_CONN */
+  	config.BaudRatesWirelessConn[0] = 9600;
+  	config.BaudRatesWirelessConn[1] = 9600;
+  	config.BaudRatesWirelessConn[2] = 9600;
+  	config.BaudRatesWirelessConn[3] = 9600;
+
+  	/* BAUD_RATES_DEVICE_CONN */
+    config.BaudRatesDeviceConn[0] = 9600;
+    config.BaudRatesDeviceConn[1] = 9600;
+    config.BaudRatesDeviceConn[2] = 9600;
+    config.BaudRatesDeviceConn[3] = 9600;
+
+
+  	/* -------- ConnectionConfiguration -------- */
+  	/* PRIO_WIRELESS_CONN_DEV_0 */
+  	config.PrioWirelessConnDev[0][0] = 1;
+  	config.PrioWirelessConnDev[0][1] = 0;
+  	config.PrioWirelessConnDev[0][2] = 0;
+  	config.PrioWirelessConnDev[0][3] = 0;
+
+
+  	/* PRIO_WIRELESS_CONN_DEV_1 */
+  	config.PrioWirelessConnDev[1][0] = 0;
+  	config.PrioWirelessConnDev[1][1] = 1;
+  	config.PrioWirelessConnDev[1][2] = 0;
+  	config.PrioWirelessConnDev[1][3] = 0;
+
+  	/* PRIO_WIRELESS_CONN_DEV_2 */
+  	config.PrioWirelessConnDev[2][0] = 0;
+  	config.PrioWirelessConnDev[2][1] = 0;
+  	config.PrioWirelessConnDev[2][2] = 1;
+  	config.PrioWirelessConnDev[2][3] = 0;
+
+  	/* PRIO_WIRELESS_CONN_DEV_3 */
+  	config.PrioWirelessConnDev[3][0] = 0;
+  	config.PrioWirelessConnDev[3][1] = 0;
+  	config.PrioWirelessConnDev[3][2] = 0;
+  	config.PrioWirelessConnDev[3][3] = 1;
+
+  	/* SEND_CNT_WIRELESS_CONN_DEV_0 */
+  	config.SendCntWirelessConnDev[0][0] = 1;
+  	config.SendCntWirelessConnDev[0][1] = 0;
+  	config.SendCntWirelessConnDev[0][2] = 0;
+  	config.SendCntWirelessConnDev[0][3] = 0;
+
+  	/* SEND_CNT_WIRELESS_CONN_DEV_1 */
+  	config.SendCntWirelessConnDev[1][0] = 0;
+  	config.SendCntWirelessConnDev[1][1] = 1;
+  	config.SendCntWirelessConnDev[1][2] = 0;
+  	config.SendCntWirelessConnDev[1][3] = 0;
+
+  	/* SEND_CNT_WIRELESS_CONN_DEV_2 */
+  	config.SendCntWirelessConnDev[2][0] = 0;
+  	config.SendCntWirelessConnDev[2][1] = 0;
+  	config.SendCntWirelessConnDev[2][2] = 1;
+  	config.SendCntWirelessConnDev[2][3] = 0;
+
+  	/* SEND_CNT_WIRELESS_CONN_DEV_3 */
+  	config.SendCntWirelessConnDev[3][0] = 0;
+  	config.SendCntWirelessConnDev[3][1] = 0;
+  	config.SendCntWirelessConnDev[3][2] = 0;
+  	config.SendCntWirelessConnDev[3][3] = 1;
+
+  	/* -------- TransmissionConfiguration -------- */
+  	/* PRIO_WIRELESS_CONN_DEV_0 */
+  	config.ResendDelayWirelessConnDev[0][0] = 5;
+  	config.ResendDelayWirelessConnDev[0][1] = 5;
+  	config.ResendDelayWirelessConnDev[0][2] = 5;
+  	config.ResendDelayWirelessConnDev[0][3] = 5;
+
+
+  	/* PRIO_WIRELESS_CONN_DEV_1 */
+  	config.ResendDelayWirelessConnDev[1][0] = 5;
+  	config.ResendDelayWirelessConnDev[1][1] = 5;
+  	config.ResendDelayWirelessConnDev[1][2] = 5;
+  	config.ResendDelayWirelessConnDev[1][3] = 5;
+
+  	/* PRIO_WIRELESS_CONN_DEV_2 */
+  	config.ResendDelayWirelessConnDev[2][0] = 5;
+  	config.ResendDelayWirelessConnDev[2][1] = 5;
+  	config.ResendDelayWirelessConnDev[2][2] = 5;
+  	config.ResendDelayWirelessConnDev[2][3] = 5;
+
+  	/* PRIO_WIRELESS_CONN_DEV_3 */
+  	config.ResendDelayWirelessConnDev[3][0] = 5;
+  	config.ResendDelayWirelessConnDev[3][1] = 5;
+  	config.ResendDelayWirelessConnDev[3][2] = 5;
+  	config.ResendDelayWirelessConnDev[3][3] = 5;
+
+  	/* MAX_THROUGHPUT_WIRELESS_CONN */
+  	config.MaxThroughputWirelessConn[0] = 5000;
+  	config.MaxThroughputWirelessConn[1] = 5000;
+  	config.MaxThroughputWirelessConn[2] = 5000;
+  	config.MaxThroughputWirelessConn[3] = 5000;
+
+  	/* USUAL_PACKET_SIZE_DEVICE_CONN */
+  	config.UsualPacketSizeDeviceConn[0] = 20;
+  	config.UsualPacketSizeDeviceConn[1] = 20;
+  	config.UsualPacketSizeDeviceConn[2] = 20;
+  	config.UsualPacketSizeDeviceConn[3] = 20;
+
+  	/* PACKAGE_GEN_MAX_TIMEOUT */
+  	config.PackageGenMaxTimeout[0] = 5;
+  	config.PackageGenMaxTimeout[1] = 5;
+  	config.PackageGenMaxTimeout[2] = 5;
+  	config.PackageGenMaxTimeout[3] = 5;
+
+  	/* DELAY_DISMISS_OLD_PACK_PER_DEV */
+  	config.DelayDismissOldPackagePerDev[0] = 500;
+  	config.DelayDismissOldPackagePerDev[1] = 500;
+  	config.DelayDismissOldPackagePerDev[2] = 500;
+  	config.DelayDismissOldPackagePerDev[3] = 500;
+
+  	/* SEND_ACK_PER_WIRELESS_CONN */
+  	config.SendAckPerWirelessConn[0] = 0;
+  	config.SendAckPerWirelessConn[1] = 0;
+  	config.SendAckPerWirelessConn[2] = 0;
+  	config.SendAckPerWirelessConn[3] = 0;
+
+  	/* USE_CTS_PER_WIRELESS_CONN */
+  	config.UseCtsPerWirelessConn[0] = 0;
+  	config.UseCtsPerWirelessConn[1] = 0;
+  	config.UseCtsPerWirelessConn[2] = 0;
+  	config.UseCtsPerWirelessConn[3] = 0;
+
+
+  	/* -------- SoftwareConfiguration -------- */
+  	/* TEST_HW_LOOPBACK_ONLY */
+  	config.TestHwLoopbackOnly = 0;
+
+  	/* GENERATE_DEBUG_OUTPUT */
+  	config.GenerateDebugOutput = 0;
+
+  	/* LOGGING_ENABLED */
+  	config.LoggingEnabled = 0;
+
+  	/* SPI_HANDLER_TASK_INTERVAL */
+  	config.SpiHandlerTaskInterval = 5;
+
+  	/* PACKAGE_GENERATOR_TASK_INTERVAL */
+  	config.PackageHandlerTaskInterval = 5;
+
+  	/* NETWORK_HANDLER_TASK_INTERVAL */
+    config.NetworkHandlerTaskInterval = 5;
+
+  	/* TOGGLE_GREEN_LED_INTERVAL */
+  	config.ToggleGreenLedInterval = 500;
+
+  	/* THROUGHPUT_PRINTOUT_TASK_INTERVAL */
+	config.ThroughputPrintoutTaskInterval = 5;
+
+	/* SHELL_TASK_INTERVAL */
+	config.ShellTaskInterval = 50;
+
+	/* LOGGER_TASK_INTERVAL */
+	config.LoggerTaskInterval = 5000;
 }

@@ -7,6 +7,7 @@
 #include "NetworkHandler.h"
 #include "Blinky.h"
 #include "ThroughputPrintout.h"
+#include "Logger.h"
 
 /* prototypes for functions that are only within this file scope */
 bool createAllTasks(void);
@@ -38,6 +39,7 @@ bool createAllTasks(void)
 {
 	/* make sure all queues are initialized before being accessed from other tasks */
 	Shell_TaskInit();
+	logger_TaskInit();
 	spiHandler_TaskInit();
 	packageHandler_TaskInit();
 	networkHandler_TaskInit();
@@ -62,9 +64,12 @@ bool createAllTasks(void)
 		for(;;) {}} /* error */
 
 	/* create network handler task */
-		if (xTaskCreate(throughputPrintout_TaskEntry, "Throughput_Printout", 2000/sizeof(StackType_t), NULL, tskIDLE_PRIORITY+1, NULL) != pdPASS) {
-			for(;;) {}} /* error */
+	if (xTaskCreate(throughputPrintout_TaskEntry, "Throughput_Printout", 2000/sizeof(StackType_t), NULL, tskIDLE_PRIORITY+1, NULL) != pdPASS) {
+		for(;;) {}} /* error */
 
+	/* create logger task */
+	if (xTaskCreate(logger_TaskEntry, "Logger", 2000/sizeof(StackType_t), NULL, tskIDLE_PRIORITY+1, NULL) != pdPASS) {
+		for(;;) {}} /* error */
 
 	/* create blinky task last to let user know that all init methods and mallocs were successful when LED blinks */
 	if (xTaskCreate(blinky_TaskEntry, "Blinky", 400/sizeof(StackType_t), NULL, tskIDLE_PRIORITY+1, NULL) != pdPASS) {

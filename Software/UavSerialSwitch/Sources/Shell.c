@@ -148,7 +148,7 @@ BaseType_t pushMsgToShellQueue(char* pMsg)
 		}
 		UTIL1_strcpy(pTmpMsg, numberOfChars+1, pMsg); /* copy string to new memory location */
 		/* push string to queue */
-		if(xQueueSendToBack(msgQueue, &pTmpMsg, ( TickType_t ) pdMS_TO_TICKS(5) ) != pdTRUE)
+		if(xQueueSendToBack(msgQueue, &pTmpMsg, ( TickType_t ) pdMS_TO_TICKS(MAX_DELAY_SHELL_MS) ) != pdTRUE)
 		{
 			/* free memory before returning */
 			FRTOS_vPortFree(pTmpMsg); /* free memory allocated when message was pushed into queue */

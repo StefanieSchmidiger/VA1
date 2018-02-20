@@ -8,6 +8,7 @@
 #include "ThroughputPrintout.h"
 #include "LedRed.h"
 #include "LedOrange.h"
+#include "Logger.h"
 
 #define TASKDELAY_QUEUE_FULL_MS 1
 
@@ -28,6 +29,7 @@ static bool sendNonPackStartCharacter(tUartNr uartNr, uint8_t* pCharToSend);
 static void readAndExtractWirelessData(uint8_t wlConn);
 static bool checkForPackStartReplacement(uint8_t* ptrToData, uint16_t* dataCntr, uint16_t* patternReplaced);
 uint16_t numberOfPacksInReceivedPacksQueue(tUartNr uartNr);
+BaseType_t pushToReceivedPackagesQueue(tUartNr wlConn, tWirelessPackage package);
 
 
 /*! \struct sWiReceiveHandlerStates
@@ -350,7 +352,9 @@ static void readAndExtractWirelessData(uint8_t wlConn)
 						(currentWirelessPackage[wlConn].payloadSize > PACKAGE_MAX_PAYLOAD_SIZE))
 					{
 						/* at least one of the parameters is out of range..reset state machine */
-						//showWarning(__FUNCTION__, "invalid header, but CRC8 was right - implementation error?");
+						XF1_xsprintf(infoBuf, "invalid header, but CRC8 was right - implementation error?\r\n");
+						pushMsgToShellQueue(infoBuf);
+						numberOfInvalidPackages[wlConn]++;
 						currentRecHandlerState[wlConn] = STATE_START;
 						dataCntr[wlConn] = 0;
 					}
@@ -368,7 +372,7 @@ static void readAndExtractWirelessData(uint8_t wlConn)
 					patternReplaced[wlConn] = 0;
 					dataCntr[wlConn] = 0;
 					numberOfInvalidPackages[wlConn]++;
-					XF1_xsprintf(infoBuf, "Info: Invalid header received, reset state machine\r\n");
+					XF1_xsprintf(infoBuf, "Info: Invalid header CRC received, reset state machine\r\n");
 					pushMsgToShellQueue(infoBuf);
 				}
 			}
@@ -406,11 +410,9 @@ static void readAndExtractWirelessData(uint8_t wlConn)
 						/* received acknowledge - send message to queueRecAck */
 						currentWirelessPackage[wlConn].sysTime = *((uint32_t*)&data[wlConn][dataCntr[wlConn] - 6]);
 						numberOfAckReceived[wlConn]++;
-						if(xQueueSendToBack(ReceivedPackages[wlConn], &currentWirelessPackage[wlConn], ( TickType_t ) pdMS_TO_TICKS(MAX_DELAY_PACK_HANDLER_MS) ) != pdTRUE) /* ToDo: handle failure on pushing package to receivedPackages queue , currently it is dropped if unsuccessful */
+						if(pushToReceivedPackagesQueue(wlConn, currentWirelessPackage[wlConn]) != pdTRUE) /* ToDo: handle failure on pushing package to receivedPackages queue , currently it is dropped if unsuccessful */
 						{
 							/* queue full */
-							numberOfDroppedAcks[wlConn]++;
-							FRTOS_vPortFree(currentWirelessPackage[wlConn].payload); /* free memory since it wont be done on popping from queue */
 							XF1_xsprintf(infoBuf, "Error: Received acknowledge but unable to push this message to the send handler for wireless queue %u because queue full\r\n", (unsigned int) wlConn);
 							LedRed_On();
 							pushMsgToShellQueue(infoBuf);
@@ -428,19 +430,13 @@ static void readAndExtractWirelessData(uint8_t wlConn)
 						numberOfPacksReceived[wlConn]++;
 						numberOfPayloadBytesExtracted[wlConn] += currentWirelessPackage[wlConn].payloadSize;
 						/* received data package - send data to corresponding devices plus inform package generator to prepare a receive acknowledge */
-						if(xQueueSendToBack(ReceivedPackages[wlConn], &currentWirelessPackage[wlConn], ( TickType_t ) pdMS_TO_TICKS(MAX_DELAY_PACK_HANDLER_MS) ) != pdTRUE) /* ToDo: handle queue full, now package is discarded */
+						if(pushToReceivedPackagesQueue(wlConn, currentWirelessPackage[wlConn]) != pdTRUE) /* ToDo: handle queue full, now package is discarded */
 						{
 							/* queue full */
-							numberOfDroppedPackages[wlConn]++;
-							FRTOS_vPortFree(currentWirelessPackage[wlConn].payload); /* free memory of this package since it wont be freed when popped from queue */
 							XF1_xsprintf(infoBuf, "Error: Received data package but unable to push this message to the send handler for wireless queue %u because queue full\r\n", (unsigned int) wlConn);
 							LedRed_On();
 							pushMsgToShellQueue(infoBuf);
 						}
-						//sprintf(infoBuf, "Received data package, device %u; timestamp package: %lu\r\n", currentWirelessPackage[wirelessConnNr].devNum, currentWirelessPackage[wlConn].sysTime);
-						//pushMsgToShellQueue(infoBuf, strlen(infoBuf));
-						/* update average size of received payload packages */
-						//updateAvPayloadSizeRecDataPack(wirelessConnNr, currentWirelessPackage[wlConn].payloadSize);
 						/* check if it's the same session number as before */
 						if (sessionNumberLastValidPackage[currentWirelessPackage[wlConn].devNum] != currentWirelessPackage[wlConn].sessionNr)
 						{
@@ -540,6 +536,45 @@ static bool checkForPackStartReplacement(uint8_t* ptrToData, uint16_t* dataCntr,
 		}
 	}
 	return false;
+}
+
+/*!
+* \fn ByseType_t pushToReceivedPackagesQueue(tUartNr wlConn, tWirelessPackage package)
+* \brief Stores the received package in correct queue.
+* \param wlConn: UART number where package was received.
+* \param package: The package that was received
+* \return Status if xQueueSendToBack has been successful, pdFAIL if push unsuccessful
+*/
+BaseType_t pushToReceivedPackagesQueue(tUartNr wlConn, tWirelessPackage package)
+{
+	if(xQueueSendToBack(ReceivedPackages[wlConn], &package, ( TickType_t ) pdMS_TO_TICKS(MAX_DELAY_PACK_HANDLER_MS) ) != pdTRUE) /* ToDo: handle failure on pushing package to receivedPackages queue , currently it is dropped if unsuccessful */
+	{
+		/* queue full */
+		numberOfDroppedAcks[wlConn]++;
+		FRTOS_vPortFree(package.payload); /* free memory since it wont be done on popping from queue */
+		return pdFAIL;
+	}
+	if(config.LoggingEnabled)
+	{
+		/* generate new package because payload is freed upon queue pull */
+		tWirelessPackage tmpPackage = package;
+		tmpPackage.payload = (uint8_t*) FRTOS_pvPortMalloc(tmpPackage.payloadSize*sizeof(int8_t));
+		if(tmpPackage.payload == NULL) /* malloc failed */
+		{
+			return pdTRUE; /* because package handling was successful, only logging failure */
+		}
+		/* copy payload into new package */
+		for(int cnt=0; cnt < tmpPackage.payloadSize; cnt++)
+		{
+			tmpPackage.payload[cnt] = package.payload[cnt];
+		}
+		if(pushPackageToLoggerQueue(tmpPackage, RECEIVED_PACKAGE, wlConn) != pdTRUE)
+		{
+			/* free memory here because it wont be done when popping it from queue */
+			FRTOS_vPortFree(tmpPackage.payload);
+		}
+	}
+	return pdTRUE;
 }
 
 

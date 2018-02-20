@@ -122,10 +122,12 @@ void spiHandler_TaskInit(void)
 
 
 	/* Wait until both IRQ's are high (means that the MAX14830 are ready to be written to) */
+#if PL_WITH_BASEBOARD
 	while ((nIrqWirelessSide_GetVal() == false) || (nIrqDeviceSide_GetVal() == false))
 	{
 		vTaskDelay(pdMS_TO_TICKS(20)); /* Wait for the next cycle */
 	}
+#endif
 
 	/* Set PLL devider and multiplier */
 	spiWriteToAllUartInterfaces(MAX_REG_PLL_CONFIG, 0x06);	/* 0x06: Multiply by 6, factor 6 => freq_in*1 in PLL */
